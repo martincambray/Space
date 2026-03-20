@@ -1,0 +1,13 @@
+# Maven
+target/
+
+# Eclipse
+.settings/
+.project
+.classpath
+
+# Logs
+*.log
+
+# MacOS
+.DS_Store
