@@ -4,7 +4,7 @@ body {
   background-size: cover;                                               /* remplit l'écran */
   background-position: center;                                          /* centre */
   background-repeat: no-repeat;                                         /* pas de répétition */
-  height: 100vh;                                                        /* pleine hauteur */
+  height: 100vh;                                                        /* viewport height (hauteur de la fenêtre visible) */
   margin: 0;                                                            /* supprime marges */
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;  /* police type Apple */
 }
@@ -12,32 +12,32 @@ body {
 /* ===== TITRE ===== */
 .main-title {
   text-align: center;                                                   /* centre */
-  font-size: 2.8em;                                                     /* taille */
-  font-weight: 600;                                                     /* semi-bold */
+  font-size: 2.5em;                                                     /* multiplicateur de taille de police */
+  font-weight: 600;                                                     /* semi-bold (gras) */
   color: white;
   margin-top: 40px;                                                     /* espace par rapport au top */
   letter-spacing: 1.5px;                                                /* espace inter caractere */
 
   /* effet glow */
   text-shadow:                                                          /* jouer avec les pixel */
-    0 0 5px rgba(255,255,255,0.8),                                      /* pour la taille de l'effet */
+    0 0 5px rgba(255,255,255,0.8),                                      /* pour la taille de l'effet néon */
     0 0 10px rgba(255,255,255,0.6),
     0 0 20px rgba(0,150,255,0.5);
 }
 
 /* ===== LOGIN BOX ===== */
 .login-box {
-  width: 400px;
-  padding: 40px;
+  width: 400px;                                                         /* largeur */
+  padding: 40px;                                                        /* espacement interieur */
   background: rgba(255,255,255,0.1);                                    /* effet galce */
-  border: 1px solid rgba(255,255,255,0.3);
+  border: 1px solid rgba(255,255,255,0.3);                              /* bordure pour renforcer l'effet */
   border-radius: 20px;
-  backdrop-filter: blur(20px);                                          /* flou */
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px);                                          /* floutage arriere plan */
+  position: absolute;                                                   /**/
+  top: 50%;                                                                 /* centrage */
+  left: 50%;                                                                /* parfait */
+  transform: translate(-50%, -50%);                                     /**/
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);                              /* Ombre pour effet “flottant" */
 }
 
 /* ===== INPUT ===== */
@@ -67,7 +67,7 @@ body {
   left: 0;
   color: white;
   transform: translateY(-50%);
-  pointer-events: none;
+  pointer-events: none;                                                 /* Permet de cliquer “à travers” le label*/
   transition: 0.3s;
 }
 
@@ -89,7 +89,7 @@ body {
   width: 25px;
   height: 25px;
 
-  background: rgba(255,255,255,0.15); 
+  background: rgba(255,255,255,0.15);
   border: 1px solid rgba(255,255,255,0.3);
   border-radius: 50%;
 

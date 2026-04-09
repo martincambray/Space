@@ -1,9 +1,9 @@
-<!DOCTYPE html> <!-- indique un document HTML5 -->
+<!DOCTYPE html>
 
-<html lang="fr"> <!-- langue du document -->
+<html lang="fr">
 
 <head>
-  <meta charset="utf-8"> <!-- encodage UTF-8 (accents, etc.) -->
+  <meta charset="utf-8"> <!-- encodage UTF-8 (accents, etc...) -->
   <title>SMC — Connexion</title>
 
   <!-- Import de la police Apple-like -->
@@ -22,19 +22,19 @@
   <!-- Conteneur du formulaire -->
   <div class="login-box">
 
-    <!-- id="login-form" pour que le JS puisse intercepter la soumission -->
+    <!-- id="login-form" pour que le JS puisse intercepter -->
     <form id="login-form">
 
-      <!-- Champ mail — name="mail" correspond au champ attendu par AuthRequest côté API -->
+      <!-- Champ mail - name="mail" pour correspondre au futur champ attendu par AuthRequest côté API -->
       <div class="input-box">
-        <input type="text" required name="mail" id="mail"> <!-- champ texte -->
-        <label>Email</label> <!-- label flottant -->
+        <input type="text" required name="mail" id="mail">
+        <label>Email</label>
       </div>
 
-      <!-- Champ Mot de passe -->
+      <!-- Champ Mot de passe idem ici -->
       <div class="input-box">
-        <input type="password" required name="password" id="password"> <!-- champ password -->
-        <label>Password</label> <!-- label -->
+        <input type="password" required name="password" id="password">
+        <label>Password</label>
 
         <!-- Bouton afficher / masquer -->
         <button type="button" id="togglePassword">👁️</button>
@@ -59,10 +59,10 @@
     const toggleBtn    = document.getElementById("togglePassword");   // bouton oeil
     const errorMsg     = document.getElementById("error-msg");        // message d'erreur
 
-    // Désactive le bouton au chargement
+    // On désactive le bouton au chargement
     loginButton.disabled = true;
 
-    // Vérifie si les champs sont remplis pour activer/désactiver le bouton
+    // On vérif si les champs sont remplis pour activer/désactiver le bouton
     function checkInputs() {
       loginButton.disabled = mailInput.value.trim() === "" || passwordInput.value.trim() === "";
     }
@@ -70,26 +70,26 @@
     mailInput.addEventListener("input", checkInputs);
     passwordInput.addEventListener("input", checkInputs);
 
-    // Toggle afficher / masquer mot de passe
+    // Toggle show/mask le MDP
     toggleBtn.addEventListener("click", () => {
       if (passwordInput.type === "password") {
         passwordInput.type = "text";
-        toggleBtn.textContent = "🫣";
+        toggleBtn.textContent = "🫣"; // a changer par les icones
       } else {
         passwordInput.type = "password";
-        toggleBtn.textContent = "👀";
+        toggleBtn.textContent = "👀"; // idem
       }
     });
 
-    // Soumission du formulaire : appel REST à l'API d'authentification
+    // Pour la soumission du formulaire à l'API rest
     document.getElementById("login-form").addEventListener("submit", async (e) => {
       e.preventDefault(); // empêche le rechargement natif de la page
 
-      errorMsg.style.display = "none"; // cache un éventuel message d'erreur précédent
-      loginButton.disabled = true;     // évite les doubles clics pendant la requête
+      errorMsg.style.display = "none"; // Pour cache un éventuel message d'erreur d'avant
+      loginButton.disabled = true;     // Pour évite les doubles clics pendant la requête
 
       try {
-        // POST /api/auth — envoie mail + password en JSON
+        // Pour la méthode POST — envoie mail + password en JSON
         const response = await fetch("/api/auth", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -100,23 +100,23 @@
         });
 
         if (!response.ok) {
-          // 401 Unauthorized ou autre erreur → affiche le message d'erreur
+          // erreur 401 Unauthorized ou autre erreur : on affiche le message d'erreur
           errorMsg.style.display = "block";
           loginButton.disabled = false;
           return;
         }
 
-        // L'API retourne { token: "eyJ..." }
+        // L'API retourne { token: "[token]" }
         const data = await response.json();
 
-        // Stocke le token JWT pour les futures requêtes
+        // On stocke le token JWT pour les futures requêtes
         localStorage.setItem("jwt", data.token);
 
-        // Redirige vers la page principale
+        // On redirige vers la page principale
         window.location.href = "/menu/menu.html";
 
       } catch (err) {
-        // Erreur réseau (serveur inaccessible, etc.)
+        // Erreur réseau (serveur inaccessible, etc....)
         errorMsg.textContent = "Erreur de connexion au serveur.";
         errorMsg.style.display = "block";
         loginButton.disabled = false;
