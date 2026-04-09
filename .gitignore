@@ -1,14 +1,188 @@
+# ==============================================================
+#  .gitignore — Space Mission Control
+#  Couvre : Maven, Java, Spring Boot, Docker,
+#            macOS, Windows, Linux,
+#            VSCode, IntelliJ IDEA, Eclipse, NetBeans
+# ==============================================================
+
+
+# ══════════════════════════════════════════════════════════════
+#  MAVEN — Dossier de build généré automatiquement
+#  `mvn package` recrée target/ à chaque build → ne jamais versionner
+# ══════════════════════════════════════════════════════════════
 target/
-bin/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+
+# ══════════════════════════════════════════════════════════════
+#  JAVA — Fichiers compilés
+# ══════════════════════════════════════════════════════════════
 *.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
 
-# Eclipse
-.project
-.classpath
-.settings/
 
-# Logs
+# ══════════════════════════════════════════════════════════════
+#  SPRING BOOT — Fichiers générés au runtime
+# ══════════════════════════════════════════════════════════════
+spring-shell.log
+
+
+# ══════════════════════════════════════════════════════════════
+#  DOCKER — Fichiers temporaires
+# ══════════════════════════════════════════════════════════════
+.docker/
+
+
+# ══════════════════════════════════════════════════════════════
+#  LOGS — Jamais dans le dépôt
+# ══════════════════════════════════════════════════════════════
 *.log
+logs/
+log/
 
-# OS
+
+# ══════════════════════════════════════════════════════════════
+#  MACOS — Fichiers système Apple
+# ══════════════════════════════════════════════════════════════
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+.AppleDouble
+.LSOverride
+Icon?
+.fseventsd
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+
+# ══════════════════════════════════════════════════════════════
+#  WINDOWS — Fichiers système Microsoft
+# ══════════════════════════════════════════════════════════════
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+
+# ══════════════════════════════════════════════════════════════
+#  LINUX — Fichiers système
+# ══════════════════════════════════════════════════════════════
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+
+# ══════════════════════════════════════════════════════════════
+#  VSCODE — Configuration locale de l'éditeur
+#  On versionne .vscode/extensions.json (recommandations d'extensions)
+#  mais pas les settings personnels ni le cache
+# ══════════════════════════════════════════════════════════════
+.vscode/*
+!.vscode/extensions.json
+.history/
+*.vsix
+
+
+# ══════════════════════════════════════════════════════════════
+#  INTELLIJ IDEA — Fichiers de projet JetBrains
+# ══════════════════════════════════════════════════════════════
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+.idea_modules/
+
+
+# ══════════════════════════════════════════════════════════════
+#  ECLIPSE — Fichiers de projet Eclipse / Spring Tool Suite
+# ══════════════════════════════════════════════════════════════
+.classpath
+.project
+.settings/
+.loadpath
+.recommenders/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.metadata
+
+
+# ══════════════════════════════════════════════════════════════
+#  NETBEANS — Fichiers de projet NetBeans
+# ══════════════════════════════════════════════════════════════
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+
+# ══════════════════════════════════════════════════════════════
+#  VARIABLES D'ENVIRONNEMENT — Fichiers de secrets
+#  Ne jamais versionner les mots de passe, clés API, tokens
+# ══════════════════════════════════════════════════════════════
+.env
+.env.*
+!.env.example
+*.env
+secrets.properties
+application-prod.properties
+application-local.properties
+
+
+# ══════════════════════════════════════════════════════════════
+#  JACOCO — Rapports de couverture générés par mvn verify
+# ══════════════════════════════════════════════════════════════
+*.exec
+
+
+# ══════════════════════════════════════════════════════════════
+#  LATEX — Fichiers auxiliaires générés lors de la compilation
+# ══════════════════════════════════════════════════════════════
+*.aux
+*.out
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+*.blg
+*.bbl
+*.bcf
+*.run.xml
+*.nav
+*.snm
+*.vrb
