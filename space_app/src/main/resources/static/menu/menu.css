@@ -6,52 +6,49 @@
 * {
   margin: 0;
   padding: 0;
-  box-sizing: border-box; /* Le padding/border ne gonfle pas la taille */
+  box-sizing: border-box;                                       /* Le padding/border ne gonfle pas la taille */
   font-family: 'Inter', sans-serif;
 }
 
-/* Corps de la page : fond noir, pas de défilement */
 body {
   background: #000;
-  overflow: hidden; /* empêche le scroll de la page entière */
+  overflow: hidden;                                             /* empêche le scroll de la page entière */
 }
 
 /* ===================================================
-   ÉTOILES EN FOND
-   L'image stardust.png est en 200%×200% pour pouvoir
-   se déplacer sans laisser de bord blanc
+                     ÉTOILES EN FOND
    =================================================== */
 .stars {
-  position: absolute;      /* hors du flux normal */
+  position: absolute;                                             /* hors du flux normal */
   width: 200%;
   height: 200%;
-  background: url("Assets/stardust.png"); /* image d'étoiles */
-  animation: moveStars 60s linear infinite; /* animation lente, en boucle */
-  z-index: 0; /* derrière tout le reste */
+  background: url("Assets/stardust.png");                         /* image de mathias <3 */
+  animation: moveStars 60s linear infinite;                       /* animation lente, en boucle */
+  z-index: 0;                                                     /* derrière tout le reste */
 }
 
 /* Déplacement diagonal de l'image d'étoiles */
 @keyframes moveStars {
-  from { transform: translate(0, 0); }            /* position de départ */
-  to   { transform: translate(-500px, -500px); }  /* position finale */
+  from { transform: translate(0, 0); }                            /* position de départ */
+  to   { transform: translate(-500px, -500px); }                  /* position finale */
 }
 
 /* ===================================================
-   SIDEBAR (panneau latéral gauche)
+                         SIDEBAR
    Largeur 0 par défaut → s'ouvre à 220px via .open
    =================================================== */
 .sidebar {
-  position: fixed;            /* collée à gauche, hors du flux */
+  position: fixed;                                                /* collée à gauche, hors du flux */
   left: 0;
   top: 0;
   height: 100%;
-  width: 0;                   /* invisible par défaut */
-  overflow: hidden;           /* masque le contenu quand width=0 */
-  background: rgba(255,255,255,0.08);              /* verre dépoli sombre */
-  border-right: 1px solid rgba(255,255,255,0.2);   /* bordure subtile */
-  backdrop-filter: blur(15px);                     /* flou derrière la sidebar */
-  transition: 0.4s ease;     /* animation fluide à l'ouverture */
-  z-index: 10;               /* au-dessus du fond étoilé */
+  width: 0;                                                       /* invisible par défaut */
+  overflow: hidden;                                               /* masque le contenu quand width=0 */
+  background: rgba(255,255,255,0.08);                             /* effet galce sombre */
+  border-right: 1px solid rgba(255,255,255,0.2);                  /* bordure */
+  backdrop-filter: blur(15px);                                    /* flou derrière la sidebar */
+  transition: 0.4s ease;                                          /* animation fluide à l'ouverture */
+  z-index: 10;                                                    /* au-dessus du fond étoilé */
 }
 
 /* Quand la classe .open est ajoutée via JS */
@@ -68,9 +65,9 @@ body {
   text-decoration: none;
   padding: 10px;
   border-radius: 12px;
-  transition: 0.3s; /* fondu au survol */
+  transition: 0.3s;                                               /* fondu au survol */
 }
-.nav-list a:hover { background: rgba(255,255,255,0.2); } /* fond clair au hover */
+.nav-list a:hover { background: rgba(255,255,255,0.2); }          /* fond clair au hover */
 
 /* Texte du lien, avec marge à gauche de l'icône */
 .links_name { margin-left: 10px; }
@@ -79,7 +76,7 @@ body {
    LIGNE DE PROFIL (coin bas-gauche de la sidebar)
    =================================================== */
 .profile-line {
-  position: absolute; /* positionnée par rapport à la sidebar */
+  position: absolute;                                              /* positionnée par rapport à la sidebar */
   bottom: 20px;
   left: 20px;
   display: flex;
@@ -89,29 +86,29 @@ body {
   font-size: 1em;
   z-index: 100;
 }
-.profile-line i { font-size: 1.5em; } /* icône légèrement plus grande */
+.profile-line i { font-size: 1.5em; }                               /* icône légèrement plus grande */
 
 /* ===================================================
    SOUS-MENU (caché par défaut, affiché si .open)
    =================================================== */
-.submenu { display: none; margin-left: 30px; }             /* caché */
-.has-submenu.open .submenu { display: block; }              /* visible si parent ouvert */
-.submenu li a { font-size: 0.9em; color: rgba(255,255,255,0.8); } /* texte plus petit */
+.submenu { display: none; margin-left: 30px; }                      /* caché */
+.has-submenu.open .submenu { display: block; }                      /* visible si parent ouvert */
+.submenu li a { font-size: 0.9em; color: rgba(255,255,255,0.8); }   /* texte plus petit */
 
 /* ===================================================
-   BOUTONS FLOTTANTS : hamburger (#btn) et logout
+   BOUTONS : burger (#btn) et logout
    Ils se déplacent à droite quand la sidebar est ouverte
    =================================================== */
 #btn, #logout-btn {
-  position: fixed;       /* positionnés par rapport à l'écran */
+  position: fixed;                                                  /* positionnés par rapport à l'écran */
   font-size: 30px;
   color: white;
   cursor: pointer;
-  z-index: 1000;         /* au-dessus de tout (sauf popup) */
-  transition: 0.4s ease; /* animation de déplacement */
+  z-index: 1000;                                                    /* au-dessus de tout (sauf popup) */
+  transition: 0.4s ease;                                            /* animation de déplacement */
 }
-#btn      { top: 20px;    left: 30px; } /* hamburger en haut */
-#logout-btn { bottom: 20px; left: 30px; text-decoration: none; } /* logout en bas */
+#btn      { top: 20px;    left: 30px; }                             /* hamburger en haut */
+#logout-btn { bottom: 20px; left: 30px; text-decoration: none; }    /* logout en bas */
 
 /* Quand la sidebar est ouverte, on pousse les boutons à droite */
 body.sidebar-open #btn,
@@ -122,17 +119,17 @@ body.sidebar-open #logout-btn { left: 250px; }
    =================================================== */
 .simulation-screen {
   position: fixed;
-  top: 125px;              /* décalé sous la toolbar */
-  left: 50%;               /* centrage horizontal */
-  transform: translateX(-50%); /* compensation du décalage */
+  top: 125px;                                                       /* décalé sous la toolbar */
+  left: 50%;                                                        /* centrage horizontal */
+  transform: translateX(-50%);                                      /* compensation du décalage */
   width: 1100px;
   height: 600px;
   background: rgba(0,0,0,0.3);
-  border: 2px solid #00f0ff;                         /* bordure cyan */
+  border: 2px solid #00f0ff;                                        /* bordure cyan */
   border-radius: 5px;
-  box-shadow: 0 0 10px #00f0ff,                      /* lueur interne */
+  box-shadow: 0 0 10px #00f0ff,                                     /* lueur interne */
               0 0 20px #00f0ff,
-              0 0 40px #00f0ff;                       /* lueur externe */
+              0 0 40px #00f0ff;                                     /* lueur externe */
   z-index: 100;
   display: flex;
   align-items: center;
@@ -149,13 +146,13 @@ body.sidebar-open #logout-btn { left: 250px; }
 .toolbar {
   position: fixed;
   top: 20px;
-  left: 50%;               /* centrage horizontal */
+  left: 50%;
   transform: translateX(-50%);
   display: flex;
-  flex-direction: column;  /* deux rangées de boutons */
+  flex-direction: column;                                           /* deux rangées de boutons */
   gap: 10px;
   z-index: 100;
-  transition: 0.4s ease;  /* se déplace si sidebar ouverte */
+  transition: 0.4s ease;                                            /* se déplace si sidebar ouverte */
 }
 
 /* Décalage de la toolbar si sidebar ouverte */
@@ -165,8 +162,7 @@ body.sidebar-open .simulation-screen {left: calc(50% + 110px);}
 .toolbar-row { display: flex; gap: 12px; }
 
 /* ===================================================
-   BOUTONS DE LA TOOLBAR
-   Fond bleu translucide + lueur cyan au hover
+                 BOUTONS DE LA TOOLBAR
    =================================================== */
 .tool-btn {
   background: rgba(0,150,255,0.2);
@@ -175,7 +171,7 @@ body.sidebar-open .simulation-screen {left: calc(50% + 110px);}
   border-radius: 5px;
   cursor: pointer;
   font-weight: 500;
-  text-shadow: 0 0 3px rgba(255,255,255,0.8); /* léger halo blanc sur le texte */
+  text-shadow: 0 0 3px rgba(255,255,255,0.8);                       /* léger halo blanc sur le texte */
   transition: all 0.3s ease;
 }
 
@@ -184,11 +180,11 @@ body.sidebar-open .simulation-screen {left: calc(50% + 110px);}
   background: rgba(0,150,255,0.5);
   border-color: #00f0ff;
   color: #00f0ff;
-  text-shadow: 0 0 5px #fff, 0 0 10px #0ff, 0 0 20px #0ff; /* triple halo */
+  text-shadow: 0 0 5px #fff, 0 0 10px #0ff, 0 0 20px #0ff;          /* triple halo */
   box-shadow: 0 0 5px #00f0ff, 0 0 10px #00f0ff, 0 0 20px #00f0ff;
 }
 
-/* Variantes de taille */
+/* Variantes de taille pour tester (encore à définir) */
 .tool-btn-large  { padding: 12px 24px; font-size: 1.2em; }
 .tool-btn-medium { padding: 10px 20px; font-size: 1em;   }
 .tool-btn-small  { padding:  6px 12px; font-size: 0.9em; }
@@ -198,46 +194,42 @@ body.sidebar-open .simulation-screen {left: calc(50% + 110px);}
 
 
 /* ===================================================
-   POPUP MODALE — FOND (overlay)
-
-   display:none par défaut → le popup est invisible
-   On passe à display:flex via JS pour l'afficher
-   Il couvre tout l'écran et centre le contenu
+                         POPUP
    =================================================== */
 .popup-overlay {
-  position: fixed;        /* couvre tout l'écran, peu importe le scroll */
+  position: fixed;                                                /* couvre tout l'écran, peu importe le scroll */
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0,0,0,0.7);    /* fond sombre semi-transparent */
-  backdrop-filter: blur(10px);     /* flou derrière la modale */
-  display: none;           /* ← CACHÉ PAR DÉFAUT, JS passe à "flex" au clic */
-  align-items: center;     /* centrage vertical du contenu */
-  justify-content: center; /* centrage horizontal du contenu */
-  z-index: 2000;           /* au-dessus de TOUT le reste (toolbar, simulation…) */
+  background: rgba(0,0,0,0.7);                                    /* fond sombre semi-transparent */
+  backdrop-filter: blur(10px);                                    /* flou derrière */
+  display: none;                                                  /* on cache par default, JS passe à "flex" au clic */
+  align-items: center;                                            /* centrage vertical du contenu */
+  justify-content: center;                                        /* centrage horizontal du contenu */
+  z-index: 2000;                                                  /* au-dessus de TOUT le reste (toolbar, simulation…) */
 }
 
 /* ===================================================
-   POPUP MODALE — BOÎTE DE DIALOGUE
+   POPUP POUR CRÉATION DE MISSIONS
    =================================================== */
 .popup-content {
-  background: rgba(0,0,0,0.85); /* fond presque opaque */
-  border: 2px solid #00f0ff;    /* bordure cyan cohérente avec le thème */
+  background: rgba(0,0,0,0.85);                                   /* fond presque opaque */
+  border: 2px solid #00f0ff;                                      /* bordure cyan */
   border-radius: 10px;
   padding: 30px;
-  width: 350px;                 /* largeur fixe de la fenêtre */
+  width: 350px;
   box-shadow:
-    0 0 10px #00f0ff,           /* lueur proche */
-    0 0 20px #00f0ff;           /* lueur plus diffuse */
+    0 0 10px #00f0ff,                                             /* lueur proche */
+    0 0 20px #00f0ff;                                             /* lueur plus diffuse */
   color: white;
 }
 
-/* Titre de la popup */
+/* Titre du popup */
 .popup-content h2 {
   text-align: center;
   margin-bottom: 20px;
-  color: #00f0ff; /* cyan pour rester dans le thème */
+  color: #00f0ff;                                                 /* cyan pour rester dans le thème */
 }
 
 /* Labels des champs */
@@ -248,18 +240,18 @@ body.sidebar-open .simulation-screen {left: calc(50% + 110px);}
   font-size: 0.9em;
 }
 
-/* Listes déroulantes stylisées */
+/* Listes déroulantes */
 .popup-content select {
   width: 100%;
   padding: 8px;
-  background: rgba(0,150,255,0.1); /* fond bleu translucide */
+  background: rgba(0,150,255,0.1);                                /* fond bleu "translucide" pas degueu */
   color: white;
-  border: 1px solid rgba(0,150,255,0.5);
+  border: 1px solid rgba(0,150,255,0.5);                          /* avec la bordure adaptée */
   border-radius: 5px;
-  outline: none; /* retire le contour natif du navigateur */
+  outline: none;                                                  /* retire le contour natif du navigateur */
 }
 
-/* Zone de boutons : Valider à gauche, Annuler à droite */
+/* Zone de boutons */
 .popup-actions {
   display: flex;
   justify-content: space-between;

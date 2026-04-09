@@ -13,25 +13,19 @@
 
   <style>
     /* ================== RESET & FOND ================== */
-    /* Suppression des marges/paddings navigateur par défaut */
     * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter', sans-serif; }
-
-    /* Corps : fond noir total, sans scroll */
     body { background:#000; overflow:hidden; }
 
-    /* ===== ÉTOILES EN FOND =====
-       L'image est 2× la taille de l'écran pour permettre
-       l'animation de déplacement sans laisser de bord blanc */
     .stars {
-      position:absolute;    /* en dehors du flux, positionné par rapport au body */
+      position:absolute;                                          /* en dehors du flux, positionné par rapport au body */
       width:200%;
       height:200%;
       background:url("Assets/stardust.png");
-      animation: moveStars 60s linear infinite; /* lent, en boucle infinie */
-      z-index:0;            /* tout en bas de la pile visuelle */
+      animation: moveStars 60s linear infinite;                   /* lent, en boucle infinie */
+      z-index:0;
     }
 
-    /* Déplacement diagonal simulant une dérive dans l'espace */
+    /* Déplacement diagonal */
     @keyframes moveStars {
       from { transform:translate(0,0); }
       to   { transform:translate(-500px,-500px); }
@@ -40,16 +34,16 @@
     /* ===== SIDEBAR =====
        Panneau latéral : width:0 → invisible, passe à 220px avec .open */
     .sidebar {
-      position:fixed;           /* fixée à gauche, indépendante du scroll */
+      position:fixed;                                             /* fixée à gauche, indépendante du scroll */
       left:0; top:0;
       height:100%;
-      width:0;                  /* cachée par défaut */
-      overflow:hidden;          /* empêche le contenu de dépasser quand width=0 */
-      background:rgba(255,255,255,0.08); /* verre dépoli */
+      width:0;                                                    /* cachée par défaut */
+      overflow:hidden;                                            /* empêche le contenu de dépasser quand width=0 */
+      background:rgba(255,255,255,0.08);                          /* verre dépoli */
       border-right:1px solid rgba(255,255,255,0.2);
-      backdrop-filter:blur(15px); /* flou du fond derrière la sidebar */
-      transition:0.4s ease;     /* animation fluide à l'ouverture/fermeture */
-      z-index:10;               /* au-dessus du fond étoilé */
+      backdrop-filter:blur(15px);                                 /* flou du fond derrière la sidebar */
+      transition:0.4s ease;                                       /* animation fluide à l'ouverture/fermeture */
+      z-index:10;                                                 /* au-dessus du fond étoilé */
     }
 
     /* Classe ajoutée par JS pour ouvrir la sidebar */
