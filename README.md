@@ -17,12 +17,15 @@ Definir la procédure pour partage de travail : nom des branches, scope du trava
 
 ---
 ## \[ Environnement de developemment \]
+Techno utilisées :
+- Spring boot
+- Test ?
 
 | LIBRAIRIE | VERSION | COMMENT | MAEVEN |
 |-|-|-|-|
 | [EJML](https://ejml.org/wiki/index.php?title=Main_Page) | v.0.44.0 | Manipulation de matrice Back|  [mvnrepo](https://mvnrepository.com/artifact/org.ejml/ejml-all/0.44.0) |
 | [Three.js](https://threejs.org/) | ? | Animation Front | ? |
-|  |  | | |
+| [Apache Common Math](https://commons.apache.org/proper/commons-math/userguide/ode.html) | v.3.6.1  | ODE solveur Back | [mvnrepo](https://mvnrepository.com/artifact/org.apache.commons/commons-math3/3.6.1) |
 
 Dockerfile :
 ```dockerfile
