@@ -1,0 +1,224 @@
+CREATE DATABASE IF NOT EXISTS smc_db
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE smc_db;
+
+-- =========================
+-- UTILISATEUR
+-- =========================
+CREATE TABLE IF NOT EXISTS utilisateur 
+(
+    id        INT NOT NULL AUTO_INCREMENT,
+    mail      VARCHAR(50) NOT NULL,
+    password  VARCHAR(255) NOT NULL,
+    lastname  VARCHAR(30),
+    firstname VARCHAR(30),
+    role      VARCHAR(30) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_utilisateur_mail (mail)
+);
+
+-- =========================
+-- CORPS CÉLESTES
+-- =========================
+CREATE TABLE IF NOT EXISTS celestial_body (
+    id             INT NOT NULL AUTO_INCREMENT,
+    name           VARCHAR(30),
+    mass           DOUBLE,          -- kg
+    radius         DOUBLE,          -- km
+    orbital_radius DOUBLE,          -- km depuis le soleil
+    ref_coord_x    DOUBLE,
+    ref_coord_y    DOUBLE,
+    PRIMARY KEY (id)
+);
+
+-- =========================
+-- TYPES DE MISSION
+-- =========================
+CREATE TABLE IF NOT EXISTS mission_type (
+    id          INT NOT NULL AUTO_INCREMENT,
+    name        VARCHAR(30),
+    description VARCHAR(255),
+    PRIMARY KEY (id)
+);
+
+-- =========================
+-- VAISSEAUX
+-- =========================
+CREATE TABLE IF NOT EXISTS spacecraft (
+    id            INT NOT NULL AUTO_INCREMENT,
+    name          VARCHAR(30),
+    description   VARCHAR(255),
+    battery_max   DOUBLE,  -- kWh (approx)
+    fuel_capacity DOUBLE,  -- kg de propergol
+    PRIMARY KEY (id)
+);
+
+-- =========================
+-- MISSIONS
+-- =========================
+CREATE TABLE IF NOT EXISTS mission (
+    id                INT NOT NULL AUTO_INCREMENT,
+    name              VARCHAR(30),
+    status            VARCHAR(30) NOT NULL,
+    operator_id       INT,
+    spacecraft_id     INT,
+    type_id           INT,
+    departure_body_id INT,
+    arrival_body_id   INT,
+    departure_date    DATETIME(6),
+    arrival_date      DATETIME(6),
+    orbital_time      INT, -- minutes
+    payload           VARCHAR(255),
+    trajectory        TEXT,
+    created_at        DATETIME(6),
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_mission_operator       FOREIGN KEY (operator_id)       REFERENCES utilisateur(id),
+    CONSTRAINT fk_mission_spacecraft     FOREIGN KEY (spacecraft_id)     REFERENCES spacecraft(id),
+    CONSTRAINT fk_mission_type           FOREIGN KEY (type_id)           REFERENCES mission_type(id),
+    CONSTRAINT fk_mission_departure_body FOREIGN KEY (departure_body_id) REFERENCES celestial_body(id),
+    CONSTRAINT fk_mission_arrival_body   FOREIGN KEY (arrival_body_id)   REFERENCES celestial_body(id)
+);
+
+-- =========================
+-- LOG TRAJECTOIRE
+-- =========================
+CREATE TABLE IF NOT EXISTS trajectory_log (
+    id            INT NOT NULL AUTO_INCREMENT,
+    mission_id    INT,
+    operator_id   INT,
+    body_id       INT,
+    computed_at   DATETIME(6),
+    altitude      DOUBLE,   -- km
+    initial_speed DOUBLE,   -- m/s
+    mass          DOUBLE,   -- kg
+    result_json   TEXT,
+    PRIMARY KEY (id),
+
+    CONSTRAINT fk_tlog_mission  FOREIGN KEY (mission_id)  REFERENCES mission(id),
+    CONSTRAINT fk_tlog_operator FOREIGN KEY (operator_id) REFERENCES utilisateur(id),
+    CONSTRAINT fk_tlog_body     FOREIGN KEY (body_id)     REFERENCES celestial_body(id)
+);
+
+-- =========================
+-- DONNÉES : CORPS CÉLESTES
+-- =========================
+INSERT INTO celestial_body (name, mass, radius, orbital_radius, ref_coord_x, ref_coord_y) VALUES
+('Soleil',  1.989e30, 696340.0,       0.0,          0.0,          0.0),
+('Mercure', 3.301e23,   2439.7,  57900000.0,  57900000.0,         0.0),
+('Vénus',   4.867e24,   6051.8, 108200000.0, 108200000.0,         0.0),
+('Terre',   5.972e24,   6371.0, 149600000.0, 149600000.0,         0.0),
+('Lune',    7.342e22,   1737.4,    384400.0, 149984400.0,         0.0),
+('Mars',    6.390e23,   3389.5, 227900000.0, 227900000.0,         0.0);
+
+-- =========================
+-- TYPES DE MISSION
+-- =========================
+INSERT INTO mission_type (name, description) VALUES
+('Mise en Orbite',  'Orbite basse terrestre (~500 km)'),
+('Mission Lunaire', 'Transfert Terre-Lune'),
+('Interplanétaire', 'Transfert vers Mars ou autre planète');
+
+-- =========================
+-- UTILISATEURS
+-- =========================
+INSERT INTO utilisateur (mail, password, lastname, firstname, role) VALUES
+
+('admin@smc.fr',
+ '$2a$10$wH8h7LJ6p8QyFh2KZ8sY1eGZy5l9V9XKQ1r0zQxFz7Vb1x7zYwJ8K',
+ 'Admin', 'Admin', 'ADMIN'),
+
+('fabian@smc.fr',
+ '$2a$10$2K8YpZrWnJQk1V9XfL3Z7eF6d8HnQmT1cYxVbW9GqLkF8eH2ZxT6W',
+ 'Labonne', 'Fabian', 'OPERATEUR'),
+
+('martin@smc.fr',
+ '$2a$10$9XcF7LkP3nT6ZqW8VbY2eH1JrKpL0mN5dF8HnQ2YxTz7GqW4Xc9Z',
+ 'Cambray', 'Martin', 'OPERATEUR'),
+
+('hugo@smc.fr',
+ '$2a$10$T7YxF2LkP9QwE3rV6bN8mH1ZcD4fG5jK8L0pQwXzYvR3tU6eW9M',
+ 'Chittaro', 'Hugo', 'OPERATEUR'),
+
+('eric@smc.fr',
+ '$2a$10$P9ZxW3VbN7mH1KqT4L8eF2YcD5rG6jJ0QwXzYvR3tU6eW9M1aB',
+ 'Ea', 'Eric', 'OPERATEUR'),
+
+('audric@smc.fr',
+ '$2a$10$M1aB3C5D7E9FhJkLmNoPqRsTuVwXyZ0123456789abcdefghi',
+ 'Olivier', 'Audric', 'OPERATEUR'),
+
+('mathias@smc.fr',
+ '$2a$10$ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210abcdefghiJKL',
+ 'Dieu', 'Mathias', 'OPERATEUR');
+
+-- =========================
+-- VAISSEAUX (physiquement plausibles)
+-- =========================
+INSERT INTO spacecraft (name, description, battery_max, fuel_capacity) VALUES
+('Satellite',   'Observation en orbite',      20000.0,   2000.0),
+('Pod Habité',  'Transport équipage',        18000.0, 120000.0),
+('Rover',       'Exploration surface',        6000.0,      0.0),
+('Module utilitaire', 'Cargo orbital',        2000.0,      0.0);
+
+-- =========================
+-- MISSIONS (cohérentes)
+-- =========================
+INSERT INTO mission (name, status, operator_id, spacecraft_id, type_id,
+                     departure_body_id, arrival_body_id,
+                     departure_date, arrival_date, orbital_time, payload, created_at)
+VALUES
+
+-- Planifiée (durée estimée)
+('Mission planned', 'PLANNED',
+ 2, 1, 1, 4, 4,
+ '2027-03-15 06:00:00', NULL, 90,
+ 'Satellite mise en orbite', '2026-03-14 10:30:00'),
+
+-- En cours
+('Mission in progress', 'IN_PROGRESS',
+ 3, 2, 2, 4, 5,
+ '2026-02-20 14:00:00', NULL, NULL,
+ 'Mission lunaire habitée', '2026-01-10 09:00:00'),
+
+-- Terminée (durée cohérente)
+('Mission completed', 'COMPLETED',
+ 4, 3, 3, 4, 6,
+ '2025-02-28 03:00:00', '2025-09-15 12:00:00', 288000,
+ 'Rover martien', '2025-01-05 08:00:00'),
+
+-- Annulée
+('Mission cancelled', 'CANCELLED',
+ 5, 4, 1, 4, 4,
+ '2026-05-01 10:00:00', NULL, NULL,
+ 'Mission cargo annulée', '2025-11-20 14:00:00');
+
+-- =========================
+-- TRAJECTOIRE
+-- =========================
+INSERT INTO trajectory_log (mission_id, operator_id, body_id,
+                             computed_at, altitude, initial_speed, mass, result_json)
+VALUES
+(1, 2, 4,
+ '2026-03-14 11:00:00',
+ 550.0,
+ 7600.0,
+ 4300.0,
+ '{"orbitalRadius":6921000,"orbitalSpeed":7590,"orbitalPeriod":5760}');
+
+-- =========================
+-- CHECK DATA
+-- =========================
+SELECT 'utilisateur'    AS table_name, COUNT(*) FROM utilisateur
+UNION ALL
+SELECT 'celestial_body', COUNT(*) FROM celestial_body
+UNION ALL
+SELECT 'mission_type', COUNT(*) FROM mission_type
+UNION ALL
+SELECT 'spacecraft', COUNT(*) FROM spacecraft
+UNION ALL
+SELECT 'mission', COUNT(*) FROM mission
+UNION ALL
+SELECT 'trajectory_log', COUNT(*) FROM trajectory_log;
