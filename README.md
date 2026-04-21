@@ -5,9 +5,9 @@ Console de gestion et planification de mission spatiale
 ## \[ Feuille de route \]
 - [x] Pitch projet
 - [x] Choix design front
-- [x] UML back
-- [ ] Choix librairie utilisées
-- [ ] Definition API
+- [ ] UML back \[refactor UML en cour\]
+- [X] Choix librairie utilisées
+- [X] Definition API
 - [ ] Front
 - [ ] Back
 
