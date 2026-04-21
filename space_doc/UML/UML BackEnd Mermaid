@@ -1,0 +1,213 @@
+classDiagram
+    direction TB
+
+    %% ── Entry point ──────────────────────────────────────────
+    class API_REST {
+        <<facade>>
+    }
+
+    %% ── Tableau de Bord ──────────────────────────────────────
+    class TableauDeBord {
+        <<facade>>
+        - account : Account
+        - registre : ActionRegistry
+        + lancerSpacecraft() void
+        + modifierTrajectoire() void
+        + calculerTrajectoire() void
+    }
+
+    %% ── Account & subclasses ─────────────────────────────────
+    class Account {
+        <<abstract>>
+        - login : int | String
+        - password : String
+        - type : TYPE_COMPTE
+        - missions : List~Mission~
+        + getter_setter()
+        + serializeToJSON() String
+        + readFromBDD() void
+    }
+    class Admin
+    class Planner
+    class Pilot
+
+    class TYPE_COMPTE {
+        <<enumeration>>
+        ADMIN
+        PILOT
+        PLANNER
+    }
+
+    %% ── Mission ──────────────────────────────────────────────
+    class Mission {
+        <<abstract>>
+        - missionName : String
+        - missionType : TYPE_MISSION
+        - spacecraft : Spacecraft
+        - operator : Account
+        - departure : LocalDate
+        - arrival : LocalDate
+        - description : String
+        + getter_setter()
+        + serializeToJSON() String
+        + readFromBDD() void
+    }
+
+    class TYPE_MISSION {
+        <<enumeration>>
+        MISSION_HABITEE
+        MISSION_AUTONOME
+        MISSION_CARGO
+    }
+
+    %% ── Spacecraft & subclasses ──────────────────────────────
+    class Spacecraft {
+        <<abstract>>
+        - name : String
+        - mass : double
+        - battery : double
+        - description : String
+        - orbit : Orbit
+        + updateConsummable(TYPE_ACTION) void
+        + getter_setter()
+    }
+    class Satellite {
+        - actionCost : Map~TYPE_ACTION, double~
+        + getter_setter()
+    }
+    class PodHabite {
+        - actionCost : Map~TYPE_ACTION, double~
+        + getter_setter()
+    }
+    class Fusee {
+        - actionCost : Map~TYPE_ACTION, double~
+        + getter_setter()
+    }
+
+    %% ── Orbit ────────────────────────────────────────────────
+    class Orbit {
+        - trajectoire : LinkedHashMap~int, List~int~~
+        - vectorSpeed : LinkedHashMap~int, Dmatrix~
+        - vectorAccel : LinkedHashMap~int, Dmatrix~
+        + getter_setter()
+        + computeNextPosition() void
+        + reset() void
+    }
+
+    %% ── ActionRegistry ───────────────────────────────────────
+    class ActionRegistry {
+        - typeActionToAction : Map~TYPE_ACTION, Runnable~
+        - capacities : Map~TYPE_ACTION, Spacecraft~
+        + registerAction(TYPE_ACTION, Runnable) void
+        + registerCapability(TYPE_ACTION, Spacecraft) void
+        + canExecute(TYPE_ACTION, Spacecraft) boolean
+        + execute(TYPE_ACTION, Spacecraft) void
+    }
+
+    %% ── Runnable ─────────────────────────────────────────────
+    class Runnable {
+        <<interface>>
+        + run() void
+    }
+
+    %% ── Action classes ───────────────────────────────────────
+    class OuvrirPanneauAction {
+        - moteurPhysique : MoteurPhysique
+        + run() void
+    }
+    class AllumerRadioAction {
+        - moteurPhysique : MoteurPhysique
+        + run() void
+    }
+    class ChangerPropulsionAction {
+        - moteurPhysique : MoteurPhysique
+        - deltav : double
+        + run() void
+    }
+
+    %% ── TYPE_ACTION ──────────────────────────────────────────
+    class TYPE_ACTION {
+        <<enumeration>>
+        CHANGER_PROPULSION
+        OUVRIR_PANNEAU
+        ALLUMER_RADIO
+    }
+
+    %% ── MoteurPhysique ───────────────────────────────────────
+    class MoteurPhysique {
+        - gravConstant : double
+        - dt : double
+        - celestialBodies : List~CelestialBody~
+        + eulerOrbitInit() Orbit
+        + perturbateOrbit(Orbit) Orbit
+        + triggerCalculation() Orbit
+        + getter_setter()
+    }
+
+    %% ── CelestialBody ────────────────────────────────────────
+    class CelestialBody {
+        <<abstract>>
+        - name : String
+        - coords : List~double~
+        - radius : double
+        - orbital_radius : double
+        - mass : double
+        - description : String
+        + getter_setter()
+    }
+
+    %% ══════════════════════════════════════════════════════════
+    %% RELATIONS
+    %% ══════════════════════════════════════════════════════════
+
+    %% Entry point
+    API_REST --> TableauDeBord
+
+    %% Facade compositions
+    TableauDeBord *-- "1" Account : account
+    TableauDeBord *-- "1" ActionRegistry : registre
+
+    %% Account
+    Account "1" --> "0..*" Mission : missions
+    Account ..> TYPE_COMPTE
+    Account <|-- Admin
+    Account <|-- Planner
+    Account <|-- Pilot
+
+    %% Mission
+    Mission ..> TYPE_MISSION
+    Mission "1" --> "1" Spacecraft : spacecraft
+
+    %% Spacecraft
+    Spacecraft "1" --> "1" Orbit : orbit
+    Spacecraft <|-- Satellite
+    Spacecraft <|-- PodHabite
+    Spacecraft <|-- Fusee
+
+    %% ActionRegistry — core of the pattern
+    %% 1. Knows Spacecraft to check capabilities (shared aggregation)
+    ActionRegistry "1" o-- "0..*" Spacecraft : capacities
+
+    %% 2. Creates and owns the *Action instances (composition)
+    ActionRegistry *-- "1" OuvrirPanneauAction
+    ActionRegistry *-- "1" AllumerRadioAction
+    ActionRegistry *-- "1" ChangerPropulsionAction
+
+    %% 3. Invokes them through the Runnable interface (dependency)
+    ActionRegistry ..> Runnable : «uses»
+
+    %% 4. Depends on TYPE_ACTION as key
+    ActionRegistry ..> TYPE_ACTION
+
+    %% Action classes implement Runnable
+    Runnable <|.. OuvrirPanneauAction
+    Runnable <|.. AllumerRadioAction
+    Runnable <|.. ChangerPropulsionAction
+
+    %% Action classes aggregate MoteurPhysique (injected, not owned)
+    OuvrirPanneauAction o-- "1" MoteurPhysique
+    AllumerRadioAction o-- "1" MoteurPhysique
+    ChangerPropulsionAction o-- "1" MoteurPhysique
+
+    %% MoteurPhysique composes CelestialBody
+    MoteurPhysique *-- "1..*" CelestialBody : celestialBodies
