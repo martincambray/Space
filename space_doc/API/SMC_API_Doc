@@ -1,0 +1,961 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage[top=2.2cm, bottom=2.2cm, left=2.5cm, right=2.5cm]{geometry}
+\usepackage{parskip}
+\setlength{\parskip}{5pt}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{sectsty}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc, fit, backgrounds}
+\usepackage{mdframed}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins, breakable}
+
+% ── Couleurs ──────────────────────────────────────────────────────────────────
+\definecolor{darkblue}{RGB}{10,40,90}
+\definecolor{accentblue}{RGB}{0,102,204}
+\definecolor{lightgray}{RGB}{245,245,248}
+\definecolor{borderblue}{RGB}{180,210,240}
+\definecolor{admingreen}{RGB}{34,139,34}
+\definecolor{operred}{RGB}{180,40,40}
+\definecolor{publichint}{RGB}{90,140,90}
+\definecolor{codebg}{RGB}{240,243,248}
+
+% ── Titres ────────────────────────────────────────────────────────────────────
+\allsectionsfont{\color{darkblue}}
+
+% ── En-têtes ──────────────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.5pt}
+\fancyhead[L]{\small\color{darkblue}\textbf{Space Mission Control --- SMC}}
+\fancyhead[R]{\small\color{gray}Architecture API \& Gestion des données}
+\fancyfoot[C]{\small\color{gray}\thepage}
+
+% ── Listings (code) ───────────────────────────────────────────────────────────
+\lstdefinelanguage{JSON}{
+  basicstyle=\ttfamily\footnotesize,
+  morestring=[b]",
+  stringstyle=\color{accentblue},
+  literate={:}{{{\color{darkblue}:}}}{1}
+           {\{}{{{\color{darkblue}\{}}}{1}
+           {\}}{{{\color{darkblue}\}}}}{1}
+}
+\lstset{
+  basicstyle=\ttfamily\footnotesize,
+  backgroundcolor=\color{codebg},
+  frame=single,
+  framerule=0.4pt,
+  rulecolor=\color{borderblue},
+  breaklines=true,
+  showstringspaces=false,
+  columns=flexible,
+  xleftmargin=6pt,
+  xrightmargin=6pt,
+  aboveskip=6pt,
+  belowskip=6pt,
+  keywordstyle=\color{accentblue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+}
+
+% ── Boîtes colorées ───────────────────────────────────────────────────────────
+\tcbset{
+  mybox/.style={
+    enhanced, breakable,
+    colback=lightgray, colframe=accentblue,
+    boxrule=0.5pt, arc=3pt,
+    left=6pt, right=6pt, top=4pt, bottom=4pt,
+    fonttitle=\bfseries\color{darkblue},
+  }
+}
+
+% ── Liens ─────────────────────────────────────────────────────────────────────
+\usepackage[colorlinks=true, linkcolor=accentblue, urlcolor=accentblue,
+            pdftitle={SMC - Architecture API \& Gestion des données}]{hyperref}
+
+% ── TikZ styles ───────────────────────────────────────────────────────────────
+\tikzset{
+  layer/.style={
+    rectangle, rounded corners=4pt,
+    draw=accentblue, fill=lightgray,
+    minimum width=10cm, minimum height=0.8cm,
+    align=center, font=\small
+  },
+  arrow/.style={->, >=Stealth, thick, color=darkblue},
+  comp/.style={
+    rectangle, rounded corners=3pt,
+    draw=borderblue, fill=white,
+    minimum width=2.8cm, minimum height=0.7cm,
+    align=center, font=\small\ttfamily
+  },
+  role/.style={
+    rectangle, rounded corners=3pt,
+    draw=#1, fill=#1!10,
+    align=center, font=\small\bfseries
+  },
+  flow/.style={
+    rectangle, rounded corners=3pt,
+    draw=accentblue!60, fill=accentblue!8,
+    align=left, font=\small, text width=9.5cm,
+    inner sep=8pt
+  },
+}
+
+% ==============================================================================
+\begin{document}
+
+% ── Page de titre ─────────────────────────────────────────────────────────────
+\begin{titlepage}
+  \pagecolor{darkblue}
+  \color{white}
+  \vspace*{3cm}
+  \begin{center}
+    {\Huge\bfseries Space Mission Control}\\[0.4cm]
+    {\large\color{accentblue!80!white} SMC}\\[2cm]
+    \rule{10cm}{0.5pt}\\[0.8cm]
+    {\LARGE Architecture API \& Gestion des données}\\[0.4cm]
+    {\normalsize Fonctionnement détaillé du backend Spring Boot}\\[1.5cm]
+    \rule{10cm}{0.5pt}\\[1.5cm]
+    {\normalsize\color{gray!60!white}
+      Stack : Spring Boot 3.x $\cdot$ Java 25 $\cdot$ JWT $\cdot$ JPA/Hibernate $\cdot$ MySQL\\[0.3cm]
+      Avril 2026
+    }
+  \end{center}
+  \vfill
+\end{titlepage}
+\nopagecolor
+
+% ── Table des matières ────────────────────────────────────────────────────────
+\tableofcontents
+\clearpage
+
+% ==============================================================================
+\section{Vue d'ensemble de l'architecture}
+
+L'application est organisée en \textbf{couches strictement séparées}, chacune ayant une responsabilité unique. Cette séparation garantit la testabilité, la maintenabilité et la sécurité.
+
+\subsection{Schéma en couches}
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.5cm]
+
+  % Client
+  \node[layer, minimum width=11cm, fill=darkblue!10, draw=darkblue] (client)
+    {\textbf{CLIENT (Navigateur)} \quad login.html / menu.html \quad JWT dans \texttt{localStorage}};
+
+  % Flèche HTTP
+  \node[below=0.3cm of client] (arr1) {};
+  \draw[arrow] (client.south) -- node[right, font=\small, color=gray]{HTTP/REST (JSON)} ++(0,-0.7)
+    node[below] (border) {};
+
+  % Boîte Spring Boot
+  \node[below=0.9cm of client, rectangle, rounded corners=4pt,
+        draw=accentblue, fill=lightgray, minimum width=11cm, minimum height=5.5cm,
+        label={[font=\small\bfseries, color=darkblue]north west:Spring Boot — port 8080}]
+        (springbox) {};
+
+  % Composants internes
+  \node[comp, below=1.4cm of client, xshift=-3.2cm] (ctrl) {Controllers\\\textit{REST API}};
+  \node[comp, right=0.4cm of ctrl] (svc) {Services\\\textit{Logique métier}};
+  \node[comp, right=0.4cm of svc] (dao) {DAOs\\\textit{Spring Data JPA}};
+
+  \draw[arrow] (ctrl) -- (svc);
+  \draw[arrow] (svc) -- (dao);
+
+  % Sécurité
+  \node[comp, below=0.6cm of ctrl, xshift=0.5cm, minimum width=4.5cm, draw=operred!60, fill=operred!5]
+    (sec) {Spring Security\\JwtHeaderFilter};
+
+  % Exception handler
+  \node[comp, right=0.4cm of sec, minimum width=4cm, draw=publichint, fill=publichint!8]
+    (exc) {GlobalException\\Handler};
+
+  % DB
+  \node[comp, below=0.6cm of dao, draw=darkblue, fill=darkblue!8, minimum width=3cm]
+    (db) {MySQL / H2\\(tests)};
+  \draw[arrow] (dao) -- (db);
+
+  % Flèche vers client
+  \draw[arrow] (border) -- (ctrl.north);
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Structure des packages Java}
+
+\begin{lstlisting}
+space/
+├── Application.java              <- @SpringBootApplication (point d'entree)
+├── config/
+│   ├── SecurityConfig.java       <- Regles CORS, CSRF, JWT, RBAC
+│   ├── JwtUtils.java             <- Generation / validation des tokens
+│   ├── JwtHeaderFilter.java      <- Filtre HTTP : lit le Bearer token
+│   └── JpaUserDetailsService.java<- Bridge Spring Security <-> BDD
+├── rest/                         <- 7 controleurs REST
+├── service/
+│   └── TrajectoryService.java    <- Orchestration calcul orbital
+├── simulation/orbital/
+│   ├── OrbitalCalculator.java    <- Physique newtonienne (POJO pur)
+│   └── TrajectoryResult.java     <- DTO interne du resultat
+├── model/                        <- 8 entites JPA
+├── dao/                          <- 6 interfaces Spring Data JPA
+├── dto/request/                  <- 8 classes de requetes entrantes
+├── dto/response/                 <- 7 classes de reponses sortantes
+└── exception/                    <- 5 fichiers (4 exceptions + handler)
+\end{lstlisting}
+
+% ==============================================================================
+\section{Authentification JWT}
+
+\subsection{Connexion — POST /api/auth}
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.3cm]
+
+  \node[flow] (req) {%
+    \textbf{1. Requête} \quad \texttt{POST /api/auth}\\
+    Corps JSON : \texttt{\{ "mail": "admin@smc.fr", "password": "admin123" \}}
+  };
+
+  \node[flow, below=0.2cm of req] (auth) {%
+    \textbf{2. AuthenticationManager.authenticate()}\\
+    $\rightarrow$ \texttt{JpaUserDetailsService.loadUserByUsername(mail)}\\
+    $\rightarrow$ Charge l'utilisateur depuis la BDD\\
+    $\rightarrow$ Comparaison \texttt{BCrypt(password, hash\_en\_base)}
+  };
+
+  \node[flow, below=0.2cm of auth] (gen) {%
+    \textbf{3. JwtUtils.generate(authentication)}\\
+    $\rightarrow$ Token signé HS512 · sujet = mail · expiration = now + 8h
+  };
+
+  \node[flow, below=0.2cm of gen] (resp) {%
+    \textbf{4. Réponse} \quad \texttt{200 OK}\\
+    Corps JSON : \texttt{\{ "token": "eyJhbGciOiJIUzUxMiJ9..." \}}\\
+    Client stocke dans \texttt{localStorage["jwt"]}
+  };
+
+  \draw[arrow] (req.south) -- (auth.north);
+  \draw[arrow] (auth.south) -- (gen.north);
+  \draw[arrow] (gen.south) -- (resp.north);
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Requêtes authentifiées — Flux du filtre JWT}
+
+Pour toute requête sur \texttt{/api/**} (sauf \texttt{/api/auth}), le filtre \texttt{JwtHeaderFilter} s'exécute \textbf{avant} les contrôleurs :
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.25cm]
+  \node[flow] (h) {%
+    \textbf{1. Lecture de l'en-tête}\\
+    \texttt{Authorization: Bearer eyJhbGci...}
+  };
+  \node[flow, below=0.2cm of h] (v) {%
+    \textbf{2. JwtUtils.validate(token)}\\
+    Vérifie la signature HMAC-512 et la date d'expiration\\
+    $\rightarrow$ Extrait le sujet (mail de l'utilisateur)
+  };
+  \node[flow, below=0.2cm of v] (l) {%
+    \textbf{3. Chargement depuis la BDD}\\
+    \texttt{IDAOUtilisateur.findByMail(mail)}\\
+    $\rightarrow$ Récupère le rôle \textit{actuel} (ADMIN / OPERATEUR)
+  };
+  \node[flow, below=0.2cm of l] (s) {%
+    \textbf{4. Peuplement du SecurityContext}\\
+    \texttt{UsernamePasswordAuthenticationToken(mail, null, [ROLE\_ADMIN])}\\
+    $\rightarrow$ Spring Security peut vérifier les autorisations
+  };
+  \draw[arrow] (h.south) -- (v.north);
+  \draw[arrow] (v.south) -- (l.north);
+  \draw[arrow] (l.south) -- (s.north);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Structure du token JWT}
+
+Un token JWT est composé de trois parties séparées par des points (\texttt{.}) :
+
+\begin{tcolorbox}[mybox, title=Anatomie d'un JWT]
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Partie} & \textbf{Contenu} & \textbf{Rôle} \\
+\midrule
+Header & \texttt{\{"alg":"HS512","typ":"JWT"\}} & Algorithme de signature \\
+Payload & \texttt{\{"sub":"admin@smc.fr","iat":...,"exp":...\}} & Données (mail, dates) \\
+Signature & HMAC-SHA512(header+payload, clé 64 octets) & Intégrité / authenticité \\
+\bottomrule
+\end{tabular}
+
+\medskip
+\textbf{Durée de validité :} 8 heures (28~800~000 ms) · \textbf{Algorithme :} HS512
+\end{tcolorbox}
+
+% ==============================================================================
+\section{Modèle de données}
+
+\subsection{Entités JPA et relations}
+
+\begin{center}
+\begin{tikzpicture}[
+  entity/.style={rectangle, draw=accentblue, fill=lightgray,
+                 rounded corners=3pt, align=left, font=\ttfamily\footnotesize,
+                 inner sep=6pt, minimum width=3.2cm},
+  rel/.style={<->, >=Stealth, thick, color=darkblue},
+  fk/.style={->, >=Stealth, dashed, color=gray},
+  node distance=1.2cm
+]
+
+  % Utilisateur
+  \node[entity] (util) {
+    \textbf{Utilisateur}\\
+    \hline
+    id (PK)\\
+    mail (UNIQUE)\\
+    password (BCrypt)\\
+    lastname / firstname\\
+    role \{ADMIN,OPERATEUR\}
+  };
+
+  % Mission
+  \node[entity, right=2.5cm of util] (mission) {
+    \textbf{Mission}\\
+    \hline
+    id (PK)\\
+    name\\
+    status (enum)\\
+    departureDate\\
+    arrivalDate / orbitalTime\\
+    payload\\
+    trajectory (JSON TEXT)\\
+    createdAt\\
+    operator\_id (FK)\\
+    spacecraft\_id (FK)\\
+    type\_id (FK)\\
+    departure\_body\_id (FK)\\
+    arrival\_body\_id (FK)
+  };
+
+  % Spacecraft
+  \node[entity, right=2.5cm of mission] (sc) {
+    \textbf{Spacecraft}\\
+    \hline
+    id (PK)\\
+    name\\
+    description\\
+    batteryMax (Wh)\\
+    fuelCapacity (kg)
+  };
+
+  % TrajectoryLog
+  \node[entity, below=1.8cm of mission] (tlog) {
+    \textbf{TrajectoryLog}\\
+    \hline
+    id (PK)\\
+    mission\_id (FK)\\
+    operator\_id (FK)\\
+    body\_id (FK)\\
+    computedAt\\
+    altitude / initialSpeed\\
+    mass\\
+    resultJson (TEXT)
+  };
+
+  % MissionType
+  \node[entity, above=1.2cm of mission] (mtype) {
+    \textbf{MissionType}\\
+    \hline
+    id (PK)\\
+    name\\
+    description
+  };
+
+  % CelestialBody
+  \node[entity, below=1.8cm of sc] (cb) {
+    \textbf{CelestialBody}\\
+    \hline
+    id (PK)\\
+    name\\
+    mass (kg)\\
+    radius (km)\\
+    orbitalRadius (km)\\
+    refCoordX / refCoordY
+  };
+
+  % Relations
+  \draw[fk] (mission.west) -- node[above, font=\tiny]{N:1} (util.east);
+  \draw[fk] (mission.east) -- node[above, font=\tiny]{N:1} (sc.west);
+  \draw[fk] (mission.north) -- node[left, font=\tiny]{N:1} (mtype.south);
+  \draw[fk] (mission.south) -- node[right, font=\tiny]{1:N} (tlog.north);
+  \draw[fk] (tlog.east) -- node[above, font=\tiny]{N:1} (cb.west);
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Données de référence}
+
+Ces données sont pré-chargées par \texttt{init\_smc\_db.sql} et ne sont jamais modifiées via l'API :
+
+\begin{tcolorbox}[mybox, title=Corps célestes (CelestialBody)]
+Soleil · Mercure · Vénus · \textbf{Terre} · \textbf{Mars} · Jupiter · Saturne · Uranus · Neptune
+\end{tcolorbox}
+
+\begin{tcolorbox}[mybox, title=Types de mission (MissionType)]
+Orbitale LEO · Orbitale GEO · Lunaire · Interplanétaire
+\end{tcolorbox}
+
+\subsection{Cycle de vie d'une mission}
+
+\begin{center}
+\begin{tikzpicture}[
+  state/.style={rectangle, rounded corners=5pt, draw=accentblue, fill=accentblue!10,
+                minimum width=2.4cm, minimum height=0.8cm, align=center, font=\small\bfseries},
+  tr/.style={->, >=Stealth, thick, color=darkblue, font=\small}
+]
+  \node[state] (planned) {PLANNED};
+  \node[state, right=1.8cm of planned] (inprog) {IN\_PROGRESS};
+  \node[state, right=1.8cm of inprog, fill=admingreen!15, draw=admingreen] (comp) {COMPLETED};
+  \node[state, below=0.9cm of inprog, fill=operred!15, draw=operred] (canc) {CANCELLED};
+
+  \draw[tr] (planned) -- node[above]{\small PATCH status} (inprog);
+  \draw[tr] (inprog) -- node[above]{\small PATCH status} (comp);
+  \draw[tr] (inprog) -- node[right]{\small PATCH status} (canc);
+  \draw[tr] (planned) -- node[below left]{\small PATCH status} (canc);
+\end{tikzpicture}
+\end{center}
+
+La transition de statut est réservée aux \textbf{ADMIN} (\texttt{@PreAuthorize("hasRole('ADMIN')")}).
+
+% ==============================================================================
+\section{Endpoints REST}
+
+\subsection{Authentification}
+
+\begin{tabularx}{\textwidth}{llXl}
+\toprule
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} & \textbf{Accès} \\
+\midrule
+\texttt{POST} & \texttt{/api/auth} & Connexion → retourne JWT & Public \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Utilisateurs}
+
+\begin{tabularx}{\textwidth}{llXl}
+\toprule
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} & \textbf{Accès} \\
+\midrule
+\texttt{GET} & \texttt{/api/utilisateur} & Liste tous les utilisateurs & ADMIN \\
+\texttt{GET} & \texttt{/api/utilisateur/me} & Profil de l'utilisateur connecté & Tous \\
+\texttt{PUT} & \texttt{/api/utilisateur/me} & Modifier son mail / mot de passe & Tous \\
+\texttt{POST} & \texttt{/api/utilisateur} & Créer un utilisateur & ADMIN \\
+\texttt{DELETE} & \texttt{/api/utilisateur/\{id\}} & Supprimer un utilisateur & ADMIN \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Missions}
+
+\begin{tabularx}{\textwidth}{llXl}
+\toprule
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} & \textbf{Accès} \\
+\midrule
+\texttt{GET} & \texttt{/api/mission} & Missions actives (PLANNED + IN\_PROGRESS) & Tous* \\
+\texttt{GET} & \texttt{/api/mission/history} & Missions terminées & Tous* \\
+\texttt{GET} & \texttt{/api/mission/\{id\}} & Détail d'une mission & Tous* \\
+\texttt{POST} & \texttt{/api/mission} & Créer (statut initial : PLANNED) & Tous \\
+\texttt{PUT} & \texttt{/api/mission/\{id\}} & Modifier une mission & Tous* \\
+\texttt{PATCH} & \texttt{/api/mission/\{id\}/status} & Changer le statut & ADMIN \\
+\texttt{DELETE} & \texttt{/api/mission/\{id\}} & Supprimer & ADMIN \\
+\bottomrule
+\end{tabularx}
+
+\footnotesize{*ADMIN voit toutes les missions ; OPERATEUR voit uniquement les siennes.}
+
+\normalsize
+\subsection{Spacecraft, Données de référence \& Trajectoires}
+
+\begin{tabularx}{\textwidth}{llXl}
+\toprule
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} & \textbf{Accès} \\
+\midrule
+\texttt{GET} & \texttt{/api/spacecraft} & Liste (avec disponibilité) & Tous \\
+\texttt{GET} & \texttt{/api/spacecraft/\{id\}} & Détail & Tous \\
+\texttt{POST} & \texttt{/api/spacecraft} & Ajouter & ADMIN \\
+\texttt{PUT} & \texttt{/api/spacecraft/\{id\}} & Modifier & ADMIN \\
+\texttt{DELETE} & \texttt{/api/spacecraft/\{id\}} & Supprimer & ADMIN \\
+\midrule
+\texttt{GET} & \texttt{/api/mission-type} & Types de mission & Tous \\
+\texttt{GET} & \texttt{/api/celestial-body} & Corps célestes & Tous \\
+\texttt{GET} & \texttt{/api/celestial-body/\{id\}} & Détail corps céleste & Tous \\
+\midrule
+\texttt{POST} & \texttt{/api/trajectory/\{missionId\}} & Calculer une trajectoire & Tous \\
+\texttt{GET} & \texttt{/api/trajectory/\{missionId\}} & Historique des calculs & Tous \\
+\bottomrule
+\end{tabularx}
+
+\subsection{Actions sur un Spacecraft}
+
+\begin{tabularx}{\textwidth}{llXl}
+\toprule
+\textbf{Méthode} & \textbf{URL} & \textbf{Description} & \textbf{Accès} \\
+\midrule
+\texttt{POST} & \texttt{/api/action/\{spacecraftId\}} & Déclencher une action sur un spacecraft & Tous \\
+\bottomrule
+\end{tabularx}
+
+\medskip
+Le type d'action est transmis dans le corps de la requête. L'API vérifie d'abord que le spacecraft est \textbf{capable} d'exécuter cette action avant de déclencher le code technique correspondant et de recalculer la trajectoire orbitale.
+
+\textbf{Valeurs possibles de \texttt{actionType} :}
+
+\begin{tcolorbox}[mybox, title=Enumération TYPE\_ACTION]
+\begin{tabular}{@{}ll@{}ll@{}}
+\toprule
+\textbf{Valeur} & \textbf{Effet sur la simulation} & \textbf{Spacecraft} \\
+\midrule
+\texttt{CHANGER\_PROPULSION} & Modifie $\Delta v$: recalcul trajectoire & Satellite\\
+\texttt{CHANGER\_DIRECTION} & Modifie $\Delta v$: recalcul trajectoire & Satellite\\
+\texttt{OUVRIR\_PANNEAU}     & recharge batterie & Satellite \\
+\texttt{TRANSMISSION\_DONNES}      & conso. électrique & Satellite \\
+\texttt{SCAN\_SURFACE}      & conso. électrique & Satellite \\
+\texttt{MODE\_ECO}      & conso. électrique réduite & Satellite \\
+\midrule
+\texttt{CHANGER\_PROPULSION} & Modifie $\Delta v$: recalcul trajectoire & Pod Habité\\
+\texttt{CHANGER\_DIRECTION} & Modifie $\Delta v$: recalcul trajectoire & Pod Habité\\
+\texttt{OUVRIR\_PANNEAU}     &recharge batterie & Pod Habité \\
+\texttt{COLLECTE\_DONNES}      & conso. électrique & Pod Habité \\
+\texttt{EVA}      & X & Pod Habité \\
+\texttt{GESTION\_O2}      & impact batterie & Pod Habité \\
+\midrule
+\texttt{DEPLACEMENT} & conso. électrique & Rover\\
+\texttt{COLLECTE\_DONNES}      & conso. électrique & Rover \\
+\texttt{TRANSMISSION\_DONNES}      & conso. électrique & Rover \\
+\texttt{MODE\_ECO}      & conso. électrique réduite & Rover \\
+\texttt{PHOTO}      & impact batterie & Rover \\
+\midrule
+\texttt{DEPLACEMENT} & conso. électrique & Utilitaire\\
+\texttt{MAINTENANCE}      & ? & Utilitaire \\
+\texttt{PROD\_ELEC}      & recharge batterie & Utilitaire \\
+\bottomrule
+\end{tabular}
+\end{tcolorbox}
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.25cm]
+
+  \node[flow] (req) {%
+    \textbf{1. Requête} \quad \texttt{POST /api/action/\{spacecraftId\}}\\
+    Corps JSON : \texttt{\{ "actionType": "CHANGER\_PROPULSION" \}}
+  };
+
+  \node[flow, below=0.2cm of req] (check) {%
+    \textbf{2. Vérification des capacités} (ActionRegistry)\\
+    $\rightarrow$ \texttt{canExecute(TYPE\_ACTION, spacecraft)}\\
+    $\rightarrow$ Vérifie dans \texttt{capacities : Map<TYPE\_ACTION, Spacecraft>}\\
+    $\rightarrow$ \textcolor{operred}{Si spacecraft non capable → lance \texttt{ActionNotSupportedException} (403)}
+  };
+
+  \node[flow, below=0.2cm of check] (exec) {%
+    \textbf{3. Exécution de l'action} (ActionRegistry → MoteurPhysique)\\
+    $\rightarrow$ \texttt{execute(TYPE\_ACTION, spacecraft)}\\
+    $\rightarrow$ Passe l'instance \texttt{Runnable} (*Action) au \texttt{MoteurPhysique}\\
+    $\rightarrow$ \texttt{MoteurPhysique.triggerAction(action)} → appelle \texttt{run()}\\
+    \quad Exemple : \texttt{ChangerPropulsionAction.run()} modifie le delta\_v
+  };
+
+  \node[flow, below=0.2cm of exec] (consomm) {%
+    \textbf{4. Mise à jour des consommables} (Spacecraft)\\
+    $\rightarrow$ \texttt{spacecraft.updateConsummable(TYPE\_ACTION)}\\
+    $\rightarrow$ Déduit la consommation carburant / batterie selon le type d'action
+  };
+
+  \node[flow, below=0.2cm of consomm] (orbit) {%
+    \textbf{5. Recalcul orbital} (MoteurPhysique)\\
+    $\rightarrow$ \texttt{eulerOrbitInit()} — initialisation de l'orbite\\
+    $\rightarrow$ \texttt{perturbateOrbit(currentOrbit)} — intégration numérique (Kepler + méthode de Cowell, Euler/RK4)\\
+    $\rightarrow$ Retourne l'orbite mise à jour
+  };
+
+  \node[flow, below=0.2cm of orbit, fill=publichint!10] (resp) {%
+    \textbf{6. Réponse} \quad \texttt{200 OK}\\
+    Corps JSON : trajectoire orbitale recalculée
+  };
+
+  \draw[arrow] (req.south) -- (check.north);
+  \draw[arrow] (check.south) -- (exec.north);
+  \draw[arrow] (exec.south) -- (consomm.north);
+  \draw[arrow] (consomm.south) -- (orbit.north);
+  \draw[arrow] (orbit.south) -- (resp.north);
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Exemple de requête et réponses :}
+
+\begin{multicols}{2}
+\textbf{Requête} \texttt{POST /api/action/3} :
+\begin{lstlisting}[language=JSON]
+{
+  "actionType": "CHANGER_PROPULSION"
+}
+\end{lstlisting}
+
+\textbf{Réponse} \texttt{200 OK} :
+\begin{lstlisting}[language=JSON]
+{
+  "spacecraftId": 3,
+  "actionType": "CHANGER_PROPULSION",
+  "updatedOrbit": {
+    "trajectoire": [...],
+    "vectorSpeed": [...],
+    "vectorAccel": [...]
+  }
+}
+\end{lstlisting}
+
+\columnbreak
+
+\textbf{Réponse} \texttt{403 Forbidden} :
+\begin{lstlisting}[language=JSON]
+{
+  "error": "Action CHANGER_PROPULSION
+  non supportee par le spacecraft id:3"
+}
+\end{lstlisting}
+
+\textbf{Réponse} \texttt{404 Not Found} :
+\begin{lstlisting}[language=JSON]
+{
+  "error": "Spacecraft introuvable
+  — id : 3"
+}
+\end{lstlisting}
+\end{multicols}
+
+% ==============================================================================
+\section{Pattern DTO}
+
+Le pattern DTO (\textit{Data Transfer Object}) découple la structure de la base de données du contrat de l'API.
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.8cm,
+  box/.style={rectangle, rounded corners=4pt, draw=accentblue, fill=lightgray,
+              minimum width=4.5cm, minimum height=1cm, align=center, font=\small},
+  step/.style={rectangle, rounded corners=4pt, draw=borderblue, fill=white,
+               minimum width=5cm, align=left, font=\small, inner sep=6pt}
+]
+
+  \node[box, fill=accentblue!15] (req) {\textbf{Request DTO}\\\small Corps JSON + validation \texttt{@Valid}};
+  \node[step, below=0.4cm of req] (s1) {
+    \textbf{Contrôleur :} Lit les IDs du DTO\\
+    $\rightarrow$ \texttt{findById(id)} pour chaque relation\\
+    $\rightarrow$ Lance \texttt{404} si introuvable
+  };
+  \node[box, below=0.4cm of s1, fill=darkblue!10] (ent) {\textbf{Entité JPA}\\\small Objet Hibernate avec relations \texttt{@ManyToOne}};
+  \node[step, below=0.4cm of ent] (s2) {
+    \textbf{Conversion statique :}\\
+    \texttt{MissionResponse.convert(mission)}\\
+    Extrait les noms, exclut le mot de passe
+  };
+  \node[box, below=0.4cm of s2, fill=publichint!15] (resp) {\textbf{Response DTO}\\\small JSON plat envoyé au client};
+
+  \draw[arrow] (req.south) -- (s1.north);
+  \draw[arrow] (s1.south) -- (ent.north);
+  \draw[arrow] (ent.south) -- (s2.north);
+  \draw[arrow] (s2.south) -- (resp.north);
+
+\end{tikzpicture}
+\end{center}
+
+\subsection{Exemple — Création de mission}
+
+\begin{multicols}{2}
+\textbf{Requête} \texttt{POST /api/mission} :
+\begin{lstlisting}[language=JSON]
+{
+  "name": "Mars Alpha",
+  "spacecraftId": 2,
+  "typeId": 4,
+  "departureBodyId": 1,
+  "arrivalBodyId": 4,
+  "departureDate": "2026-06-01T08:00",
+  "payload": 1500.0
+}
+\end{lstlisting}
+
+\columnbreak
+
+\textbf{Réponse} \texttt{201 Created} :
+\begin{lstlisting}[language=JSON]
+{
+  "id": 42,
+  "name": "Mars Alpha",
+  "status": "PLANNED",
+  "operatorMail": "admin@smc.fr",
+  "spacecraftName": "Ariane 6",
+  "typeName": "Interplanetaire",
+  "departureBodyName": "Soleil",
+  "arrivalBodyName": "Mars",
+  "createdAt": "2026-04-11T14:30:00"
+}
+\end{lstlisting}
+\end{multicols}
+
+% ==============================================================================
+\section{Sécurité \& Contrôle d'accès par rôle (RBAC)}
+
+\subsection{Matrice des autorisations}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Action} & \textcolor{admingreen}{\textbf{ADMIN}} & \textcolor{operred}{\textbf{OPERATEUR}} \\
+\midrule
+Voir \textit{toutes} les missions & \textcolor{admingreen}{$\checkmark$} & \textcolor{operred}{$\times$} \\
+Voir ses propres missions & \textcolor{admingreen}{$\checkmark$} & \textcolor{admingreen}{$\checkmark$} \\
+Créer une mission & \textcolor{admingreen}{$\checkmark$} & \textcolor{admingreen}{$\checkmark$} \\
+Modifier une mission & \textcolor{admingreen}{$\checkmark$} & Les siennes \\
+Changer le statut d'une mission & \textcolor{admingreen}{$\checkmark$} & \textcolor{operred}{$\times$} \\
+Supprimer une mission & \textcolor{admingreen}{$\checkmark$} & \textcolor{operred}{$\times$} \\
+Voir tous les spacecraft & \textcolor{admingreen}{$\checkmark$} & \textcolor{admingreen}{$\checkmark$} \\
+Créer / modifier / supprimer spacecraft & \textcolor{admingreen}{$\checkmark$} & \textcolor{operred}{$\times$} \\
+Gérer les utilisateurs & \textcolor{admingreen}{$\checkmark$} & \textcolor{operred}{$\times$} \\
+Calculer une trajectoire orbitale & \textcolor{admingreen}{$\checkmark$} & \textcolor{admingreen}{$\checkmark$} \\
+Déclencher une action sur un spacecraft & \textcolor{admingreen}{$\checkmark$} & \textcolor{admingreen}{$\checkmark$} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection{Mécanismes Spring Security}
+
+La sécurité est appliquée à \textbf{deux niveaux} :
+
+\begin{enumerate}[leftmargin=1.5cm]
+  \item \textbf{Niveau URL} (dans \texttt{SecurityConfig}) : toute route \texttt{/api/**} requiert un JWT valide.
+  \item \textbf{Niveau méthode} (annotation \texttt{@PreAuthorize}) : restreint l'accès à des rôles précis.
+\end{enumerate}
+
+\begin{lstlisting}[language=Java]
+// Exemple dans SpacecraftController
+@DeleteMapping("/{id}")
+@PreAuthorize("hasRole('ADMIN')")          // Spring Security verifie le rôle
+public ResponseEntity<Void> delete(@PathVariable int id) {
+    // ...
+}
+
+// Exemple de filtrage dynamique dans MissionController
+String role = SecurityContextHolder.getContext()
+    .getAuthentication().getAuthorities().toString();
+
+List<Mission> missions = role.contains("ADMIN")
+    ? dao.findAll()                    // ADMIN : toutes les missions
+    : dao.findByOperator(utilisateur); // OPERATEUR : seulement les siennes
+\end{lstlisting}
+
+% ==============================================================================
+\section{Calcul de trajectoire orbitale}
+
+\subsection{Flux de données}
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.25cm]
+  \node[flow] (req) {%
+    \textbf{1. Requête} \quad \texttt{POST /api/trajectory/\{missionId\}}\\
+    Corps : \texttt{\{ altitude: 400, initialSpeed: 7669, spacecraftMass: 20000, celestialBodyId: 3 \}}
+  };
+  \node[flow, below=0.2cm of req] (load) {%
+    \textbf{2. Chargement des entités} (TrajectoryService)\\
+    $\rightarrow$ Charge \texttt{Mission} par \texttt{missionId} (404 si absent)\\
+    $\rightarrow$ Charge \texttt{CelestialBody} (Terre : M = 5,97×10\textsuperscript{24} kg, R = 6 371 km)\\
+    $\rightarrow$ Charge \texttt{Utilisateur} courant (pour l'audit)
+  };
+  \node[flow, below=0.2cm of load] (calc) {%
+    \textbf{3. OrbitalCalculator.compute(altitude, masse, rayon)}\\
+    $r = (6371 + 400) \times 1000 = 6\,771\,000$ m\\
+    $v = \sqrt{GM/r} \approx 7\,669$ m/s \quad $T = 2\pi\sqrt{r^3/GM} \approx 5\,559$ s\\
+    360 points \texttt{[x,y]} = \texttt{[r·cos(θ), r·sin(θ)]} pour θ ∈ [0°, 360°]
+  };
+  \node[flow, below=0.2cm of calc] (pers) {%
+    \textbf{4. Persistance} (TrajectoryService)\\
+    $\rightarrow$ \texttt{ObjectMapper.writeValueAsString(result)} → JSON\\
+    $\rightarrow$ Sauvegarde \texttt{TrajectoryLog} (audit complet)\\
+    $\rightarrow$ Met à jour \texttt{Mission.trajectory} (dernier résultat)
+  };
+  \node[flow, below=0.2cm of pers] (resp) {%
+    \textbf{5. Réponse} \texttt{200 OK} → \texttt{TrajectoryLogResponse}\\
+    Contient : vitesse, période, rayon, 360 points de trajectoire
+  };
+  \draw[arrow] (req.south) -- (load.north);
+  \draw[arrow] (load.south) -- (calc.north);
+  \draw[arrow] (calc.south) -- (pers.north);
+  \draw[arrow] (pers.south) -- (resp.north);
+\end{tikzpicture}
+\end{center}
+
+\subsection{Formules de mécanique orbitale newtonienne}
+
+\begin{tcolorbox}[mybox, title=Formules clés — OrbitalCalculator.java]
+\begin{align}
+r &= (R_{\text{planète}} + h) \times 1000 \quad \text{[m]} \\[6pt]
+v_{\text{orb}} &= \sqrt{\frac{G \cdot M}{r}} \quad \text{[m/s]} \\[6pt]
+T &= 2\pi \sqrt{\frac{r^3}{G \cdot M}} \quad \text{[s]} \\[6pt]
+\text{Point}_\theta &= \bigl(r \cos\theta,\; r \sin\theta\bigr) \quad \theta \in \{0°, 1°, \ldots, 359°\}
+\end{align}
+
+\medskip
+Avec $G = 6{,}674 \times 10^{-11}\ \text{m}^3 \cdot \text{kg}^{-1} \cdot \text{s}^{-2}$ \quad et \quad $M$ = masse du corps céleste (kg)
+
+\medskip
+\textbf{Exemple ISS} (Terre, $h = 400$ km) :
+$\quad r \approx 6\,771\,000$ m $\quad v \approx 7\,669$ m/s $\quad T \approx 5\,559$ s (92 min)
+\end{tcolorbox}
+
+% ==============================================================================
+\section{Gestion des exceptions}
+
+Toutes les exceptions non interceptées dans les contrôleurs remontent à \texttt{GlobalExceptionHandler} (\texttt{@RestControllerAdvice}), qui les convertit en réponses JSON standardisées.
+
+\begin{center}
+\begin{tikzpicture}[
+  exc/.style={rectangle, rounded corners=3pt, draw=accentblue!50, fill=accentblue!8,
+              minimum width=6cm, align=left, font=\ttfamily\small, inner sep=6pt},
+  code/.style={rectangle, rounded corners=3pt, draw=operred!50, fill=operred!8,
+               minimum width=3cm, align=center, font=\small\bfseries},
+  node distance=0.3cm
+]
+  \node[exc] (bc) {\textbf{BadCredentialsException}\\Mauvais mail ou mot de passe};
+  \node[code, right=0.6cm of bc, fill=operred!15] (c401) {401 Unauthorized};
+
+  \node[exc, below=0.3cm of bc] (nf) {\textbf{*NotFoundException}\\Mission, Spacecraft, Utilisateur\ldots};
+  \node[code, right=0.6cm of nf, fill=orange!15, draw=orange!50] (c404) {404 Not Found};
+
+  \node[exc, below=0.3cm of nf] (va) {\textbf{MethodArgumentNotValidException}\\Champ @Valid échoué};
+  \node[code, right=0.6cm of va, fill=yellow!20, draw=yellow!60!gray] (c400) {400 Bad Request};
+
+  \node[exc, below=0.3cm of va] (ad) {\textbf{AccessDeniedException}\\@PreAuthorize refusé};
+  \node[code, right=0.6cm of ad, fill=orange!20, draw=orange!60] (c403) {403 Forbidden};
+
+  \node[exc, below=0.3cm of ad] (ge) {\textbf{Exception} (catch-all)\\Toute erreur inattendue};
+  \node[code, right=0.6cm of ge, fill=red!15, draw=red!50] (c500) {500 Internal Server Error};
+
+  \draw[arrow] (bc.east) -- (c401.west);
+  \draw[arrow] (nf.east) -- (c404.west);
+  \draw[arrow] (va.east) -- (c400.west);
+  \draw[arrow] (ad.east) -- (c403.west);
+  \draw[arrow] (ge.east) -- (c500.west);
+
+\end{tikzpicture}
+\end{center}
+
+\textbf{Format de réponse JSON :}
+\begin{lstlisting}[language=JSON]
+// Erreur simple (401, 403, 404, 500)
+{ "error": "Mission introuvable — id : 42" }
+
+// Erreur de validation (400) — un message par champ invalide
+{ "name": "Le nom est obligatoire", "mail": "Format email invalide" }
+\end{lstlisting}
+
+% ==============================================================================
+\section{Cycle de vie d'une requête}
+
+Exemple complet : \texttt{GET /api/mission} effectué par un utilisateur \textbf{OPERATEUR}.
+
+\begin{center}
+\begin{tikzpicture}[node distance=0.25cm]
+
+  \node[flow, fill=darkblue!8] (start) {%
+    \textbf{Browser} envoie \texttt{GET /api/mission}\\
+    \texttt{Authorization: Bearer eyJhbGci...}
+  };
+
+  \node[flow, below=0.2cm of start] (cors) {%
+    \textbf{[1] Couche CORS / Preflight}\\
+    OPTIONS préalable → autorisé sans authentification (règle \texttt{requestMatchers(OPTIONS, /**).permitAll()})
+  };
+
+  \node[flow, below=0.2cm of cors] (jwt) {%
+    \textbf{[2] JwtHeaderFilter}\\
+    $\rightarrow$ Lit \texttt{Authorization: Bearer ...}\\
+    $\rightarrow$ \texttt{JwtUtils.validate()} → extrait \texttt{"op@smc.fr"}\\
+    $\rightarrow$ \texttt{IDAOUtilisateur.findByMail()} → \texttt{Utilisateur\{role=OPERATEUR\}}\\
+    $\rightarrow$ Peuple \texttt{SecurityContextHolder}
+  };
+
+  \node[flow, below=0.2cm of jwt] (sec) {%
+    \textbf{[3] Spring Security — vérification des règles}\\
+    $\rightarrow$ \texttt{/api/**} → \texttt{authenticated()} → OK (token valide)\\
+    $\rightarrow$ Pas de \texttt{@PreAuthorize} sur \texttt{GET /api/mission} → OK
+  };
+
+  \node[flow, below=0.2cm of sec] (ctrl) {%
+    \textbf{[4] MissionController.getAll()}\\
+    $\rightarrow$ Lit le rôle depuis \texttt{SecurityContextHolder}\\
+    $\rightarrow$ Rôle = \texttt{OPERATEUR} → \texttt{IDAOMission.findByOperator(utilisateur)}\\
+    $\rightarrow$ Retourne uniquement les missions de cet opérateur
+  };
+
+  \node[flow, below=0.2cm of ctrl] (dto) {%
+    \textbf{[5] Conversion DTO}\\
+    $\rightarrow$ \texttt{MissionResponse.convert(mission)} pour chaque mission\\
+    $\rightarrow$ Noms extraits, mot de passe exclu, JSON plat
+  };
+
+  \node[flow, below=0.2cm of dto, fill=publichint!10] (resp) {%
+    \textbf{[6] Réponse HTTP}\\
+    \texttt{200 OK} · \texttt{Content-Type: application/json}\\
+    \texttt{[\{"id":1,"name":"ISS Repair","status":"PLANNED",...\}]}
+  };
+
+  \draw[arrow] (start.south) -- (cors.north);
+  \draw[arrow] (cors.south) -- (jwt.north);
+  \draw[arrow] (jwt.south) -- (sec.north);
+  \draw[arrow] (sec.south) -- (ctrl.north);
+  \draw[arrow] (ctrl.south) -- (dto.north);
+  \draw[arrow] (dto.south) -- (resp.north);
+
+\end{tikzpicture}
+\end{center}
+
+% ==============================================================================
+\section*{Annexes}
+
+\subsection*{Comptes de test}
+
+\begin{tabular}{lll}
+\toprule
+\textbf{Mail} & \textbf{Mot de passe} & \textbf{Rôle} \\
+\midrule
+\texttt{admin@smc.fr} & \texttt{admin123} & ADMIN \\
+\texttt{op@smc.fr} & \texttt{op123} & OPERATEUR \\
+\bottomrule
+\end{tabular}
+
+\subsection*{Lancement de l'application}
+
+\begin{lstlisting}
+# Lancer le serveur Spring Boot
+cd ~/Desktop/SPACE/projet
+./mvnw spring-boot:run
+# Accès : http://localhost:8080/login/login.html
+
+# Lancer les tests (41 tests — BUILD SUCCESS)
+./mvnw test
+\end{lstlisting}
+
+\end{document}
