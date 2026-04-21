@@ -1,0 +1,45 @@
+sequenceDiagram
+    actor User
+    participant API as API REST
+    participant TDB as TableauDeBord
+    participant AR as ActionRegistry
+    participant SC as Spacecraft
+    participant MP as MoteurPhysique
+    participant ACT as «Runnable»<br/>*Action
+
+    User->>API: POST /action {spacecraftId, TYPE_ACTION}
+    API->>TDB: executeAction(spacecraftId, TYPE_ACTION)
+
+    TDB->>AR: canExecute(TYPE_ACTION, spacecraft)
+
+    alt spacecraft is NOT capable
+        AR-->>TDB: false
+        TDB-->>API: ActionNotSupportedException
+        API-->>User: 403 Forbidden / action not supported
+
+    else spacecraft is capable
+        AR-->>TDB: true
+        TDB->>AR: execute(TYPE_ACTION, spacecraft)
+
+        AR->>MP: triggerAction(action : Runnable)
+
+        MP->>ACT: run()
+        activate ACT
+        note over ACT: e.g. ChangerPropulsionAction<br/>mutates delta_v in MoteurPhysique
+        ACT-->>MP: done
+        deactivate ACT
+
+        MP->>SC: updateConsummable(TYPE_ACTION)
+        activate SC
+        note over SC: e.g. Satellite updates<br/>battery / fuel consumption
+        SC-->>MP: ok
+        deactivate SC
+
+        MP->>MP: eulerOrbitInit()
+        MP->>MP: perturbateOrbit(currentOrbit)
+        note over MP: Kepler + Cowell's method<br/>(Euler or RK4)
+
+        MP-->>TDB: updatedOrbit
+        TDB-->>API: updatedOrbit
+        API-->>User: 200 OK {orbit: updatedOrbit}
+    end
