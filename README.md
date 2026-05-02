@@ -35,7 +35,7 @@ Techno utilisées :
 | spring-boot-starter-test | Gestion Boot | Test | | [mvnrepo](https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test)|
 | spring-security-test | Gestion Boot | Test | | [mvnrepo](https://mvnrepository.com/artifact/org.springframework.security/spring-security-test) |
 | mysql-connector-j | Gestion Boot | Runtime | | [mvnrepo](https://mvnrepository.com/artifact/com.mysql/mysql-connector-j)|
-| h2 | Gestion Boot | Runtime | Necessaire avec Spring Data JPA ? | [mvnrepo](https://mvnrepository.com/artifact/com.h2database/h2) |
+| h2 | Gestion Boot | Test | Necessaire avec Spring Data JPA ? | [mvnrepo](https://mvnrepository.com/artifact/com.h2database/h2) |
 | [jacoco](https://www.eclemma.org/jacoco/) | v.0.8.14 | Test | Coverage report ; Necessaire ? | [mvnrepo](https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin/0.8.14) |
 
 Dockerfile :
