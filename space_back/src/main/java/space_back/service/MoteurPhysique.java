@@ -104,7 +104,9 @@ public class MoteurPhysique {
         int fromStep = (int)(t_start / dt);
 
         // Suppression du segment futur obsolète, historique conservé
-        currentOrbit.truncateFrom(fromStep);
+        if(fromStep != 0) {
+            currentOrbit.truncateFrom(fromStep);
+        }
 
         // Intégration de l'arc perturbé
         List<double[]> steps = integrate(currentStateVector, t_start, thetaWindow);
@@ -232,7 +234,8 @@ public class MoteurPhysique {
     /**
      * Somme les contributions d'accélération gravitationnelle exercées sur le vaisseau
      * en (x, y) par chaque CelestialBody de celestialBodies (méthode de Cowell —
-     * sommation cartésienne directe, Soleil inclus en (0,0)).
+     * sommation cartésienne directe, Soleil inclus en (0,0)). On ignore le départ dans
+     * l'atmosphère et donc les effets aéro → on ignore la massse du vaisseaux (F = m1a = (Gm1m2)/r² avec m1 >>> m2)
      *
      * Retourne double[] { ax, ay } en m/s².
      */

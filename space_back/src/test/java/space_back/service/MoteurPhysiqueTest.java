@@ -95,10 +95,10 @@ class MoteurPhysiqueTest {
     private double[] computeAcceleration(MoteurPhysique moteur, double x, double y)
             throws Exception {
         Method m = MoteurPhysique.class.getDeclaredMethod(
-                "computeAcceleration", double.class, double.class, double.class);
+                "computeAcceleration", double.class, double.class);
         m.setAccessible(true);
         // La masse du vaisseau n'entre pas dans l'accélération gravitationnelle
-        return (double[]) m.invoke(moteur, x, y, 1000.0);
+        return (double[]) m.invoke(moteur, x, y);
     }
 
     // =======================================================================
