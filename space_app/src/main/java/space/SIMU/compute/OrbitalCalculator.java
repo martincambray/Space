@@ -1,4 +1,4 @@
-package space.SIMUL.compute;
+package space.SIMU.compute;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,7 +1,7 @@
 package space.DTO.request;
 
 import jakarta.validation.constraints.NotNull;
-import space.model.MissionStatus;
+import space.MODEL.MissionStatus;
 
 public class UpdateMissionStatusRequest 
 {
