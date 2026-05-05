@@ -11,3 +11,4 @@ public class UpdateMissionStatusRequest
     public MissionStatus getStatus() { return status; }
     public void setStatus(MissionStatus status) { this.status = status; }
 }
+    

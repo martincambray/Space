@@ -24,7 +24,7 @@ public class CreateUtilisateurRequest
     private String firstname;
 
     @NotNull(message = "Le rôle est obligatoire")
-    private RoleEnum role;
+    private Role role;
 
     public String getMail() { return mail; }
     public void setMail(String mail) { this.mail = mail; }
@@ -38,6 +38,6 @@ public class CreateUtilisateurRequest
     public String getFirstname() { return firstname; }
     public void setFirstname(String firstname) { this.firstname = firstname; }
 
-    public RoleEnum getRole() { return role; }
-    public void setRole(RoleEnum role) { this.role = role; }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 }
