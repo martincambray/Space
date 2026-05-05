@@ -1,6 +1,6 @@
 package space.DTO.response;
 
-import space.MODEL.RoleEnum;
+import space.MODEL.Role;
 import space.MODEL.Utilisateur;
 
 public class UtilisateurResponse 
@@ -9,7 +9,7 @@ public class UtilisateurResponse
     private String mail;
     private String lastname;
     private String firstname;
-    private RoleEnum role;
+    private Role role;
 
     public static UtilisateurResponse convert(Utilisateur u) 
     {
@@ -34,6 +34,6 @@ public class UtilisateurResponse
     public String getFirstname() { return firstname; }
     public void setFirstname(String firstname) { this.firstname = firstname; }
 
-    public RoleEnum getRole() { return role; }
-    public void setRole(RoleEnum role) { this.role = role; }
+    public Role getRole() { return role; }
+    public void setRole(Role role) { this.role = role; }
 }

@@ -5,8 +5,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import space.MODEL.TrajectoryLog;
-import space.SIMUL.compute.TrajectoryResult;
+import space.MODEL.TrajectoryLogs;
+import space.SIMU.compute.TrajectoryResult;
 
 public class TrajectoryLogResponse 
 {
@@ -22,7 +22,7 @@ public class TrajectoryLogResponse
 
     private List<double[]> points;
 
-    public static TrajectoryLogResponse convert(TrajectoryLog log) 
+    public static TrajectoryLogResponse convert(TrajectoryLogs log) 
     {
         TrajectoryLogResponse resp = new TrajectoryLogResponse();
         resp.setId(log.getId());
