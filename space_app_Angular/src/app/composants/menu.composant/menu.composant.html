@@ -10,17 +10,20 @@
     <li><a href="/celestial-body"><i class='bx bx-globe'></i><span class="links_name">Celestial Body</span></a></li>
     <li><a href="/mission"><i class='bx bx-task'></i><span class="links_name">Mission</span></a></li>
   </ul>
-  <div class="profile-line">
-    <i class='bx bx-user-circle'></i>
-    <span class="profile-text">{{ userMail }}</span>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="sidebar-avatar"><i class='bx bx-user-circle'></i></div>
+      <span class="sidebar-mail">{{ userMail }}</span>
+    </div>
+    <button class="sidebar-logout" (click)="deconnecter()" title="Se déconnecter">
+      <i class='bx bx-log-out'></i>
+    </button>
   </div>
 </div>
 
 <!-- BURGER -->
 <i class='bx bx-menu' id="btn" (click)="toggleSidebar()"></i>
-
-<!-- LOGOUT -->
-<a href="#" id="logout-btn" (click)="deconnecter()"><i class='bx bx-log-out'></i></a>
 
 <!-- TOOLBAR -->
 <div class="toolbar">

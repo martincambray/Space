@@ -7,8 +7,7 @@ body, html {
 }
 
 /* ── Règles sidebar-open : globales pour bypasser l'encapsulation Angular ── */
-body.sidebar-open #btn,
-body.sidebar-open #logout-btn { left: 188px; }
+body.sidebar-open #btn { left: 188px; }
 
 body.sidebar-open .toolbar           { left: calc(50% + 110px) !important; }
 body.sidebar-open .simulation-screen { left: calc(50% + 110px) !important; }

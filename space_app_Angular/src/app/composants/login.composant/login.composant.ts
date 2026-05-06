@@ -14,9 +14,10 @@ export class LoginComposant implements OnInit {
   private formBuilder: FormBuilder = inject(FormBuilder);
   private router: Router = inject(Router);
 
-  protected loginError = signal(false);
-  protected loginForm!: FormGroup;
-  protected mailCtrl!: FormControl;
+  protected loginError    = signal(false);
+  protected showPassword  = signal(false);
+  protected loginForm!:    FormGroup;
+  protected mailCtrl!:     FormControl;
   protected passwordCtrl!: FormControl;
 
   ngOnInit(): void {

@@ -17,7 +17,25 @@
 
       <div class="form-group">
         <label for="password">Mot de passe</label>
-        <input id="password" type="password" formControlName="password" placeholder="••••••" />
+        <div class="password-wrapper">
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            placeholder="••••••"
+          />
+          <button
+            type="button"
+            class="eye-btn"
+            (click)="showPassword.set(!showPassword())"
+            tabindex="-1"
+          >
+            <img
+              [src]="showPassword() ? '/eye.png' : '/eye-slash.png'"
+              [alt]="showPassword() ? 'Masquer' : 'Afficher'"
+            />
+          </button>
+        </div>
         @if (passwordCtrl.invalid && passwordCtrl.touched) {
           <span class="error">Mot de passe requis (6 caractères minimum)</span>
         }
