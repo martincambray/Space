@@ -25,6 +25,19 @@
 
     <!-- LISTE -->
     <main class="list-panel">
+
+      <!-- BARRE DE TRI -->
+      <div class="sort-bar">
+        <span class="sort-label">Tri :</span>
+        <button class="sort-btn" [class.active]="sortField()==='name'"              (click)="setSort('name')">Nom {{ sortIcon('name') }}</button>
+        <button class="sort-btn" [class.active]="sortField()==='departureDate'"     (click)="setSort('departureDate')">Date {{ sortIcon('departureDate') }}</button>
+        <button class="sort-btn" [class.active]="sortField()==='departureBodyName'" (click)="setSort('departureBodyName')">Départ {{ sortIcon('departureBodyName') }}</button>
+        <button class="sort-btn" [class.active]="sortField()==='arrivalBodyName'"   (click)="setSort('arrivalBodyName')">Arrivée {{ sortIcon('arrivalBodyName') }}</button>
+        <button class="sort-btn" [class.active]="sortField()==='spacecraftName'"    (click)="setSort('spacecraftName')">Spacecraft {{ sortIcon('spacecraftName') }}</button>
+        <button class="sort-btn" [class.active]="sortField()==='operatorMail'"      (click)="setSort('operatorMail')">Utilisateur {{ sortIcon('operatorMail') }}</button>
+        <button class="sort-btn" [class.active]="sortField()==='typeName'"          (click)="setSort('typeName')">Type {{ sortIcon('typeName') }}</button>
+      </div>
+
       @if (filtered().length === 0) {
         <p class="empty-msg">Aucune mission dans cette catégorie.</p>
       }

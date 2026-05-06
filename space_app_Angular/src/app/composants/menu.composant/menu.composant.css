@@ -1,259 +1,171 @@
-/* ===================================================
-   RESET GLOBAL
-   On supprime tous les marges/paddings par défaut
-   et on impose la police Inter sur tous les éléments
-   =================================================== */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;                                       /* Le padding/border ne gonfle pas la taille */
-  font-family: 'Inter', sans-serif;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
 
-body {
-  background: #000;
-  overflow: hidden;                                             /* empêche le scroll de la page entière */
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
 
-/* ===================================================
-                     ÉTOILES EN FOND
-   =================================================== */
+/* ── FOND ÉTOILÉ double couche ────────────────────────────────────────────── */
 .stars {
-  position: absolute;                                             /* hors du flux normal */
-  width: 200%;
-  height: 200%;
-  background: url("/stardust.png");                         /* image de mathias <3 */
-  animation: moveStars 60s linear infinite;                       /* animation lente, en boucle */
-  z-index: 0;                                                     /* derrière tout le reste */
+  position: fixed;
+  inset: 0;
+  width: 200%; height: 200%;
+  background:
+    url('/stardust2.png') repeat,
+    url('/stardust.png')  repeat;
+  animation: moveStars 60s linear infinite;
+  z-index: 0;
+  pointer-events: none;
 }
 
-/* Déplacement diagonal de l'image d'étoiles */
 @keyframes moveStars {
-  from { transform: translate(0, 0); }                            /* position de départ */
-  to   { transform: translate(-500px, -500px); }                  /* position finale */
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-500px, -500px); }
 }
 
-/* ===================================================
-                         SIDEBAR
-   Largeur 0 par défaut → s'ouvre à 220px via .open
-   =================================================== */
+/* ── SIDEBAR ──────────────────────────────────────────────────────────────── */
 .sidebar {
-  position: fixed;                                                /* collée à gauche, hors du flux */
-  left: 0;
-  top: 0;
+  position: fixed;
+  left: 0; top: 0;
   height: 100%;
-  width: 0;                                                       /* invisible par défaut */
-  overflow: hidden;                                               /* masque le contenu quand width=0 */
-  background: rgba(255,255,255,0.08);                             /* effet galce sombre */
-  border-right: 1px solid rgba(255,255,255,0.2);                  /* bordure */
-  backdrop-filter: blur(15px);                                    /* flou derrière la sidebar */
-  transition: 0.4s ease;                                          /* animation fluide à l'ouverture */
-  z-index: 10;                                                    /* au-dessus du fond étoilé */
+  width: 0;
+  overflow: hidden;
+  background: rgba(5, 8, 30, 0.92);
+  border-right: 1px solid rgba(0, 240, 255, 0.25);
+  backdrop-filter: blur(15px);
+  transition: width 0.4s ease;
+  z-index: 10;
 }
 
-/* Quand la classe .open est ajoutée via JS */
 .sidebar.open { width: 220px; }
 
-/* Éléments de la liste de navigation */
-.nav-list li { list-style: none; margin: 15px; }
+.logo_name {
+  color: #00f0ff;
+  font-size: 1.1rem; font-weight: 600;
+  padding: 22px 20px 10px 52px; /* laisser place au burger */
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+}
 
-/* Liens de navigation */
+.nav-list { list-style: none; margin-top: 8px; }
+.nav-list li { margin: 4px 10px; }
+
 .nav-list a {
-  display: flex;
-  align-items: center;
-  color: white;
-  text-decoration: none;
-  padding: 10px;
-  border-radius: 12px;
-  transition: 0.3s;                                               /* fondu au survol */
+  display: flex; align-items: center;
+  color: rgba(255,255,255,0.85); text-decoration: none;
+  padding: 10px 12px; border-radius: 10px;
+  transition: all 0.25s;
+  white-space: nowrap;
 }
-.nav-list a:hover { background: rgba(255,255,255,0.2); }          /* fond clair au hover */
+.nav-list a:hover {
+  background: rgba(0, 240, 255, 0.1);
+  color: #00f0ff;
+  border-left: 2px solid #00f0ff;
+  padding-left: 10px;
+}
+.nav-list a i { font-size: 1.25rem; flex-shrink: 0; }
+.links_name { margin-left: 12px; font-size: 0.92rem; }
 
-/* Texte du lien, avec marge à gauche de l'icône */
-.links_name { margin-left: 10px; }
-
-/* ===================================================
-   LIGNE DE PROFIL (coin bas-gauche de la sidebar)
-   =================================================== */
 .profile-line {
-  position: absolute;                                              /* positionnée par rapport à la sidebar */
-  bottom: 20px;
-  left: 20px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: white;
-  font-size: 1em;
-  z-index: 100;
+  position: absolute; bottom: 20px; left: 16px;
+  display: flex; align-items: center; gap: 8px;
+  color: rgba(255,255,255,0.6);
+  white-space: nowrap; overflow: hidden;
 }
-.profile-line i { font-size: 1.5em; }                               /* icône légèrement plus grande */
+.profile-line i { font-size: 1.4rem; color: rgba(0,240,255,0.6); }
+.profile-text   { font-size: 0.8rem; }
 
-/* ===================================================
-   SOUS-MENU (caché par défaut, affiché si .open)
-   =================================================== */
-.submenu { display: none; margin-left: 30px; }                      /* caché */
-.has-submenu.open .submenu { display: block; }                      /* visible si parent ouvert */
-.submenu li a { font-size: 0.9em; color: rgba(255,255,255,0.8); }   /* texte plus petit */
-
-/* ===================================================
-   BOUTONS : burger (#btn) et logout
-   Ils se déplacent à droite quand la sidebar est ouverte
-   =================================================== */
+/* ── BURGER & LOGOUT ──────────────────────────────────────────────────────── */
 #btn, #logout-btn {
-  position: fixed;                                                  /* positionnés par rapport à l'écran */
-  font-size: 30px;
+  position: fixed;
+  font-size: 28px;
   color: white;
   cursor: pointer;
-  z-index: 1000;                                                    /* au-dessus de tout (sauf popup) */
-  transition: 0.4s ease;                                            /* animation de déplacement */
+  z-index: 1000;
+  transition: left 0.4s ease;
 }
-#btn      { top: 20px;    left: 30px; }                             /* hamburger en haut */
-#logout-btn { bottom: 20px; left: 30px; text-decoration: none; }    /* logout en bas */
+#btn        { top: 18px;    left: 22px; }
+#logout-btn { bottom: 20px; left: 22px; text-decoration: none; }
 
-/* Quand la sidebar est ouverte, on pousse les boutons à droite */
-body.sidebar-open #btn,
-body.sidebar-open #logout-btn { left: 250px; }
-
-/* ===================================================
-   ÉCRAN DE SIMULATION (cadre central avec lueur cyan)
-   =================================================== */
-.simulation-screen {
+/* ── TOOLBAR ──────────────────────────────────────────────────────────────── */
+.toolbar {
   position: fixed;
-  top: 125px;                                                       /* décalé sous la toolbar */
-  left: 50%;                                                        /* centrage horizontal */
-  transform: translateX(-50%);                                      /* compensation du décalage */
-  width: 1100px;
-  height: 600px;
-  background: rgba(0,0,0,0.3);
-  border: 2px solid #00f0ff;                                        /* bordure cyan */
-  border-radius: 5px;
-  box-shadow: 0 0 10px #00f0ff,                                     /* lueur interne */
-              0 0 20px #00f0ff,
-              0 0 40px #00f0ff;                                     /* lueur externe */
+  top: 20px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; gap: 10px;
   z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: #00f0ff;
-  font-size: 1.2em;
+  transition: left 0.4s ease;
+}
+.toolbar-row { display: flex; gap: 12px; }
+
+.tool-btn {
+  background: rgba(0,150,255,0.18); color: white;
+  border: 1px solid rgba(0,150,255,0.5);
+  border-radius: 5px; cursor: pointer; font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  text-shadow: 0 0 3px rgba(255,255,255,0.8);
+  transition: all 0.3s ease;
+}
+.tool-btn:hover {
+  background: rgba(0,150,255,0.5); border-color: #00f0ff; color: #00f0ff;
+  text-shadow: 0 0 5px #fff, 0 0 10px #0ff, 0 0 20px #0ff;
+  box-shadow: 0 0 5px #00f0ff, 0 0 10px #00f0ff, 0 0 20px #00f0ff;
+}
+.tool-btn-large  { padding: 12px 24px; font-size: 1.2em; }
+.tool-btn-medium { padding: 10px 20px; font-size: 1em; }
+.tool-btn-small  { padding:  6px 12px; font-size: 0.9em; }
+
+/* ── SIMULATION ───────────────────────────────────────────────────────────── */
+.simulation-screen {
+  position: fixed; top: 125px; left: 50%;
+  transform: translateX(-50%);
+  width: 1100px; height: 600px;
+  background: #000814;
+  border: 2px solid #00f0ff; border-radius: 6px;
+  box-shadow: 0 0 10px #00f0ff, 0 0 25px #00f0ff, 0 0 50px rgba(0,240,255,0.4);
+  z-index: 100;
+  display: flex; align-items: center; justify-content: center;
   transition: left 0.4s ease;
 }
 
-/* ===================================================
-   TOOLBAR (barre d'outils en haut au centre)
-   =================================================== */
-.toolbar {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;                                           /* deux rangées de boutons */
-  gap: 10px;
-  z-index: 100;
-  transition: 0.4s ease;                                            /* se déplace si sidebar ouverte */
-}
-
-/* Décalage de la toolbar si sidebar ouverte */
-body.sidebar-open .toolbar { left: calc(50% + 110px); }
-body.sidebar-open .simulation-screen {left: calc(50% + 110px);}
-/* Rangée horizontale de boutons */
-.toolbar-row { display: flex; gap: 12px; }
-
-/* ===================================================
-                 BOUTONS DE LA TOOLBAR
-   =================================================== */
-.tool-btn {
-  background: rgba(0,150,255,0.2);
-  color: white;
-  border: 1px solid rgba(0,150,255,0.5);
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 500;
-  text-shadow: 0 0 3px rgba(255,255,255,0.8);                       /* léger halo blanc sur le texte */
-  transition: all 0.3s ease;
-}
-
-/* Effet néon au hover */
-.tool-btn:hover {
-  background: rgba(0,150,255,0.5);
-  border-color: #00f0ff;
-  color: #00f0ff;
-  text-shadow: 0 0 5px #fff, 0 0 10px #0ff, 0 0 20px #0ff;          /* triple halo */
-  box-shadow: 0 0 5px #00f0ff, 0 0 10px #00f0ff, 0 0 20px #00f0ff;
-}
-
-/* Variantes de taille pour tester (encore à définir) */
-.tool-btn-large  { padding: 12px 24px; font-size: 1.2em; }
-.tool-btn-medium { padding: 10px 20px; font-size: 1em;   }
-.tool-btn-small  { padding:  6px 12px; font-size: 0.9em; }
-
-/* Contenu interne scrollable si besoin */
-.screen-content { width: 95%; height: 95%; overflow: auto; }
-
-
-/* ===================================================
-                         POPUP
-   =================================================== */
+/* ── POPUP ────────────────────────────────────────────────────────────────── */
 .popup-overlay {
-  position: fixed;                                                /* couvre tout l'écran, peu importe le scroll */
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.7);                                    /* fond sombre semi-transparent */
-  backdrop-filter: blur(10px);                                    /* flou derrière */
-  display: none;                                                  /* on cache par default, JS passe à "flex" au clic */
-  align-items: center;                                            /* centrage vertical du contenu */
-  justify-content: center;                                        /* centrage horizontal du contenu */
-  z-index: 2000;                                                  /* au-dessus de TOUT le reste (toolbar, simulation…) */
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000;
 }
 
-/* ===================================================
-   POPUP POUR CRÉATION DE MISSIONS
-   =================================================== */
 .popup-content {
-  background: rgba(0,0,0,0.85);                                   /* fond presque opaque */
-  border: 2px solid #00f0ff;                                      /* bordure cyan */
-  border-radius: 10px;
-  padding: 30px;
-  width: 350px;
-  box-shadow:
-    0 0 10px #00f0ff,                                             /* lueur proche */
-    0 0 20px #00f0ff;                                             /* lueur plus diffuse */
+  background: rgba(2, 5, 25, 0.95);
+  border: 2px solid #00f0ff; border-radius: 12px;
+  padding: 32px; width: 400px;
+  box-shadow: 0 0 12px #00f0ff, 0 0 24px rgba(0,240,255,0.4);
   color: white;
 }
+.popup-content h2 { text-align: center; margin-bottom: 20px; color: #00f0ff; font-size: 1.1rem; }
 
-/* Titre du popup */
-.popup-content h2 {
-  text-align: center;
-  margin-bottom: 20px;
-  color: #00f0ff;                                                 /* cyan pour rester dans le thème */
-}
-
-/* Labels des champs */
 .popup-content label {
-  display: block;
-  margin-top: 15px;
-  margin-bottom: 5px;
-  font-size: 0.9em;
+  display: block; margin-top: 14px; margin-bottom: 5px; font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
 }
 
-/* Listes déroulantes */
-.popup-content select {
-  width: 100%;
-  padding: 8px;
-  background: rgba(0,150,255,0.1);                                /* fond bleu "translucide" pas degueu */
-  color: white;
-  border: 1px solid rgba(0,150,255,0.5);                          /* avec la bordure adaptée */
-  border-radius: 5px;
-  outline: none;                                                  /* retire le contour natif du navigateur */
+.popup-content select,
+.popup-content input[type="text"],
+.popup-content input[type="datetime-local"] {
+  width: 100%; padding: 8px 10px;
+  background: rgba(0,150,255,0.08); color: white;
+  border: 1px solid rgba(0,150,255,0.4);
+  border-radius: 6px; outline: none;
+  font-family: 'Inter', sans-serif; font-size: 0.9rem;
+  transition: border-color 0.2s;
 }
+.popup-content select:focus,
+.popup-content input:focus { border-color: rgba(0,150,255,0.9); }
+.popup-content select option { background: #050819; }
+.popup-content input::placeholder { color: rgba(255,255,255,0.35); }
+.popup-content input[type="datetime-local"]::-webkit-calendar-picker-indicator { filter: invert(1); }
 
-/* Zone de boutons */
-.popup-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
+.popup-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+
+.popup-error-msg   { color: #ff6b6b; font-size: 0.82rem; margin-top: 10px; text-align: center; }
+.popup-success-msg { color: #4aff8a; font-size: 0.82rem; margin-top: 10px; text-align: center; }

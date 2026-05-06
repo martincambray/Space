@@ -88,6 +88,36 @@
 
 .has-detail .list-panel { flex: 0 0 55%; }
 
+.sort-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px;
+  margin-bottom: 16px;
+}
+
+.sort-label {
+  font-size: 0.75rem; color: rgba(255,255,255,0.4);
+  text-transform: uppercase; letter-spacing: 0.06em;
+  margin-right: 4px;
+}
+
+.sort-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.55);
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 0.75rem; cursor: pointer;
+  transition: all 0.2s;
+}
+.sort-btn:hover {
+  background: rgba(0,240,255,0.08);
+  border-color: rgba(0,240,255,0.3);
+  color: rgba(0,240,255,0.8);
+}
+.sort-btn.active {
+  background: rgba(0,240,255,0.12);
+  border-color: rgba(0,240,255,0.5);
+  color: #00f0ff;
+}
+
 .empty-msg {
   color: rgba(255,255,255,0.4); text-align: center; margin-top: 60px;
 }

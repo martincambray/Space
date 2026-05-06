@@ -13,7 +13,8 @@ import { MissionTypeModel } from '../../models/mission-type.model';
 import { UtilisateurModel } from '../../models/utilisateur.model';
 import { MISSION_STATUS_LABELS } from '../../models/mission-status.model';
 
-type Tab = 'all' | 'planned' | 'in_progress' | 'done';
+type Tab      = 'all' | 'planned' | 'in_progress' | 'done';
+type SortField = 'name' | 'departureDate' | 'departureBodyName' | 'arrivalBodyName' | 'spacecraftName' | 'operatorMail' | 'typeName';
 
 @Component({
   selector: 'app-mission',
@@ -43,13 +44,25 @@ export class MissionComposant implements OnInit {
   protected formSuccess    = signal(false);
   protected actionFeedback = signal('');
 
+  protected sortField = signal<SortField>('departureDate');
+  protected sortAsc   = signal(false);
+
   protected filtered = computed(() => {
-    const tab = this.activeTab();
-    const all = this.missions();
-    if (tab === 'all')         return all;
-    if (tab === 'planned')     return all.filter(m => m.status === 'PLANNED');
-    if (tab === 'in_progress') return all.filter(m => m.status === 'IN_PROGRESS');
-    return all.filter(m => m.status === 'COMPLETED' || m.status === 'CANCELLED');
+    const tab   = this.activeTab();
+    const field = this.sortField();
+    const asc   = this.sortAsc();
+    let list    = this.missions();
+
+    if (tab === 'planned')     list = list.filter(m => m.status === 'PLANNED');
+    else if (tab === 'in_progress') list = list.filter(m => m.status === 'IN_PROGRESS');
+    else if (tab === 'done')   list = list.filter(m => m.status === 'COMPLETED' || m.status === 'CANCELLED');
+
+    return [...list].sort((a, b) => {
+      const va = (a[field] ?? '') as string;
+      const vb = (b[field] ?? '') as string;
+      const cmp = va.localeCompare(vb, 'fr', { numeric: true });
+      return asc ? cmp : -cmp;
+    });
   });
 
   protected isAdmin = computed(() => this.me()?.role === 'ADMIN');
@@ -95,6 +108,20 @@ export class MissionComposant implements OnInit {
   protected setTab(tab: Tab): void {
     this.activeTab.set(tab);
     this.selected.set(null);
+  }
+
+  protected setSort(field: SortField): void {
+    if (this.sortField() === field) {
+      this.sortAsc.update(v => !v);
+    } else {
+      this.sortField.set(field);
+      this.sortAsc.set(true);
+    }
+  }
+
+  protected sortIcon(field: SortField): string {
+    if (this.sortField() !== field) return '↕';
+    return this.sortAsc() ? '↑' : '↓';
   }
 
   protected select(m: MissionModel): void {

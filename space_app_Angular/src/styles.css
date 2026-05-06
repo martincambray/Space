@@ -3,8 +3,12 @@ body, html {
   padding: 0;
   height: 100vh;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-image: url("/Earth.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background: #000;
 }
+
+/* ── Règles sidebar-open : globales pour bypasser l'encapsulation Angular ── */
+body.sidebar-open #btn,
+body.sidebar-open #logout-btn { left: 188px; }
+
+body.sidebar-open .toolbar           { left: calc(50% + 110px) !important; }
+body.sidebar-open .simulation-screen { left: calc(50% + 110px) !important; }
