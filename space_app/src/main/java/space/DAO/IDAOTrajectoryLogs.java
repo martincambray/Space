@@ -14,6 +14,9 @@ public interface IDAOTrajectoryLogs extends JpaRepository<TrajectoryLogs, Intege
     // Tous les calculs d'une mission, du plus récent au plus ancien.
     List<TrajectoryLogs> findByMissionOrderByComputedAtDesc(Mission mission);
 
+    // Requête par id de mission (évite de charger l'entité Mission entière).
+    List<TrajectoryLogs> findByMission_IdOrderByComputedAtDesc(int missionId);
+
     // Tous les calculs effectués par un opérateur donné, du plus récent au plus ancien.
     List<TrajectoryLogs> findByOperatorOrderByComputedAtDesc(Utilisateur operator);
 }
