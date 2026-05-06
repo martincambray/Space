@@ -25,7 +25,7 @@ export class UtilisateurService {
     return this.http.post<UtilisateurModel>('/api/utilisateur', request);
   }
 
-  public update(id: number, request: CreateUtilisateurRequest): Observable<void> {
+  public update(id: number, request: UpdateUtilisateurRequest): Observable<void> {
     return this.http.put<void>(`/api/utilisateur/${id}`, request);
   }
 
@@ -40,4 +40,12 @@ export interface CreateUtilisateurRequest {
   lastname: string;
   firstname: string;
   role: string;
+}
+
+export interface UpdateUtilisateurRequest {
+  mail?: string;
+  password?: string;
+  lastname?: string;
+  firstname?: string;
+  role?: string;
 }

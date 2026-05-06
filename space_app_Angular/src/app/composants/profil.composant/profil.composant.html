@@ -90,7 +90,13 @@
               </div>
               <div class="user-actions">
                 <span class="role-pill" [class.admin]="u.role === 'ADMIN'">{{ u.role }}</span>
-                <button class="action-btn delete-btn" (click)="confirmDeleteUser(u.id)">
+                <button class="action-btn edit-btn" (click)="openEditUser(u)" title="Modifier">
+                  <i class='bx bx-edit'></i>
+                </button>
+                <button class="action-btn delete-btn"
+                        (click)="confirmDeleteUser(u.id)"
+                        [disabled]="isEditingSelf(u.id)"
+                        title="{{ isEditingSelf(u.id) ? 'Vous ne pouvez pas vous supprimer' : 'Supprimer' }}">
                   <i class='bx bx-trash'></i>
                 </button>
               </div>
@@ -106,18 +112,20 @@
 @if (showUserModal()) {
   <div class="modal-overlay" (click)="closeUserModal()">
     <div class="modal" (click)="$event.stopPropagation()">
-      <h2 class="modal-title">Nouvel utilisateur</h2>
+      <h2 class="modal-title">
+        {{ editingUserId() ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur' }}
+      </h2>
 
       <form [formGroup]="userForm" (ngSubmit)="submitUser()">
-        <div class="form-row">
-          <div class="form-group">
-            <label>Prénom *</label>
-            <input type="text" formControlName="firstname" placeholder="Jean" />
-          </div>
-          <div class="form-group">
-            <label>Nom *</label>
-            <input type="text" formControlName="lastname" placeholder="Dupont" />
-          </div>
+
+        <div class="form-group">
+          <label>Prénom *</label>
+          <input type="text" formControlName="firstname" placeholder="Jean" />
+        </div>
+
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" formControlName="lastname" placeholder="Dupont" />
         </div>
 
         <div class="form-group">
@@ -126,7 +134,7 @@
         </div>
 
         <div class="form-group">
-          <label>Mot de passe * (8 min)</label>
+          <label>Mot de passe {{ editingUserId() ? '(laisser vide = inchangé)' : '* (8 min)' }}</label>
           <input type="password" formControlName="password" placeholder="••••••••" />
         </div>
 
@@ -144,7 +152,9 @@
 
         <div class="modal-footer">
           <button type="button" class="cancel-btn" (click)="closeUserModal()">Annuler</button>
-          <button type="submit" class="submit-btn-modal" [disabled]="userForm.invalid">Créer</button>
+          <button type="submit" class="submit-btn-modal" [disabled]="userForm.invalid">
+            {{ editingUserId() ? 'Enregistrer' : 'Créer' }}
+          </button>
         </div>
       </form>
     </div>

@@ -342,12 +342,26 @@
   background: transparent;
 }
 
+.action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.edit-btn {
+  border-color: rgba(0, 150, 255, 0.4);
+  color: #4db8ff;
+}
+
+.edit-btn:hover {
+  background: rgba(0, 150, 255, 0.2);
+}
+
 .delete-btn {
   border-color: rgba(255, 60, 60, 0.4);
   color: #ff6b6b;
 }
 
-.delete-btn:hover {
+.delete-btn:hover:not(:disabled) {
   background: rgba(255, 60, 60, 0.2);
 }
 
@@ -368,8 +382,10 @@
   border: 1px solid rgba(0, 240, 255, 0.3);
   border-radius: 14px;
   padding: 32px;
-  width: 480px;
+  width: 440px;
   max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
 }
 
@@ -378,12 +394,6 @@
   font-weight: 600;
   color: #00f0ff;
   margin-bottom: 24px;
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
 }
 
 .form-group select {

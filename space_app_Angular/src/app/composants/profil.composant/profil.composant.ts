@@ -1,7 +1,7 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UtilisateurService, CreateUtilisateurRequest } from '../../services/utilisateur.service';
+import { UtilisateurService, CreateUtilisateurRequest, UpdateUtilisateurRequest } from '../../services/utilisateur.service';
 import { UtilisateurModel } from '../../models/utilisateur.model';
 
 @Component({
@@ -27,15 +27,17 @@ export class ProfilComposant implements OnInit {
   protected passwordCtrl!: FormControl;
   protected confirmCtrl!:  FormControl;
 
-  // ── Créer un utilisateur (ADMIN) ──
-  protected showUserModal   = signal(false);
-  protected userModalError  = signal('');
-  protected userForm!:      FormGroup;
-  protected uMailCtrl!:     FormControl;
-  protected uPassCtrl!:     FormControl;
-  protected uLastCtrl!:     FormControl;
-  protected uFirstCtrl!:    FormControl;
-  protected uRoleCtrl!:     FormControl;
+  // ── Modale gestion utilisateurs (create/edit) ──
+  protected showUserModal  = signal(false);
+  protected editingUserId  = signal<number | null>(null);
+  protected userModalError = signal('');
+
+  protected userForm!:   FormGroup;
+  protected uMailCtrl!:  FormControl;
+  protected uPassCtrl!:  FormControl;
+  protected uLastCtrl!:  FormControl;
+  protected uFirstCtrl!: FormControl;
+  protected uRoleCtrl!:  FormControl;
 
   ngOnInit(): void {
     this.utilisateurService.findMe().subscribe({
@@ -54,7 +56,7 @@ export class ProfilComposant implements OnInit {
     );
 
     this.uMailCtrl  = this.formBuilder.control('', [Validators.required, Validators.email]);
-    this.uPassCtrl  = this.formBuilder.control('', [Validators.required, Validators.minLength(8)]);
+    this.uPassCtrl  = this.formBuilder.control('');          // optionnel à l'édition
     this.uLastCtrl  = this.formBuilder.control('', Validators.required);
     this.uFirstCtrl = this.formBuilder.control('', Validators.required);
     this.uRoleCtrl  = this.formBuilder.control('OPERATEUR', Validators.required);
@@ -86,7 +88,27 @@ export class ProfilComposant implements OnInit {
   }
 
   protected openCreateUser(): void {
+    this.editingUserId.set(null);
     this.userForm.reset({ role: 'OPERATEUR' });
+    // En mode création, le mot de passe est obligatoire
+    this.uPassCtrl.setValidators([Validators.required, Validators.minLength(8)]);
+    this.uPassCtrl.updateValueAndValidity();
+    this.userModalError.set('');
+    this.showUserModal.set(true);
+  }
+
+  protected openEditUser(u: UtilisateurModel): void {
+    this.editingUserId.set(u.id);
+    this.userForm.patchValue({
+      mail:      u.mail,
+      lastname:  u.lastname,
+      firstname: u.firstname,
+      role:      u.role,
+      password:  '',
+    });
+    // En mode édition, le mot de passe est optionnel
+    this.uPassCtrl.clearValidators();
+    this.uPassCtrl.updateValueAndValidity();
     this.userModalError.set('');
     this.showUserModal.set(true);
   }
@@ -99,17 +121,35 @@ export class ProfilComposant implements OnInit {
     if (this.userForm.invalid) return;
     this.userModalError.set('');
     const raw = this.userForm.getRawValue();
-    const request: CreateUtilisateurRequest = {
-      mail:      raw.mail.trim(),
-      password:  raw.password,
-      lastname:  raw.lastname.trim(),
-      firstname: raw.firstname.trim(),
-      role:      raw.role,
-    };
-    this.utilisateurService.create(request).subscribe({
-      next: () => { this.loadUsers(); this.showUserModal.set(false); },
-      error: () => this.userModalError.set('Erreur lors de la création.')
-    });
+    const id  = this.editingUserId();
+
+    if (id === null) {
+      // Création
+      const request: CreateUtilisateurRequest = {
+        mail:      raw.mail.trim(),
+        password:  raw.password,
+        lastname:  raw.lastname.trim(),
+        firstname: raw.firstname.trim(),
+        role:      raw.role,
+      };
+      this.utilisateurService.create(request).subscribe({
+        next: () => { this.loadUsers(); this.showUserModal.set(false); },
+        error: () => this.userModalError.set('Erreur lors de la création.')
+      });
+    } else {
+      // Modification
+      const request: UpdateUtilisateurRequest = {
+        mail:      raw.mail?.trim() || undefined,
+        lastname:  raw.lastname?.trim() || undefined,
+        firstname: raw.firstname?.trim() || undefined,
+        role:      raw.role || undefined,
+        password:  raw.password?.trim() || undefined,
+      };
+      this.utilisateurService.update(id, request).subscribe({
+        next: () => { this.loadUsers(); this.showUserModal.set(false); },
+        error: () => this.userModalError.set('Erreur lors de la modification.')
+      });
+    }
   }
 
   protected confirmDeleteUser(id: number): void {
@@ -122,6 +162,10 @@ export class ProfilComposant implements OnInit {
       next: () => this.users.update(list => list.filter(u => u.id !== id)),
       error: () => alert('Erreur lors de la suppression.')
     });
+  }
+
+  protected isEditingSelf(id: number): boolean {
+    return this.user()?.id === id;
   }
 
   protected retour(): void {
