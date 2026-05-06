@@ -2,16 +2,46 @@ package space.MODEL;
 
 import java.time.LocalDateTime;
 
-public class TrajectoryLogs 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "trajectory_log")
+public class TrajectoryLogs
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @ManyToOne
+    @JoinColumn(name = "mission_id")
     private Mission mission;
+
+    @ManyToOne
+    @JoinColumn(name = "operator_id")
     private Utilisateur operator;
+
+    @ManyToOne
+    @JoinColumn(name = "body_id")
     private CelestialBody body;
+
+    @Column(name = "computed_at")
     private LocalDateTime computedAt;
+
     private Double altitude;
+
+    @Column(name = "initial_speed")
     private Double initialSpeed;
+
     private Double mass;
+
+    @Column(name = "result_json", columnDefinition = "TEXT")
     private String resultJson;
 
     public int getId() { return id; }

@@ -1,0 +1,93 @@
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a0a1a;
+}
+
+.login-card {
+  background: #12122a;
+  border: 1px solid #2a2a5a;
+  border-radius: 12px;
+  padding: 2.5rem;
+  width: 100%;
+  max-width: 400px;
+  color: #e0e0ff;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem;
+  color: #a0c4ff;
+}
+
+.subtitle {
+  color: #666;
+  margin: 0 0 2rem;
+  font-size: 0.9rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+label {
+  display: block;
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 0.4rem;
+}
+
+input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  background: #1a1a3a;
+  border: 1px solid #3a3a6a;
+  border-radius: 6px;
+  color: #e0e0ff;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+input:focus {
+  outline: none;
+  border-color: #6080ff;
+}
+
+.error {
+  color: #ff6b6b;
+  font-size: 0.78rem;
+  margin-top: 0.3rem;
+  display: block;
+}
+
+.login-error {
+  color: #ff6b6b;
+  text-align: center;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+button {
+  width: 100%;
+  padding: 0.75rem;
+  background: #4060ff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background: #5070ff;
+}
+
+button:disabled {
+  background: #2a2a5a;
+  cursor: not-allowed;
+  color: #555;
+}

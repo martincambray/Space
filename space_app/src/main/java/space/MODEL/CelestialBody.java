@@ -1,13 +1,34 @@
 package space.MODEL;
 
-public class CelestialBody 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "celestial_body")
+public class CelestialBody
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(length = 30)
     private String name;
+
     private Double mass;
+
     private Double radius;
+
+    @Column(name = "orbital_radius")
     private Double orbitalRadius;
+
+    @Column(name = "ref_coord_x")
     private Double refCoordX;
+
+    @Column(name = "ref_coord_y")
     private Double refCoordY;
 
     public int getId() { return id; }

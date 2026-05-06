@@ -1,9 +1,24 @@
 package space.MODEL;
 
-public class MissionType 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "mission_type")
+public class MissionType
 {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(length = 30)
     private String name;
+
+    @Column(length = 255)
     private String description;
 
     public int getId() {

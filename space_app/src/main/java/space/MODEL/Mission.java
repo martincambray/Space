@@ -1,33 +1,83 @@
 package space.MODEL;
 
-
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+
+@Entity
 public class Mission {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
+    @Column(length = 30)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30, nullable = false)
     private MissionStatus status = MissionStatus.PLANNED;
+
+    @ManyToOne
+    @JoinColumn(name = "operator_id")
     private Utilisateur operator;
+
+    @ManyToOne
+    @JoinColumn(name = "spacecraft_id")
     private Spacecraft spacecraft;
+
+    @ManyToOne
+    @JoinColumn(name = "type_id")
     private MissionType type;
+
+    @ManyToOne
+    @JoinColumn(name = "departure_body_id")
     private CelestialBody departureBody;
+
+    @ManyToOne
+    @JoinColumn(name = "arrival_body_id")
     private CelestialBody arrivalBody;
+
+    @Column(name = "departure_date")
     private LocalDateTime departureDate;
+
+    @Column(name = "arrival_date")
     private LocalDateTime arrivalDate;
+
+    @Column(name = "orbital_time")
     private Integer orbitalTime;
+
+    @Column(length = 255)
     private String payload;
+
+    @Column(columnDefinition = "TEXT")
     private String trajectory;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY)
     private List<TrajectoryLogs> trajectoryLogs;
 
     // ── Getters / Setters ─────────────────────────────────────────────────
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
-    
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -45,7 +95,7 @@ public class Mission {
 
     public CelestialBody getDepartureBody() { return departureBody; }
     public void setDepartureBody(CelestialBody departureBody) { this.departureBody = departureBody; }
-    
+
     public CelestialBody getArrivalBody() { return arrivalBody; }
     public void setArrivalBody(CelestialBody arrivalBody) { this.arrivalBody = arrivalBody; }
 

@@ -1,0 +1,119 @@
+.dashboard {
+  min-height: 100vh;
+  background: #0a0a1a;
+  color: #e0e0ff;
+  padding: 0;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 2rem;
+  background: #12122a;
+  border-bottom: 1px solid #2a2a5a;
+}
+
+.dashboard-header h1 {
+  font-size: 1.4rem;
+  color: #a0c4ff;
+  margin: 0;
+}
+
+.btn-logout {
+  background: transparent;
+  border: 1px solid #3a3a6a;
+  color: #aaa;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-logout:hover {
+  border-color: #ff6b6b;
+  color: #ff6b6b;
+}
+
+.missions-section {
+  padding: 2rem;
+}
+
+.missions-section h2 {
+  font-size: 1.1rem;
+  color: #8899cc;
+  margin: 0 0 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.empty {
+  color: #555;
+  font-style: italic;
+}
+
+.mission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.mission-card {
+  background: #12122a;
+  border: 1px solid #2a2a5a;
+  border-radius: 10px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.15s;
+}
+
+.mission-card:hover {
+  border-color: #6080ff;
+  transform: translateY(-2px);
+}
+
+.mission-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.mission-name {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.badge-planned    { background: #1a3a6a; color: #6aabff; }
+.badge-in_progress { background: #3a2a00; color: #ffaa00; }
+.badge-completed  { background: #0a3a1a; color: #4aff8a; }
+.badge-cancelled  { background: #3a0a0a; color: #ff6b6b; }
+
+.mission-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #aaa;
+  margin-bottom: 0.75rem;
+}
+
+.mission-type {
+  color: #6080ff;
+}
+
+.mission-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #666;
+  border-top: 1px solid #1a1a3a;
+  padding-top: 0.6rem;
+}

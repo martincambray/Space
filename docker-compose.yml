@@ -1,0 +1,65 @@
+name: space-mission-control
+
+services:
+
+  mysql:
+    image: mysql:8.0.45
+    container_name: space-mysql
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 3s
+      retries: 10
+      interval: 5s
+
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./space_doc/space_db.sql:/docker-entrypoint-initdb.d/setup.sql
+
+    networks:
+      - space
+
+  boot:
+    build:
+      context: space_app
+    container_name: space-boot
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql/smc_db
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+    ports:
+      - 8080:8080
+
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+    networks:
+      - space
+
+  angular:
+    build:
+      context: space_app_Agular
+    container_name: space-angular
+
+    ports:
+      - 80:80
+
+    depends_on:
+      - boot
+
+    networks:
+      - space
+
+volumes:
+  db_data:
+    name: space-db-data
+
+networks:
+  space:
+    name: space
