@@ -22,6 +22,7 @@ import jakarta.validation.Valid;
 import space.DAO.IDAOUtilisateur;
 import space.DTO.request.CreateUtilisateurRequest;
 import space.DTO.request.UpdateMeRequest;
+import space.DTO.request.UpdateUtilisateurAdminRequest;
 import space.DTO.response.UtilisateurResponse;
 import space.MODEL.Utilisateur;
 
@@ -83,7 +84,7 @@ public class UtilisateurController {
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
-    public void updateUser(@PathVariable int id, @Valid @RequestBody CreateUtilisateurRequest request) {
+    public void updateUser(@PathVariable int id, @Valid @RequestBody UpdateUtilisateurAdminRequest request) {
         Utilisateur user = this.daoUtilisateur.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         if (request.getMail() != null && !request.getMail().isBlank()) {
@@ -92,8 +93,12 @@ public class UtilisateurController {
         if (request.getPassword() != null && !request.getPassword().isBlank()) {
             user.setPassword(this.passwordEncoder.encode(request.getPassword()));
         }
-        if (request.getLastname() != null) user.setLastname(request.getLastname());
-        if (request.getFirstname() != null) user.setFirstname(request.getFirstname());
+        if (request.getLastname() != null && !request.getLastname().isBlank()) {
+            user.setLastname(request.getLastname());
+        }
+        if (request.getFirstname() != null && !request.getFirstname().isBlank()) {
+            user.setFirstname(request.getFirstname());
+        }
         if (request.getRole() != null) user.setRole(request.getRole());
         this.daoUtilisateur.save(user);
     }
