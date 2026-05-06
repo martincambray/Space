@@ -180,12 +180,25 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       const px = cx + a * Math.cos(this.angles[i]);
       const py = cy + b * Math.sin(this.angles[i]);
 
-      // Planète avec dégradé
+      // Planète avec dégradé adapté au soleil
       const r = Math.max(4, planet.radius * this.zoom);
-      const g = this.ctx.createRadialGradient(px - r / 3, py - r / 3, r / 5, px, py, r);
+
+      // Direction soleil → planète
+      const dx = px - cx;
+      const dy = py - cy;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const nx = dx / dist;
+      const ny = dy / dist;
+
+      // Point éclairé côté soleil
+      const lightX = px - nx * r * 0.4;
+      const lightY = py - ny * r * 0.4;
+
+      const g = this.ctx.createRadialGradient(lightX, lightY, 0, px, py, r);
       g.addColorStop(0, 'white');
-      g.addColorStop(0.3, planet.color);
+      g.addColorStop(0.25, planet.color);
       g.addColorStop(1, '#000');
+
       this.ctx.beginPath();
       this.ctx.arc(px, py, r, 0, Math.PI * 2);
       this.ctx.fillStyle = g;
