@@ -1,0 +1,62 @@
+<div class="page">
+  <div class="stars"></div>
+
+  <header class="page-header">
+    <button class="back-btn" (click)="retour()">
+      <i class='bx bx-arrow-back'></i> Retour
+    </button>
+    <h1 class="page-title">Spacecraft</h1>
+    <span class="count-badge">{{ spacecrafts().length }} vaisseau{{ spacecrafts().length > 1 ? 'x' : '' }}</span>
+  </header>
+
+  <main class="page-content">
+    @if (spacecrafts().length === 0) {
+      <p class="empty-msg">Chargement des vaisseaux...</p>
+    }
+
+    <div class="grid">
+      @for (sc of spacecrafts(); track sc.id) {
+        <div class="card" [class.unavailable]="!sc.available">
+
+          <div class="card-visual">
+            <div class="spacecraft-icon">
+              <i class='bx bx-rocket'></i>
+            </div>
+            @if (!sc.available) {
+              <span class="status-overlay">En mission</span>
+            }
+          </div>
+
+          <div class="card-body">
+            <div class="card-header">
+              <h3 class="spacecraft-name">{{ sc.name }}</h3>
+              <span class="avail-badge" [class.active]="sc.available">
+                {{ sc.available ? 'Disponible' : 'En mission' }}
+              </span>
+            </div>
+
+            <p class="description">{{ sc.description }}</p>
+
+            <div class="specs">
+              <div class="spec-item">
+                <i class='bx bx-battery'></i>
+                <div class="spec-info">
+                  <span class="spec-label">Batterie max</span>
+                  <span class="spec-value">{{ formatKwh(sc.batteryMax) }}</span>
+                </div>
+              </div>
+              <div class="spec-item">
+                <i class='bx bx-droplet'></i>
+                <div class="spec-info">
+                  <span class="spec-label">Carburant</span>
+                  <span class="spec-value">{{ formatNumber(sc.fuelCapacity) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+  </main>
+</div>

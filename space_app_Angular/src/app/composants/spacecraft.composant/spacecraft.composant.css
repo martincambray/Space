@@ -1,0 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+.page {
+  min-height: 100vh;
+  background: #0a0a1a;
+  color: white;
+}
+
+.stars {
+  position: fixed;
+  width: 200%; height: 200%;
+  background: url('/stardust.png');
+  animation: moveStars 60s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes moveStars {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-500px, -500px); }
+}
+
+.page-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 40px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 150, 255, 0.15);
+  border: 1px solid rgba(0, 150, 255, 0.4);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(0, 150, 255, 0.35);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #00f0ff;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+  flex: 1;
+}
+
+.count-badge {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.page-content {
+  position: relative;
+  z-index: 1;
+  padding: 40px;
+}
+
+.empty-msg {
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  margin-top: 60px;
+  font-size: 1rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+  backdrop-filter: blur(10px);
+}
+
+.card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(0, 240, 255, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 12px rgba(0, 240, 255, 0.15);
+}
+
+.card.unavailable {
+  opacity: 0.7;
+}
+
+.card-visual {
+  position: relative;
+  height: 160px;
+  background: linear-gradient(135deg, rgba(0, 60, 120, 0.6), rgba(0, 20, 60, 0.8));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+}
+
+.spacecraft-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(0, 240, 255, 0.1);
+  border: 2px solid rgba(0, 240, 255, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+}
+
+.spacecraft-icon i {
+  font-size: 2.4rem;
+  color: #00f0ff;
+}
+
+.status-overlay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: rgba(255, 170, 0, 0.2);
+  border: 1px solid #ffaa00;
+  color: #ffaa00;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.spacecraft-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #e0e0ff;
+}
+
+.avail-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(255, 107, 107, 0.15);
+  border: 1px solid #ff6b6b;
+  color: #ff6b6b;
+}
+
+.avail-badge.active {
+  background: rgba(74, 255, 138, 0.12);
+  border-color: #4aff8a;
+  color: #4aff8a;
+}
+
+.description {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.specs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.spec-item > i {
+  font-size: 1.3rem;
+  color: rgba(0, 240, 255, 0.6);
+  flex-shrink: 0;
+}
+
+.spec-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.spec-label {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.spec-value {
+  font-size: 0.9rem;
+  color: #a0c4ff;
+  font-weight: 500;
+}

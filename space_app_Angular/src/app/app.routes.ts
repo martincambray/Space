@@ -15,8 +15,23 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./composants/dashboard.composant/dashboard.composant').then(m => m.DashboardComposant),
+    path: 'profil',
+    loadComponent: () => import('./composants/profil.composant/profil.composant').then(m => m.ProfilComposant),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'spacecraft',
+    loadComponent: () => import('./composants/spacecraft.composant/spacecraft.composant').then(m => m.SpacecraftComposant),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'celestial-body',
+    loadComponent: () => import('./composants/celestial-body.composant/celestial-body.composant').then(m => m.CelestialBodyComposant),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'mission',
+    loadComponent: () => import('./composants/mission.composant/mission.composant').then(m => m.MissionComposant),
     canActivate: [authGuard]
   },
   { path: '**', redirectTo: 'menu' }

@@ -128,8 +128,9 @@
       transition:0.4s ease; /* bouge si la sidebar s'ouvre */
     }
 
-    /* La toolbar se décale si la sidebar est ouverte (moitié de sa largeur = 110px) */
-    body.sidebar-open .toolbar { left:calc(50% + 110px); }
+    /* La toolbar et la simulation se décalent si la sidebar est ouverte (moitié de 220px = 110px) */
+    body.sidebar-open .toolbar           { left:calc(50% + 110px); }
+    body.sidebar-open .simulation-screen { left:calc(50% + 110px); }
 
     /* Ligne horizontale de boutons */
     .toolbar-row { display:flex; gap:12px; }
@@ -262,24 +263,11 @@
     </div>
 
     <ul class="nav-list">
-      <!-- Lien Accueil -->
-      <li><a href="#"><i class='bx bx-grid-alt'></i><span class="links_name">Accueil</span></a></li>
-
-      <!-- Lien Profil -->
-      <li><a href="#"><i class='bx bx-user'></i><span class="links_name">Profil</span></a></li>
-
-      <!-- Item avec sous-menu : le clic JS toggle la classe .open -->
-      <li class="has-submenu">
-        <a href="#"><i class='bx bx-rocket'></i><span class="links_name">Missions</span></a>
-        <ul class="submenu"> <!-- Sous-menu caché par défaut -->
-          <li><a href="#">Mission en cours</a></li>
-          <li><a href="#">Historique</a></li>
-          <li><a href="#">Planifier</a></li>
-        </ul>
-      </li>
-
-      <!-- Lien Request -->
-      <li><a href="#"><i class='bx bx-cog'></i><span class="links_name">Request</span></a></li>
+      <li><a href="/menu"><i class='bx bx-grid-alt'></i><span class="links_name">Accueil</span></a></li>
+      <li><a href="/profil"><i class='bx bx-user'></i><span class="links_name">Profil</span></a></li>
+      <li><a href="/spacecraft"><i class='bx bx-rocket'></i><span class="links_name">Spacecraft</span></a></li>
+      <li><a href="/celestial-body"><i class='bx bx-globe'></i><span class="links_name">Celestial Body</span></a></li>
+      <li><a href="/mission"><i class='bx bx-task'></i><span class="links_name">Mission</span></a></li>
     </ul>
 
     <!-- Profil utilisateur en bas de la sidebar -->
@@ -405,10 +393,10 @@
       /* ===================================================
          GARDE JWT — redirige vers login si aucun token
          =================================================== */
-      const jwt = localStorage.getItem("jwt");
+      const jwt = sessionStorage.getItem("token");
       if (!jwt) {
-        window.location.href = "/login/login.html";
-        return; // stoppe l'exécution du reste du script
+        window.location.href = "/login";
+        return;
       }
 
       /* Décode la partie "payload" du JWT (base64) pour lire mail + rôle
@@ -440,19 +428,13 @@
       }
 
       /* ===== SIDEBAR ===== */
-      const sidebar  = document.querySelector(".sidebar");     // sélectionne la sidebar
-      const btn      = document.querySelector("#btn");         // bouton hamburger
-      const missions = document.querySelector(".has-submenu"); // item avec sous-menu
+      const sidebar = document.querySelector(".sidebar");
+      const btn     = document.querySelector("#btn");
 
-      // Clic sur hamburger : toggle sidebar + classe sur body pour décaler la toolbar
+      // Clic sur hamburger : toggle sidebar + classe sur body pour décaler toolbar et simulation
       btn.addEventListener("click", () => {
-        sidebar.classList.toggle("open");              // ouvre ou ferme la sidebar
-        document.body.classList.toggle("sidebar-open"); // décale toolbar et boutons
-      });
-
-      // Clic sur "Missions" : toggle le sous-menu
-      missions.addEventListener("click", () => {
-        missions.classList.toggle("open"); // affiche ou masque le sous-menu
+        sidebar.classList.toggle("open");
+        document.body.classList.toggle("sidebar-open");
       });
 
 
@@ -687,8 +669,8 @@
          =================================================== */
       document.getElementById("logout-btn").addEventListener("click", (e) => {
         e.preventDefault();
-        localStorage.removeItem("jwt"); // supprime le token
-        window.location.href = "/login/login.html";
+        sessionStorage.removeItem("token");
+        window.location.href = "/login";
       });
 
     }); // fin DOMContentLoaded

@@ -1,0 +1,212 @@
+<div class="page">
+  <div class="stars"></div>
+
+  <!-- HEADER -->
+  <header class="page-header">
+    <button class="back-btn" (click)="retour()">
+      <i class='bx bx-arrow-back'></i> Retour
+    </button>
+    <h1 class="page-title">Missions</h1>
+    <button class="new-btn" (click)="openNewForm()">
+      <i class='bx bx-plus'></i> Nouvelle mission
+    </button>
+  </header>
+
+  <!-- TABS -->
+  <nav class="tabs">
+    <button class="tab" [class.active]="activeTab() === 'all'"         (click)="setTab('all')">Toutes</button>
+    <button class="tab" [class.active]="activeTab() === 'planned'"     (click)="setTab('planned')">Planifiées</button>
+    <button class="tab" [class.active]="activeTab() === 'in_progress'" (click)="setTab('in_progress')">En cours</button>
+    <button class="tab" [class.active]="activeTab() === 'done'"        (click)="setTab('done')">Terminées</button>
+  </nav>
+
+  <!-- MAIN LAYOUT -->
+  <div class="layout" [class.has-detail]="selected() !== null">
+
+    <!-- LISTE -->
+    <main class="list-panel">
+      @if (filtered().length === 0) {
+        <p class="empty-msg">Aucune mission dans cette catégorie.</p>
+      }
+      <div class="mission-grid">
+        @for (m of filtered(); track m.id) {
+          <div class="mission-card" [class.active]="selected()?.id === m.id" (click)="select(m)">
+            <div class="mc-top">
+              <span class="mc-name">{{ m.name }}</span>
+              <span class="badge badge-{{ m.status.toLowerCase() }}">{{ statusLabel(m.status) }}</span>
+            </div>
+            <div class="mc-route">{{ m.departureBodyName }} → {{ m.arrivalBodyName }}</div>
+            <div class="mc-meta">
+              <span>{{ m.typeName }}</span>
+              <span>{{ m.spacecraftName }}</span>
+            </div>
+            <div class="mc-footer">
+              <span class="mc-date">{{ formatDate(m.departureDate) }}</span>
+              <span class="mc-operator">{{ m.operatorMail }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    </main>
+
+    <!-- DETAIL PANEL -->
+    @if (selected(); as m) {
+      <aside class="detail-panel">
+        <button class="close-btn" (click)="closeDetail()"><i class='bx bx-x'></i></button>
+
+        <div class="detail-header">
+          <h2 class="detail-name">{{ m.name }}</h2>
+          <span class="badge badge-{{ m.status.toLowerCase() }}">{{ statusLabel(m.status) }}</span>
+        </div>
+
+        <div class="detail-sections">
+
+          <!-- INFOS -->
+          <section class="detail-section">
+            <h3 class="section-title">Informations</h3>
+            <div class="info-grid">
+              <div class="info-row"><span class="il">Type</span><span class="iv">{{ m.typeName }}</span></div>
+              <div class="info-row"><span class="il">Vaisseau</span><span class="iv">{{ m.spacecraftName }}</span></div>
+              <div class="info-row"><span class="il">Opérateur</span><span class="iv">{{ m.operatorMail }}</span></div>
+              <div class="info-row"><span class="il">Départ</span><span class="iv">{{ m.departureBodyName }}</span></div>
+              <div class="info-row"><span class="il">Arrivée</span><span class="iv">{{ m.arrivalBodyName }}</span></div>
+              <div class="info-row"><span class="il">Date départ</span><span class="iv">{{ formatDate(m.departureDate) }}</span></div>
+              <div class="info-row"><span class="il">Date arrivée</span><span class="iv">{{ formatDate(m.arrivalDate) }}</span></div>
+              @if (m.payload) {
+                <div class="info-row"><span class="il">Charge utile</span><span class="iv">{{ m.payload }}</span></div>
+              }
+            </div>
+          </section>
+
+          <!-- SPACECRAFT ACTIONS (missions actives) -->
+          @if (m.status === 'IN_PROGRESS') {
+            <section class="detail-section">
+              <h3 class="section-title">Actions spacecraft</h3>
+              <div class="sc-status">
+                <i class='bx bx-rocket sc-icon'></i>
+                <div class="sc-info">
+                  <span class="sc-name">{{ m.spacecraftName }}</span>
+                  <span class="sc-state">En vol</span>
+                </div>
+              </div>
+              <div class="action-btns">
+                <button class="action-btn telemetry">
+                  <i class='bx bx-signal-5'></i> Télémétrie
+                </button>
+                @if (isAdmin()) {
+                  <button class="action-btn complete" (click)="changeStatus(m.id, 'COMPLETED')">
+                    <i class='bx bx-check'></i> Terminer
+                  </button>
+                  <button class="action-btn abort" (click)="changeStatus(m.id, 'CANCELLED')">
+                    <i class='bx bx-x'></i> Annuler
+                  </button>
+                }
+              </div>
+            </section>
+          }
+
+          <!-- ADMIN ACTIONS -->
+          @if (isAdmin()) {
+            <section class="detail-section">
+              <h3 class="section-title">Administration</h3>
+              <div class="action-btns">
+                @if (m.status === 'PLANNED') {
+                  <button class="action-btn complete" (click)="changeStatus(m.id, 'IN_PROGRESS')">
+                    <i class='bx bx-play'></i> Lancer
+                  </button>
+                  <button class="action-btn abort" (click)="changeStatus(m.id, 'CANCELLED')">
+                    <i class='bx bx-x'></i> Annuler
+                  </button>
+                }
+                <button class="action-btn delete" (click)="deleteMission(m.id)">
+                  <i class='bx bx-trash'></i> Supprimer
+                </button>
+              </div>
+              @if (actionFeedback()) {
+                <p class="feedback-msg">{{ actionFeedback() }}</p>
+              }
+            </section>
+          }
+
+        </div>
+      </aside>
+    }
+  </div>
+
+  <!-- MODAL NOUVELLE MISSION -->
+  @if (showNewForm()) {
+    <div class="modal-overlay" (click)="closeNewForm()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <h2 class="modal-title">Nouvelle mission</h2>
+
+        <form [formGroup]="form" (ngSubmit)="submitNew()">
+
+          <div class="form-group">
+            <label>Nom de la mission</label>
+            <input type="text" formControlName="name" placeholder="Ex : Mission Mars Alpha" />
+          </div>
+
+          <div class="form-group">
+            <label>Vaisseau</label>
+            <select formControlName="spacecraftId">
+              <option value="">-- choisir --</option>
+              @for (sc of spacecrafts(); track sc.id) {
+                <option [value]="sc.id">{{ sc.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Type de mission</label>
+            <select formControlName="typeId">
+              <option value="">-- choisir --</option>
+              @for (t of types(); track t.id) {
+                <option [value]="t.id">{{ t.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Corps de départ</label>
+              <select formControlName="departureBodyId">
+                <option value="">-- choisir --</option>
+                @for (b of bodies(); track b.id) {
+                  <option [value]="b.id">{{ b.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Corps d'arrivée</label>
+              <select formControlName="arrivalBodyId">
+                <option value="">-- choisir --</option>
+                @for (b of bodies(); track b.id) {
+                  <option [value]="b.id">{{ b.name }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Date de départ</label>
+            <input type="datetime-local" formControlName="departureDate" />
+          </div>
+
+          @if (formError()) {
+            <p class="form-error">{{ formError() }}</p>
+          }
+          @if (formSuccess()) {
+            <p class="form-success">Mission créée avec succès !</p>
+          }
+
+          <div class="modal-actions">
+            <button type="button" class="btn-cancel" (click)="closeNewForm()">Annuler</button>
+            <button type="submit" class="btn-submit" [disabled]="form.invalid">Créer</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  }
+
+</div>

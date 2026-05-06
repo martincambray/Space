@@ -1,0 +1,228 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+@import url('https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css');
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+
+.page {
+  min-height: 100vh;
+  background: #0a0a1a;
+  color: white;
+  overflow-x: hidden;
+}
+
+.stars {
+  position: fixed;
+  width: 200%; height: 200%;
+  background: url('/stardust.png');
+  animation: moveStars 60s linear infinite;
+  z-index: 0;
+  pointer-events: none;
+}
+
+@keyframes moveStars {
+  from { transform: translate(0, 0); }
+  to   { transform: translate(-500px, -500px); }
+}
+
+.page-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 24px 40px;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(10px);
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 150, 255, 0.15);
+  border: 1px solid rgba(0, 150, 255, 0.4);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: rgba(0, 150, 255, 0.35);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+}
+
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: #00f0ff;
+  text-shadow: 0 0 12px rgba(0, 240, 255, 0.6);
+}
+
+.page-content {
+  position: relative;
+  z-index: 1;
+  max-width: 600px;
+  margin: 40px auto;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-card, .password-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 28px 32px;
+  backdrop-filter: blur(12px);
+}
+
+.info-card {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.avatar {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 240, 255, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 240, 255, 0.08);
+  box-shadow: 0 0 16px rgba(0, 240, 255, 0.2);
+}
+
+.avatar i {
+  font-size: 2.8rem;
+  color: #00f0ff;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  flex: 1;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.info-value {
+  font-size: 0.95rem;
+  color: #e0e0ff;
+  font-weight: 500;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #00f0ff;
+  width: fit-content;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #a0c4ff;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.form-group input {
+  background: rgba(0, 150, 255, 0.08);
+  border: 1px solid rgba(0, 150, 255, 0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: white;
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  border-color: rgba(0, 150, 255, 0.8);
+  box-shadow: 0 0 8px rgba(0, 150, 255, 0.2);
+}
+
+.form-group input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.field-error {
+  font-size: 0.8rem;
+  color: #ff6b6b;
+}
+
+.msg-success {
+  font-size: 0.9rem;
+  color: #4aff8a;
+  margin-bottom: 12px;
+}
+
+.msg-error {
+  font-size: 0.9rem;
+  color: #ff6b6b;
+  margin-bottom: 12px;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 11px;
+  background: rgba(0, 150, 255, 0.2);
+  border: 1px solid rgba(0, 150, 255, 0.5);
+  border-radius: 6px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-top: 4px;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: rgba(0, 150, 255, 0.4);
+  border-color: #00f0ff;
+  color: #00f0ff;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

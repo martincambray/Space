@@ -16,4 +16,8 @@ export class UtilisateurService {
   public findMe(): Observable<UtilisateurModel> {
     return this.http.get<UtilisateurModel>('/api/utilisateur/me');
   }
+
+  public updatePassword(password: string): Observable<void> {
+    return this.http.patch<void>('/api/utilisateur/me', { password });
+  }
 }

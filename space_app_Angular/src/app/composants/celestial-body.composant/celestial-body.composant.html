@@ -1,0 +1,50 @@
+<div class="page">
+  <div class="stars"></div>
+
+  <header class="page-header">
+    <button class="back-btn" (click)="retour()">
+      <i class='bx bx-arrow-back'></i> Retour
+    </button>
+    <h1 class="page-title">Celestial Bodies</h1>
+    <span class="count-badge">{{ bodies().length }} corps céleste{{ bodies().length > 1 ? 's' : '' }}</span>
+  </header>
+
+  <main class="page-content">
+    @if (bodies().length === 0) {
+      <p class="empty-msg">Chargement des corps célestes...</p>
+    }
+
+    <div class="grid">
+      @for (body of bodies(); track body.id) {
+        <div class="card">
+
+          <div class="card-visual">
+            <div class="planet-sphere" [style.background]="'radial-gradient(circle at 35% 35%, white 0%, ' + planetColor(body.name) + ' 30%, #000 100%)'">
+            </div>
+            <div class="orbit-ring"></div>
+          </div>
+
+          <div class="card-body">
+            <h3 class="body-name">{{ body.name }}</h3>
+
+            <div class="stats">
+              <div class="stat-row">
+                <span class="stat-label">Masse</span>
+                <span class="stat-value">{{ formatMass(body.mass) }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Rayon</span>
+                <span class="stat-value">{{ formatRadius(body.radius) }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label">Distance au Soleil</span>
+                <span class="stat-value">{{ formatOrbital(body.orbitalRadius) }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+  </main>
+</div>
