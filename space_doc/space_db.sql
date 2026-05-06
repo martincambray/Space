@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS trajectory_log (
 -- =========================
 -- DONNÉES : CORPS CÉLESTES
 -- =========================
-INSERT INTO celestial_body (name, mass, radius, orbital_radius, ref_coord_x, ref_coord_y) VALUES
+INSERT IGNORE INTO celestial_body (name, mass, radius, orbital_radius, ref_coord_x, ref_coord_y) VALUES
 ('Soleil',  1.989e30, 696340.0,       0.0,          0.0,          0.0),
 ('Mercure', 3.301e23,   2439.7,  57900000.0,  57900000.0,         0.0),
 ('Vénus',   4.867e24,   6051.8, 108200000.0, 108200000.0,         0.0),
@@ -116,7 +116,7 @@ INSERT INTO celestial_body (name, mass, radius, orbital_radius, ref_coord_x, ref
 -- =========================
 -- TYPES DE MISSION
 -- =========================
-INSERT INTO mission_type (name, description) VALUES
+INSERT IGNORE INTO mission_type (name, description) VALUES
 ('Mise en Orbite',  'Orbite basse terrestre (~500 km)'),
 ('Mission Lunaire', 'Transfert Terre-Lune'),
 ('Interplanétaire', 'Transfert vers Mars ou autre planète');
@@ -124,40 +124,40 @@ INSERT INTO mission_type (name, description) VALUES
 -- =========================
 -- UTILISATEURS
 -- =========================
-INSERT INTO utilisateur (mail, password, lastname, firstname, role) VALUES
+INSERT IGNORE INTO utilisateur (mail, password, lastname, firstname, role) VALUES
 
-('admin@smc.fr',
- '$2a$10$wH8h7LJ6p8QyFh2KZ8sY1eGZy5l9V9XKQ1r0zQxFz7Vb1x7zYwJ8K',
+('admin.admin@smc.fr',
+ '$2a$10$ZlMe5Sp64e0APHE8kli8vOPle1EkddBPxXXayQdcEgUt0hqYJlW0C',
  'Admin', 'Admin', 'ADMIN'),
 
-('fabian@smc.fr',
- '$2a$10$2K8YpZrWnJQk1V9XfL3Z7eF6d8HnQmT1cYxVbW9GqLkF8eH2ZxT6W',
+('fabian.labonne@smc.fr',
+ '$2a$10$Nh8dPgTTT7qD6/UQSgKZ9e6aKvnviCnMmTUFW7J2Q7qLnOqPIn22i',
  'Labonne', 'Fabian', 'OPERATEUR'),
 
-('martin@smc.fr',
- '$2a$10$9XcF7LkP3nT6ZqW8VbY2eH1JrKpL0mN5dF8HnQ2YxTz7GqW4Xc9Z',
+('martin.cambray@smc.fr',
+ '$2a$10$BGWibM67YQATYxSAnwmk5OKBDmf9vP6y390aEl1z8vH636VxHPYFm',
  'Cambray', 'Martin', 'OPERATEUR'),
 
-('hugo@smc.fr',
- '$2a$10$T7YxF2LkP9QwE3rV6bN8mH1ZcD4fG5jK8L0pQwXzYvR3tU6eW9M',
+('hugo.chittaro@smc.fr',
+ '$2a$10$2chja0/cf0Wf6916vTturOG4cusXtLTIcNceCbQRcm4Nd9UQ7WA/a',
  'Chittaro', 'Hugo', 'OPERATEUR'),
 
-('eric@smc.fr',
- '$2a$10$P9ZxW3VbN7mH1KqT4L8eF2YcD5rG6jJ0QwXzYvR3tU6eW9M1aB',
+('eric.ea@smc.fr',
+ '$2a$10$F2aSEcSy90K/vxGesLyIDuDzgISYa6YdvVPg3MVbicjdwh0mAXJne',
  'Ea', 'Eric', 'OPERATEUR'),
 
-('audric@smc.fr',
- '$2a$10$M1aB3C5D7E9FhJkLmNoPqRsTuVwXyZ0123456789abcdefghi',
+('audric.olivier@smc.fr',
+ '$2a$10$F3.pSQ0unnXUtvjq.sl0OuowAAmQSMR.QNNLHn6aH0L9B2Nzv9zoe',
  'Olivier', 'Audric', 'OPERATEUR'),
 
-('mathias@smc.fr',
- '$2a$10$ZyXwVuTsRqPoNmLkJiHgFeDcBa9876543210abcdefghiJKL',
+('mathias.dieu@smc.fr',
+ '$2a$10$5.PJbpufpoLqkpllqGbgkOZ9GIWv.XlcLmg4UY8pSepv1RVi0A53u',
  'Dieu', 'Mathias', 'OPERATEUR');
 
 -- =========================
 -- VAISSEAUX (physiquement plausibles)
 -- =========================
-INSERT INTO spacecraft (name, description, battery_max, fuel_capacity) VALUES
+INSERT IGNORE INTO spacecraft (name, description, battery_max, fuel_capacity) VALUES
 ('Satellite',   'Observation en orbite',      20000.0,   2000.0),
 ('Pod Habité',  'Transport équipage',        18000.0, 120000.0),
 ('Rover',       'Exploration surface',        6000.0,      0.0),
@@ -166,7 +166,7 @@ INSERT INTO spacecraft (name, description, battery_max, fuel_capacity) VALUES
 -- =========================
 -- MISSIONS (cohérentes)
 -- =========================
-INSERT INTO mission (name, status, operator_id, spacecraft_id, type_id,
+INSERT IGNORE INTO mission (name, status, operator_id, spacecraft_id, type_id,
                      departure_body_id, arrival_body_id,
                      departure_date, arrival_date, orbital_time, payload, created_at)
 VALUES
@@ -198,7 +198,7 @@ VALUES
 -- =========================
 -- TRAJECTOIRE
 -- =========================
-INSERT INTO trajectory_log (mission_id, operator_id, body_id,
+INSERT IGNORE INTO trajectory_log (mission_id, operator_id, body_id,
                              computed_at, altitude, initial_speed, mass, result_json)
 VALUES
 (1, 2, 4,
