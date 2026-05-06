@@ -1,9 +1,9 @@
 export interface CelestialBodyModel {
   id: number;
   name: string;
-  mass: number;
-  radius: number;
-  orbitalRadius: number;
-  refCoordX: number;
-  refCoordY: number;
+  mass: number | null;
+  radius: number | null;
+  orbitalRadius: number | null;
+  refCoordX: number | null;
+  refCoordY: number | null;
 }

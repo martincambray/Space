@@ -7,9 +7,16 @@
       <i class='bx bx-arrow-back'></i> Retour
     </button>
     <h1 class="page-title">Missions</h1>
-    <button class="new-btn" (click)="openNewForm()">
-      <i class='bx bx-plus'></i> Nouvelle mission
-    </button>
+    <div class="header-actions">
+      @if (isAdmin()) {
+        <button class="types-btn" (click)="openTypePanel()">
+          <i class='bx bx-category'></i> Types
+        </button>
+      }
+      <button class="new-btn" (click)="openNewForm()">
+        <i class='bx bx-plus'></i> Nouvelle mission
+      </button>
+    </div>
   </header>
 
   <!-- TABS -->
@@ -145,6 +152,61 @@
       </aside>
     }
   </div>
+
+  <!-- PANEL TYPES DE MISSION (ADMIN) -->
+  @if (showTypePanel()) {
+    <div class="modal-overlay" (click)="closeTypePanel()">
+      <div class="modal-content type-panel" (click)="$event.stopPropagation()">
+        <div class="type-panel-header">
+          <h2 class="modal-title">Types de mission</h2>
+          <button class="close-x-btn" (click)="closeTypePanel()"><i class='bx bx-x'></i></button>
+        </div>
+
+        <div class="type-list">
+          @for (t of types(); track t.id) {
+            <div class="type-row" [class.editing]="typeEditingId() === t.id">
+              @if (typeEditingId() === t.id) {
+                <form [formGroup]="typeForm" (ngSubmit)="submitType()" class="type-edit-form">
+                  <input type="text" formControlName="name" placeholder="Nom *" />
+                  <input type="text" formControlName="description" placeholder="Description" />
+                  <button type="submit" class="btn-save" [disabled]="typeForm.invalid"><i class='bx bx-check'></i></button>
+                  <button type="button" class="btn-cancel-sm" (click)="resetTypeForm()"><i class='bx bx-x'></i></button>
+                </form>
+              } @else {
+                <div class="type-info">
+                  <span class="type-name">{{ t.name }}</span>
+                  <span class="type-desc">{{ t.description }}</span>
+                </div>
+                <div class="type-actions">
+                  <button class="action-btn edit-btn" (click)="openEditType(t)"><i class='bx bx-edit'></i></button>
+                  <button class="action-btn delete-btn" (click)="confirmDeleteType(t.id)"><i class='bx bx-trash'></i></button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Formulaire ajout nouveau type -->
+        @if (typeEditingId() === null) {
+          <form [formGroup]="typeForm" (ngSubmit)="submitType()" class="type-new-form">
+            <h3 class="type-new-title">Nouveau type</h3>
+            <div class="form-group">
+              <input type="text" formControlName="name" placeholder="Nom *" />
+            </div>
+            <div class="form-group">
+              <input type="text" formControlName="description" placeholder="Description" />
+            </div>
+            @if (typeFormError()) {
+              <p class="form-error">{{ typeFormError() }}</p>
+            }
+            <button type="submit" class="btn-submit" [disabled]="typeForm.invalid">
+              <i class='bx bx-plus'></i> Ajouter
+            </button>
+          </form>
+        }
+      </div>
+    </div>
+  }
 
   <!-- MODAL NOUVELLE MISSION -->
   @if (showNewForm()) {

@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { MissionService, CreateMissionRequest } from '../../services/mission.service';
 import { SpacecraftService } from '../../services/spacecraft.service';
 import { CelestialBodyService } from '../../services/celestial-body.service';
-import { MissionTypeService } from '../../services/mission-type.service';
+import { MissionTypeService, CreateMissionTypeRequest } from '../../services/mission-type.service';
 import { UtilisateurService } from '../../services/utilisateur.service';
 import { MissionModel } from '../../models/mission.model';
 import { SpacecraftModel } from '../../models/spacecraft.model';
@@ -43,6 +43,14 @@ export class MissionComposant implements OnInit {
   protected formError      = signal('');
   protected formSuccess    = signal(false);
   protected actionFeedback = signal('');
+
+  // Gestion types de mission (ADMIN)
+  protected showTypePanel  = signal(false);
+  protected typeFormError  = signal('');
+  protected typeEditingId  = signal<number | null>(null);
+  protected typeForm!:     FormGroup;
+  protected tNameCtrl!:    FormControl;
+  protected tDescCtrl!:    FormControl;
 
   protected sortField = signal<SortField>('departureDate');
   protected sortAsc   = signal(false);
@@ -96,6 +104,10 @@ export class MissionComposant implements OnInit {
       arrivalBodyId:   this.arrivalCtrl,
       departureDate:   this.departureDateCtrl,
     });
+
+    this.tNameCtrl = this.formBuilder.control('', Validators.required);
+    this.tDescCtrl = this.formBuilder.control('');
+    this.typeForm  = this.formBuilder.group({ name: this.tNameCtrl, description: this.tDescCtrl });
   }
 
   private load(): void {
@@ -196,6 +208,60 @@ export class MissionComposant implements OnInit {
   protected formatDate(d: string | null): string {
     if (!d) return '—';
     return new Date(d).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  // ── Gestion types de mission ──
+  protected openTypePanel(): void {
+    this.typeEditingId.set(null);
+    this.typeForm.reset();
+    this.typeFormError.set('');
+    this.showTypePanel.set(true);
+  }
+
+  protected closeTypePanel(): void {
+    this.showTypePanel.set(false);
+  }
+
+  protected openEditType(t: MissionTypeModel): void {
+    this.typeEditingId.set(t.id);
+    this.typeForm.patchValue({ name: t.name, description: t.description });
+    this.typeFormError.set('');
+  }
+
+  protected resetTypeForm(): void {
+    this.typeEditingId.set(null);
+    this.typeForm.reset();
+    this.typeFormError.set('');
+  }
+
+  protected submitType(): void {
+    if (this.typeForm.invalid) return;
+    this.typeFormError.set('');
+    const raw = this.typeForm.getRawValue();
+    const request: CreateMissionTypeRequest = {
+      name:        raw.name.trim(),
+      description: raw.description?.trim() ?? '',
+    };
+    const id = this.typeEditingId();
+    const op = id
+      ? this.typeService.update(id, request)
+      : this.typeService.create(request);
+
+    op.subscribe({
+      next: () => {
+        this.typeService.findAll().subscribe({ next: d => this.types.set(d) });
+        this.resetTypeForm();
+      },
+      error: () => this.typeFormError.set('Erreur lors de la sauvegarde.')
+    });
+  }
+
+  protected confirmDeleteType(id: number): void {
+    if (!confirm('Supprimer ce type de mission ?')) return;
+    this.typeService.delete(id).subscribe({
+      next: () => this.types.update(list => list.filter(t => t.id !== id)),
+      error: () => this.typeFormError.set('Erreur lors de la suppression.')
+    });
   }
 
   protected retour(): void {

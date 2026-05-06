@@ -60,16 +60,14 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
   private paused      = false;
   private zoomFactor  = 1;
 
-  private planets: Planet[] = [
-    { name: 'Mercure', radius:  5, distance:  60, speed: 0.047, angle: 0, color: '#a9a9a9' },
-    { name: 'Vénus',   radius: 12, distance:  90, speed: 0.035, angle: 0, color: '#eedd82' },
-    { name: 'Terre',   radius: 13, distance: 120, speed: 0.030, angle: 0, color: '#4d9fff' },
-    { name: 'Mars',    radius: 10, distance: 150, speed: 0.024, angle: 0, color: '#ff4500' },
-    { name: 'Jupiter', radius: 25, distance: 200, speed: 0.013, angle: 0, color: '#d2b48c' },
-    { name: 'Saturne', radius: 22, distance: 250, speed: 0.009, angle: 0, color: '#f5deb3', ring: true },
-    { name: 'Uranus',  radius: 18, distance: 300, speed: 0.006, angle: 0, color: '#afeeee', ring: true },
-    { name: 'Neptune', radius: 18, distance: 350, speed: 0.005, angle: 0, color: '#4169e1' },
-  ];
+  private planets: Planet[] = [];
+
+  private readonly PLANET_COLORS: Record<string, string> = {
+    'Mercure': '#a9a9a9', 'Vénus': '#eedd82', 'Terre': '#4d9fff',
+    'Mars': '#ff4500', 'Jupiter': '#d2b48c', 'Saturne': '#f5deb3',
+    'Uranus': '#afeeee', 'Neptune': '#4169e1',
+  };
+  private readonly RINGED = new Set(['Saturne', 'Uranus']);
 
   ngAfterViewInit(): void {
     this.decodeUser();
@@ -210,7 +208,45 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
 
   private loadSelects(): void {
     this.spacecraftSvc.findAll().subscribe({ next: d => this.spacecrafts.set(d) });
-    this.bodySvc.findAll().subscribe({ next: d => this.bodies.set(d) });
     this.typeSvc.findAll().subscribe({ next: d => this.types.set(d) });
+    this.bodySvc.findAll().subscribe({
+      next: d => {
+        this.bodies.set(d);
+        this.buildPlanetsFromApi(d);
+      }
+    });
+  }
+
+  private buildPlanetsFromApi(bodies: CelestialBodyModel[]): void {
+    // Corps en orbite solaire : exclure Soleil (orbitalRadius == 0) et corps < 1 M km (ex: Lune)
+    const solar = bodies
+      .filter(b => b.orbitalRadius != null && b.orbitalRadius > 1_000_000)
+      .sort((a, b) => (a.orbitalRadius ?? 0) - (b.orbitalRadius ?? 0));
+
+    if (solar.length === 0) return;
+
+    const maxOrb = solar[solar.length - 1].orbitalRadius ?? 1;
+
+    this.planets = solar.map(b => {
+      const orb      = b.orbitalRadius ?? 1;
+      const distance = (orb / maxOrb) * 280 + 60;                   // 60..340
+      // Loi de Kepler : omega ∝ r^-1.5 ; normalisé sur la Terre (149.6 Mkm → speed 0.030)
+      const speed    = 0.030 * Math.pow(149_600_000 / orb, 1.5);
+      // Rayon visuel : log-normalisé entre 5 et 26
+      const rawR     = b.radius != null ? Math.log10(Math.max(b.radius, 1)) : 3;
+      const minLogR  = Math.log10(2440);   // Mercure ≈ 2440 km
+      const maxLogR  = Math.log10(71492);  // Jupiter ≈ 71492 km
+      const radius   = 5 + ((rawR - minLogR) / (maxLogR - minLogR || 1)) * 21;
+
+      return {
+        name:     b.name,
+        radius:   Math.max(5, Math.min(26, radius)),
+        distance,
+        speed:    Math.max(0.003, Math.min(0.06, speed)),
+        angle:    Math.random() * 2 * Math.PI,
+        color:    this.PLANET_COLORS[b.name] ?? '#aaaaaa',
+        ring:     this.RINGED.has(b.name),
+      };
+    });
   }
 }

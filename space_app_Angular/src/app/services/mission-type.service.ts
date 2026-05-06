@@ -12,4 +12,21 @@ export class MissionTypeService {
   public findAll(): Observable<MissionTypeModel[]> {
     return this.http.get<MissionTypeModel[]>('/api/mission-type');
   }
+
+  public create(request: CreateMissionTypeRequest): Observable<MissionTypeModel> {
+    return this.http.post<MissionTypeModel>('/api/mission-type', request);
+  }
+
+  public update(id: number, request: CreateMissionTypeRequest): Observable<MissionTypeModel> {
+    return this.http.put<MissionTypeModel>(`/api/mission-type/${id}`, request);
+  }
+
+  public delete(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/mission-type/${id}`);
+  }
+}
+
+export interface CreateMissionTypeRequest {
+  name: string;
+  description: string;
 }
