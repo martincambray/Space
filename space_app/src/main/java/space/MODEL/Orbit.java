@@ -56,7 +56,7 @@ public class Orbit {
     }
 
     /** Retourne [x, y] du dernier pas enregistré. */
-    public double[] computeNextPosition() {
+    public double[] getLastPosition() {
         if (trajectoire.isEmpty()) return new double[]{0.0, 0.0};
         int lastKey = trajectoire.keySet().stream().mapToInt(i -> i).max().orElse(0);
         return trajectoire.get(lastKey);

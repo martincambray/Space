@@ -14,9 +14,9 @@ import space.DAO.IDAOCelestialBody;
 import space.MODEL.CelestialBody;
 import space.MODEL.Orbit;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 public class MoteurPhysique {
@@ -69,6 +69,8 @@ public class MoteurPhysique {
         int fromStep = (int) (t_start / dt);
         currentOrbit.truncateFrom(fromStep);
         List<double[]> steps = integrate(currentStateVector, t_start, thetaWindow);
+        //LinkedHashMap<Integer, double[]> tmp_orbit = IntStream.range(0,steps.size()).boxed().collect(LinkedHashMap::new, (m,i) -> m.put(i,steps.get(i)), Map::putAll);
+        //currentOrbit.appendFrom(tmp_orbit, fromStep);
         unpackStepsIntoOrbit(steps, currentOrbit, fromStep);
         return currentOrbit;
     }
