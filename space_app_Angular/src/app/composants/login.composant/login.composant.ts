@@ -34,7 +34,7 @@ export class LoginComposant implements OnInit {
     this.authService.auth(this.loginForm.getRawValue()).subscribe({
       next: resp => {
         this.authService.token = resp.token;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/menu']);
       },
       error: () => this.loginError.set(true)
     });
