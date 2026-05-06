@@ -66,7 +66,9 @@ public class MoteurPhysique {
     public Orbit perturbateOrbit(Orbit currentOrbit, double[] currentStateVector,
                                  double t_start, double thetaWindow) {
         int fromStep = (int) (t_start / dt);
-        currentOrbit.truncateFrom(fromStep);
+        if (fromStep != 0) {
+            currentOrbit.truncateFrom(fromStep);
+        }
         List<double[]> steps = integrate(currentStateVector, t_start, thetaWindow);
         unpackStepsIntoOrbit(steps, currentOrbit, fromStep);
         return currentOrbit;
