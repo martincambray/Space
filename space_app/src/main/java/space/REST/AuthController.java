@@ -17,9 +17,11 @@ import space.DTO.response.TokenResponse;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
+    private final JwtUtils jwtUtils;
 
-    public AuthController(AuthenticationManager authenticationManager) {
+    public AuthController(AuthenticationManager authenticationManager, JwtUtils jwtUtils) {
         this.authenticationManager = authenticationManager;
+        this.jwtUtils = jwtUtils;
     }
 
     @PostMapping("/auth")
@@ -28,6 +30,6 @@ public class AuthController {
             request.getMail(), request.getPassword()
         );
         authentication = this.authenticationManager.authenticate(authentication);
-        return new TokenResponse(JwtUtils.generate(authentication));
+        return new TokenResponse(this.jwtUtils.generate(authentication));
     }
 }

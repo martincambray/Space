@@ -51,9 +51,12 @@ public class JwtHeaderFilter extends OncePerRequestFilter
     private static final Logger log = LoggerFactory.getLogger(JwtHeaderFilter.class);
 
     private final IDAOUtilisateur daoUtilisateur;
-    public JwtHeaderFilter(IDAOUtilisateur daoUtilisateur) 
+    private final JwtUtils jwtUtils;
+
+    public JwtHeaderFilter(IDAOUtilisateur daoUtilisateur, JwtUtils jwtUtils)
     {
         this.daoUtilisateur = daoUtilisateur;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -68,7 +71,7 @@ public class JwtHeaderFilter extends OncePerRequestFilter
         if (authHeader != null && authHeader.startsWith("Bearer ")) 
             {
             String token = authHeader.substring(7);
-            Optional<String> optMail = JwtUtils.validate(token);
+            Optional<String> optMail = this.jwtUtils.validate(token);
             if (optMail.isPresent()) 
                 {
                 String mail = optMail.get();

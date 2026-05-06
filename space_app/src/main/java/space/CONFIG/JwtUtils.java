@@ -4,49 +4,55 @@ import java.util.Date;
 import java.util.Optional;
 
 import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
 /* ==========================================================================
    C'est ici qu'on gère toute la génération et la validation des token JWT.
+   La clé secrète est lue depuis application.properties (jwt.secret)
+   plutôt qu'être codée en dur.
  ================================================================================== */
 
-public class JwtUtils 
+@Component
+public class JwtUtils
 {
-    private static final String JWT_KEY = "6E5A7234753778214125442A472D4B6150645367556B58703273357638792F42";
     private static final long EXPIRATION_MS = 8 * 60 * 60 * 1000L;
-    private JwtUtils() { }
 
-    public static String generate(Authentication auth) 
+    private final SecretKey secretKey;
+
+    public JwtUtils(@Value("${jwt.secret}") String jwtSecret)
     {
-        Date now = new Date();
-        SecretKey secretKey = Keys.hmacShaKeyFor(JWT_KEY.getBytes());
-
-        return Jwts.builder()
-            .subject(auth.getName())                         
-            .issuedAt(now)                                   
-            .expiration(new Date(now.getTime() + EXPIRATION_MS)) 
-            .signWith(secretKey)                             
-            .compact();                                      
+        this.secretKey = Keys.hmacShaKeyFor(jwtSecret.getBytes());
     }
 
-    public static Optional<String> validate(String token) 
+    public String generate(Authentication auth)
     {
-        SecretKey secretKey = Keys.hmacShaKeyFor(JWT_KEY.getBytes());
-        try 
+        Date now = new Date();
+        return Jwts.builder()
+            .subject(auth.getName())
+            .issuedAt(now)
+            .expiration(new Date(now.getTime() + EXPIRATION_MS))
+            .signWith(secretKey)
+            .compact();
+    }
+
+    public Optional<String> validate(String token)
+    {
+        try
         {
-            return Optional.of
-            (
+            return Optional.of(
                 Jwts.parser()
-                    .verifyWith(secretKey) 
+                    .verifyWith(secretKey)
                     .build()
-                    .parseSignedClaims(token)  
+                    .parseSignedClaims(token)
                     .getPayload()
-                    .getSubject()          
+                    .getSubject()
             );
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             return Optional.empty();
         }

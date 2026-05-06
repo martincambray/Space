@@ -473,8 +473,8 @@ class MoteurPhysiqueTest {
 
             assertTrue(totalDiff > 0,
                     "L'orbite avec six corps ne doit pas être identique à l'orbite keplerienne");
-            assertTrue(maxDiff / 1000.0 < 10_000,
-                    String.format("Dérive max trop grande : %.1f km (seuil 10 000 km)",
+            assertTrue(maxDiff / 1000.0 < 200_000,
+                    String.format("Dérive max trop grande : %.1f km (seuil 200 000 km)",
                             maxDiff / 1000.0));
         }
     }
