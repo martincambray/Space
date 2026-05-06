@@ -6,7 +6,14 @@
       <i class='bx bx-arrow-back'></i> Retour
     </button>
     <h1 class="page-title">Celestial Bodies</h1>
-    <span class="count-badge">{{ bodies().length }} corps céleste{{ bodies().length > 1 ? 's' : '' }}</span>
+    <div class="header-actions">
+      <span class="count-badge">{{ bodies().length }} corps céleste{{ bodies().length > 1 ? 's' : '' }}</span>
+      @if (isAdmin()) {
+        <button class="add-btn" (click)="openCreate()">
+          <i class='bx bx-plus'></i> Nouveau
+        </button>
+      }
+    </div>
   </header>
 
   <main class="page-content">
@@ -41,6 +48,17 @@
                 <span class="stat-value">{{ formatOrbital(body.orbitalRadius) }}</span>
               </div>
             </div>
+
+            @if (isAdmin()) {
+              <div class="admin-actions">
+                <button class="action-btn edit-btn" (click)="openEdit(body)">
+                  <i class='bx bx-edit'></i> Modifier
+                </button>
+                <button class="action-btn delete-btn" (click)="confirmDelete(body.id)">
+                  <i class='bx bx-trash'></i> Supprimer
+                </button>
+              </div>
+            }
           </div>
 
         </div>
@@ -48,3 +66,54 @@
     </div>
   </main>
 </div>
+
+@if (showModal()) {
+  <div class="modal-overlay" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <h2 class="modal-title">{{ editingId() ? 'Modifier' : 'Nouveau' }} Corps Céleste</h2>
+
+      <form [formGroup]="form" (ngSubmit)="submitModal()">
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" formControlName="name" placeholder="ex : Mars" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Masse (kg)</label>
+            <input type="number" formControlName="mass" placeholder="ex : 6.39e23" />
+          </div>
+          <div class="form-group">
+            <label>Rayon (km)</label>
+            <input type="number" formControlName="radius" placeholder="ex : 3389.5" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Rayon orbital (km)</label>
+          <input type="number" formControlName="orbitalRadius" placeholder="ex : 227900000" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Coord. ref. X</label>
+            <input type="number" formControlName="refCoordX" placeholder="0" />
+          </div>
+          <div class="form-group">
+            <label>Coord. ref. Y</label>
+            <input type="number" formControlName="refCoordY" placeholder="0" />
+          </div>
+        </div>
+
+        @if (modalError()) {
+          <p class="form-error">{{ modalError() }}</p>
+        }
+
+        <div class="modal-footer">
+          <button type="button" class="cancel-btn" (click)="closeModal()">Annuler</button>
+          <button type="submit" class="submit-btn" [disabled]="form.invalid">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

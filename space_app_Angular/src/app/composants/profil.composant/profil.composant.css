@@ -226,3 +226,227 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── Section ADMIN ── */
+.page-content {
+  max-width: 700px;
+}
+
+.admin-card {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 100, 100, 0.25);
+  border-radius: 14px;
+  padding: 28px 32px;
+  backdrop-filter: blur(12px);
+}
+
+.admin-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.add-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 240, 255, 0.12);
+  border: 1px solid rgba(0, 240, 255, 0.4);
+  color: #00f0ff;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.add-btn:hover {
+  background: rgba(0, 240, 255, 0.28);
+}
+
+.users-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-info i {
+  font-size: 1.4rem;
+  color: rgba(160, 196, 255, 0.6);
+}
+
+.user-name {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e0e0ff;
+}
+
+.user-mail {
+  display: block;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.user-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.role-pill {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(160, 196, 255, 0.1);
+  border: 1px solid rgba(160, 196, 255, 0.3);
+  color: #a0c4ff;
+}
+
+.role-pill.admin {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: rgba(0, 240, 255, 0.4);
+  color: #00f0ff;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s;
+  background: transparent;
+}
+
+.delete-btn {
+  border-color: rgba(255, 60, 60, 0.4);
+  color: #ff6b6b;
+}
+
+.delete-btn:hover {
+  background: rgba(255, 60, 60, 0.2);
+}
+
+/* ── Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #0d1b2a;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+  border-radius: 14px;
+  padding: 32px;
+  width: 480px;
+  max-width: 95vw;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #00f0ff;
+  margin-bottom: 24px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.form-group select {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.form-group select option {
+  background: #0d1b2a;
+}
+
+.form-error {
+  color: #ff6b6b;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.cancel-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.cancel-btn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: white;
+}
+
+.submit-btn-modal {
+  background: rgba(0, 240, 255, 0.2);
+  border: 1px solid #00f0ff;
+  color: #00f0ff;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.submit-btn-modal:hover:not(:disabled) {
+  background: rgba(0, 240, 255, 0.35);
+  box-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+}
+
+.submit-btn-modal:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

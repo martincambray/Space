@@ -20,4 +20,24 @@ export class UtilisateurService {
   public updatePassword(password: string): Observable<void> {
     return this.http.patch<void>('/api/utilisateur/me', { password });
   }
+
+  public create(request: CreateUtilisateurRequest): Observable<UtilisateurModel> {
+    return this.http.post<UtilisateurModel>('/api/utilisateur', request);
+  }
+
+  public update(id: number, request: CreateUtilisateurRequest): Observable<void> {
+    return this.http.put<void>(`/api/utilisateur/${id}`, request);
+  }
+
+  public delete(id: number): Observable<void> {
+    return this.http.delete<void>(`/api/utilisateur/${id}`);
+  }
+}
+
+export interface CreateUtilisateurRequest {
+  mail: string;
+  password: string;
+  lastname: string;
+  firstname: string;
+  role: string;
 }
