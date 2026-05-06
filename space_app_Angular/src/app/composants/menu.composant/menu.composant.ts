@@ -1,9 +1,10 @@
 import {
   AfterViewInit, Component, ElementRef, inject, OnDestroy, signal, ViewChild
 } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { SimulationComponent } from '../simulation.composant/simulation.composant';
 import { AuthService } from '../../services/auth.service';
 import { MissionService, CreateMissionRequest } from '../../services/mission.service';
 import { SpacecraftService } from '../../services/spacecraft.service';
@@ -20,9 +21,10 @@ interface Planet {
 
 @Component({
   selector: 'app-menu',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, SimulationComponent],
   templateUrl: './menu.composant.html',
   styleUrl: './menu.composant.css',
+
 })
 export class MenuComposant implements AfterViewInit, OnDestroy {
   @ViewChild('solarCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
