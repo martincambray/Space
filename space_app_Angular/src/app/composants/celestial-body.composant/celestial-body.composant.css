@@ -177,17 +177,21 @@
   border: 1px solid rgba(0,240,255,0.3);
   border-radius: 14px; padding: 32px;
   width: 480px; max-width: 95vw;
+  overflow: hidden;
   box-shadow: 0 20px 60px rgba(0,0,0,0.7);
 }
 
 .modal-title { font-size: 1.3rem; font-weight: 600; color: #00f0ff; margin-bottom: 24px; }
 
-.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; min-width: 0; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-row .form-group { min-width: 0; }
 
 .form-group label { font-size: 0.82rem; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.05em; }
 
 .form-group input {
+  width: 100%;
+  box-sizing: border-box;
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.2);
   color: white; padding: 10px 14px; border-radius: 8px;

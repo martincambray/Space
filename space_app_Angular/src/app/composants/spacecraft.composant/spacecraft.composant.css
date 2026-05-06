@@ -315,6 +315,7 @@
   padding: 32px;
   width: 480px;
   max-width: 95vw;
+  overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
 }
 
@@ -330,12 +331,17 @@
   flex-direction: column;
   gap: 6px;
   margin-bottom: 16px;
+  min-width: 0;
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 12px;
+}
+
+.form-row .form-group {
+  min-width: 0;
 }
 
 .form-group label {
@@ -347,6 +353,8 @@
 
 .form-group input,
 .form-group textarea {
+  width: 100%;
+  box-sizing: border-box;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.2);
   color: white;
