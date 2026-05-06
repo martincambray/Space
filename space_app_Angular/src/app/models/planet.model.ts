@@ -5,5 +5,4 @@ export interface Planet {
   orbitA: number;
   orbitB: number;
   speed: number;
-  emoji: string;
 }
