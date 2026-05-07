@@ -276,6 +276,12 @@
   transition: all 0.2s;
 }
 
+.action-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .edit-btn {
   background: rgba(0, 150, 255, 0.12);
   border-color: rgba(0, 150, 255, 0.5);

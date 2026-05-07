@@ -63,10 +63,16 @@
 
             @if (isAdmin()) {
               <div class="admin-actions">
-                <button class="action-btn edit-btn" (click)="openEdit(sc)">
+                <button class="action-btn edit-btn"
+                        [disabled]="!sc.available"
+                        [title]="!sc.available ? 'Spacecraft en mission' : 'Modifier'"
+                        (click)="openEdit(sc)">
                   <i class='bx bx-edit'></i> Modifier
                 </button>
-                <button class="action-btn delete-btn" (click)="confirmDelete(sc.id)">
+                <button class="action-btn delete-btn"
+                        [disabled]="!sc.available"
+                        [title]="!sc.available ? 'Spacecraft en mission' : 'Supprimer'"
+                        (click)="confirmDelete(sc.id)">
                   <i class='bx bx-trash'></i> Supprimer
                 </button>
               </div>
