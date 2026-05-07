@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS celestial_body (
     orbital_radius DOUBLE,          -- km depuis le soleil
     ref_coord_x    DOUBLE,
     ref_coord_y    DOUBLE,
+    image          LONGTEXT,        -- base64 data-URL de l'image
     PRIMARY KEY (id)
 );
 

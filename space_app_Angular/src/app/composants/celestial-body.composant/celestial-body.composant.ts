@@ -17,13 +17,16 @@ export class CelestialBodyComposant implements OnInit {
   private formBuilder          = inject(FormBuilder);
   private router               = inject(Router);
 
-  protected bodies   = signal<CelestialBodyModel[]>([]);
-  protected me       = signal<{ role: string } | null>(null);
-  protected isAdmin  = computed(() => this.me()?.role === 'ADMIN');
+  protected bodies     = signal<CelestialBodyModel[]>([]);
+  protected me         = signal<{ role: string } | null>(null);
+  protected isAdmin    = computed(() => this.me()?.role === 'ADMIN');
 
   protected showModal  = signal(false);
   protected editingId  = signal<number | null>(null);
   protected modalError = signal('');
+
+  // Image en cours de sélection (base64 data-URL)
+  protected imagePreview = signal<string | null>(null);
 
   protected form!:          FormGroup;
   protected nameCtrl!:      FormControl;
@@ -76,6 +79,7 @@ export class CelestialBodyComposant implements OnInit {
   protected openCreate(): void {
     this.editingId.set(null);
     this.form.reset();
+    this.imagePreview.set(null);
     this.modalError.set('');
     this.showModal.set(true);
   }
@@ -90,12 +94,29 @@ export class CelestialBodyComposant implements OnInit {
       refCoordX:     body.refCoordX,
       refCoordY:     body.refCoordY,
     });
+    this.imagePreview.set(body.image ?? null);
     this.modalError.set('');
     this.showModal.set(true);
   }
 
   protected closeModal(): void {
     this.showModal.set(false);
+    this.imagePreview.set(null);
+  }
+
+  /** Lit le fichier sélectionné et le convertit en base64 data-URL. */
+  protected onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = () => this.imagePreview.set(reader.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  /** Efface l'image sélectionnée (ou existante en mode édition). */
+  protected clearImage(): void {
+    this.imagePreview.set(null);
   }
 
   protected submitModal(): void {
@@ -109,6 +130,7 @@ export class CelestialBodyComposant implements OnInit {
       orbitalRadius: raw.orbitalRadius !== '' && raw.orbitalRadius !== null ? +raw.orbitalRadius : null,
       refCoordX:     raw.refCoordX !== '' && raw.refCoordX !== null ? +raw.refCoordX : null,
       refCoordY:     raw.refCoordY !== '' && raw.refCoordY !== null ? +raw.refCoordY : null,
+      image:         this.imagePreview(),
     };
     const id = this.editingId();
     const op = id
@@ -116,7 +138,7 @@ export class CelestialBodyComposant implements OnInit {
       : this.celestialBodyService.create(request);
 
     op.subscribe({
-      next: () => { this.load(); this.showModal.set(false); },
+      next: () => { this.load(); this.showModal.set(false); this.imagePreview.set(null); },
       error: () => this.modalError.set('Erreur lors de la sauvegarde.')
     });
   }

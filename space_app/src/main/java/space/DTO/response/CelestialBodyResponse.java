@@ -9,8 +9,9 @@ public class CelestialBodyResponse
     private Double mass;            
     private Double radius;          
     private Double orbitalRadius;   
-    private Double refCoordX;       
-    private Double refCoordY;       
+    private Double refCoordX;
+    private Double refCoordY;
+    private String image;
 
     public static CelestialBodyResponse convert(CelestialBody b) 
     {
@@ -22,6 +23,7 @@ public class CelestialBodyResponse
         resp.setOrbitalRadius(b.getOrbitalRadius());
         resp.setRefCoordX(b.getRefCoordX());
         resp.setRefCoordY(b.getRefCoordY());
+        resp.setImage(b.getImage());
         return resp;
     }
 
@@ -45,4 +47,7 @@ public class CelestialBodyResponse
 
     public Double getRefCoordY() { return refCoordY; }
     public void setRefCoordY(Double refCoordY) { this.refCoordY = refCoordY; }
+
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 }

@@ -26,8 +26,13 @@
         <div class="card">
 
           <div class="card-visual">
-            <div class="planet-sphere" [style.background]="'radial-gradient(circle at 35% 35%, white 0%, ' + planetColor(body.name) + ' 30%, #000 100%)'">
-            </div>
+            @if (body.image) {
+              <img class="planet-img" [src]="body.image" [alt]="body.name" />
+            } @else {
+              <div class="planet-sphere"
+                   [style.background]="'radial-gradient(circle at 35% 35%, white 0%, ' + planetColor(body.name) + ' 30%, #000 100%)'">
+              </div>
+            }
             <div class="orbit-ring"></div>
           </div>
 
@@ -103,6 +108,25 @@
             <label>Coord. ref. Y</label>
             <input type="number" formControlName="refCoordY" placeholder="0" />
           </div>
+        </div>
+
+        <!-- Image upload -->
+        <div class="form-group">
+          <label>Image</label>
+          @if (imagePreview()) {
+            <div class="img-preview-wrap">
+              <img class="img-preview" [src]="imagePreview()!" alt="Aperçu" />
+              <button type="button" class="img-clear-btn" (click)="clearImage()" title="Supprimer l'image">
+                <i class='bx bx-x'></i>
+              </button>
+            </div>
+          } @else {
+            <label class="file-drop-zone">
+              <i class='bx bx-image-add'></i>
+              <span>Choisir une image (JPG, PNG, AVIF…)</span>
+              <input type="file" accept="image/*" (change)="onImageSelected($event)" hidden />
+            </label>
+          }
         </div>
 
         @if (modalError()) {

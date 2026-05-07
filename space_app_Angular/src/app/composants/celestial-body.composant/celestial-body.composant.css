@@ -90,6 +90,14 @@
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
+.planet-img {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  z-index: 1;
+}
+
 .planet-sphere {
   width: 70px; height: 70px;
   border-radius: 50%;
@@ -220,3 +228,30 @@
 
 .submit-btn:hover:not(:disabled) { background: rgba(0,240,255,0.35); box-shadow: 0 0 12px rgba(0,240,255,0.4); }
 .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Upload image ── */
+.file-drop-zone {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  border: 2px dashed rgba(0,240,255,0.3); border-radius: 8px;
+  padding: 20px; cursor: pointer; transition: all 0.2s;
+  color: rgba(255,255,255,0.5); font-size: 0.85rem;
+}
+.file-drop-zone:hover { border-color: rgba(0,240,255,0.7); color: #00f0ff; background: rgba(0,240,255,0.05); }
+.file-drop-zone i { font-size: 1.8rem; }
+
+.img-preview-wrap {
+  position: relative; display: inline-block;
+}
+.img-preview {
+  width: 100%; max-height: 160px;
+  object-fit: contain; border-radius: 8px;
+  border: 1px solid rgba(0,240,255,0.3);
+}
+.img-clear-btn {
+  position: absolute; top: 6px; right: 6px;
+  background: rgba(0,0,0,0.7); border: 1px solid rgba(255,255,255,0.3);
+  color: white; width: 24px; height: 24px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.9rem; transition: all 0.2s;
+}
+.img-clear-btn:hover { background: rgba(255,60,60,0.6); border-color: #ff6b6b; }

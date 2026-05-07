@@ -49,6 +49,7 @@ public class CelestialBodyController {
         body.setOrbitalRadius(request.getOrbitalRadius());
         body.setRefCoordX(request.getRefCoordX() != null ? request.getRefCoordX() : 0.0);
         body.setRefCoordY(request.getRefCoordY() != null ? request.getRefCoordY() : 0.0);
+        body.setImage(request.getImage());
         return CelestialBodyResponse.convert(this.daoCelestialBody.save(body));
     }
 
@@ -63,6 +64,7 @@ public class CelestialBodyController {
         body.setOrbitalRadius(request.getOrbitalRadius());
         body.setRefCoordX(request.getRefCoordX() != null ? request.getRefCoordX() : 0.0);
         body.setRefCoordY(request.getRefCoordY() != null ? request.getRefCoordY() : 0.0);
+        body.setImage(request.getImage());
         return CelestialBodyResponse.convert(this.daoCelestialBody.save(body));
     }
 

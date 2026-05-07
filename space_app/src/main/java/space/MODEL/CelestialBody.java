@@ -31,6 +31,9 @@ public class CelestialBody
     @Column(name = "ref_coord_y")
     private Double refCoordY;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String image;
+
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -51,4 +54,7 @@ public class CelestialBody
 
     public Double getRefCoordY() { return refCoordY; }
     public void setRefCoordY(Double refCoordY) { this.refCoordY = refCoordY; }
+
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 }

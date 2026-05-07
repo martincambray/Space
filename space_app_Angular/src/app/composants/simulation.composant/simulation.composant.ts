@@ -1,7 +1,13 @@
 import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, inject } from '@angular/core';
+<<<<<<< Updated upstream
 import { SpaceObject } from '../../models/space-object.model';
 import { CelestialBodyService } from '../../services/celestial-body.service';
 import { CelestialBodyModel } from '../../models/celestial-body.model';
+=======
+import { Planet } from '../../models/planet.model';
+import { SpaceObject } from '../../models/space-object.model';
+import { CelestialBodyService } from '../../services/celestial-body.service';
+>>>>>>> Stashed changes
 
 @Component({
   selector: 'app-simulation',
@@ -11,6 +17,8 @@ import { CelestialBodyModel } from '../../models/celestial-body.model';
 export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('simulationCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+
+  private celestialBodyService = inject(CelestialBodyService);
 
   private ctx!: CanvasRenderingContext2D;
   private canvas!: HTMLCanvasElement;
@@ -33,6 +41,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private bodies: CelestialBodyModel[] = [];
   private scale = 1;
 
+<<<<<<< Updated upstream
   private readonly bodyColors: Record<string, string> = {
     Soleil:  '#ffcc00',
     Mercure: '#a0a0a0',
@@ -45,6 +54,13 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     Uranus:  '#7de8e8',
     Neptune: '#3f54ba',
   };
+=======
+  // Images chargées depuis la DB (clé = nom du corps céleste)
+  private planetImages: Map<string, HTMLImageElement> = new Map();
+
+  // Angle de la Lune (orbite autour de la Terre)
+  private moonAngle = Math.random() * Math.PI * 2;
+>>>>>>> Stashed changes
 
   private celestialBodyService = inject(CelestialBodyService);
   public spaceObjects: SpaceObject[] = [];
@@ -55,11 +71,23 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.resize();
     this.generateStars();
     this.registerEvents();
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+
+=======
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     this.celestialBodyService.findAll().subscribe(bodies => {
       this.bodies = bodies;
       this.computeScale();
       this.animate();
     });
+=======
+    this.loadPlanetImages();
+    this.animate();
+>>>>>>> Stashed changes
   }
 
   ngOnDestroy(): void {
@@ -67,6 +95,34 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', () => this.resize());
   }
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+  // ── API publique pour MenuComposant ──────────────────────────────────────
+
+=======
+<<<<<<< Updated upstream
+=======
+  // ── Chargement des images depuis la DB ───────────────────────────────────
+
+  private loadPlanetImages(): void {
+    this.celestialBodyService.findAll().subscribe({
+      next: bodies => {
+        bodies.forEach(body => {
+          if (!body.image) return;
+          const img = new Image();
+          img.onload = () => this.planetImages.set(body.name, img);
+          img.src = body.image;
+        });
+      }
+    });
+  }
+
+  // ── API publique pour MenuComposant ──────────────────────────────────────
+
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   public zoomIn():    void { this.zoom *= 1.15; }
   public zoomOut():   void { this.zoom /= 1.15; }
   public launch():    void { this.paused = false; }
@@ -169,6 +225,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     });
 
     const sunR = 30 * this.zoom;
+<<<<<<< Updated upstream
     const sunGlow = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
     sunGlow.addColorStop(0, '#fff7a1');
     sunGlow.addColorStop(0.4, '#ffcc00');
@@ -184,6 +241,26 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       .forEach(body => {
         const px = cx + (body.refCoordX ?? 0) * this.scale * this.zoom;
         const py = cy + (body.refCoordY ?? 0) * this.scale * this.zoom;
+=======
+    const sunImg = this.planetImages.get('Soleil');
+    if (sunImg) {
+      this.drawBodyWithImage(sunImg, cx, cy, sunR, cx, cy);
+    } else {
+      const sunGlow = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
+      sunGlow.addColorStop(0,   '#fff7a1');
+      sunGlow.addColorStop(0.4, '#ffcc00');
+      sunGlow.addColorStop(1,   'transparent');
+      this.ctx.beginPath();
+      this.ctx.arc(cx, cy, sunR, 0, Math.PI * 2);
+      this.ctx.fillStyle = sunGlow;
+      this.ctx.fill();
+    }
+    this.drawnBodies.push({ name: 'Soleil', x: cx, y: cy, r: sunR });
+
+    // Planètes
+    let earthX = cx;
+    let earthY = cy;
+>>>>>>> Stashed changes
 
         const orbitR = (body.orbitalRadius ?? 0) * this.scale * this.zoom;
         this.ctx.beginPath();
@@ -197,6 +274,58 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
         this.drawnBodies.push({ name: body.name, x: px, y: py, r: visualR });
       });
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+    // Objets mobiles (vaisseaux)
+=======
+<<<<<<< Updated upstream
+=======
+      if (!this.paused) this.angles[i] += planet.speed * this.speedFactor;
+
+      const px = cx + a * Math.cos(this.angles[i]);
+      const py = cy + b * Math.sin(this.angles[i]);
+      const r  = Math.max(4, planet.radius * this.zoom);
+
+      if (planet.name === 'Terre') { earthX = px; earthY = py; }
+
+      const img = this.planetImages.get(planet.name);
+      if (img) {
+        this.drawBodyWithImage(img, px, py, r, cx, cy);
+      } else {
+        this.drawGradientPlanet(px, py, r, planet.color, cx, cy);
+      }
+      this.drawnBodies.push({ name: planet.name, x: px, y: py, r });
+    });
+
+    // ── Lune ─────────────────────────────────────────────────────────────
+    const moonOrbitA = 28 * this.zoom;
+    const moonOrbitB = 24 * this.zoom;
+
+    this.ctx.beginPath();
+    this.ctx.ellipse(earthX, earthY, moonOrbitA, moonOrbitB, 0, 0, Math.PI * 2);
+    this.ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    this.ctx.lineWidth = 0.8;
+    this.ctx.stroke();
+
+    if (!this.paused) this.moonAngle += 0.04 * this.speedFactor;
+
+    const moonPx = earthX + moonOrbitA * Math.cos(this.moonAngle);
+    const moonPy = earthY + moonOrbitB * Math.sin(this.moonAngle);
+    const moonR  = Math.max(2, 4 * this.zoom);
+
+    const moonImg = this.planetImages.get('Lune');
+    if (moonImg) {
+      this.drawBodyWithImage(moonImg, moonPx, moonPy, moonR, earthX, earthY);
+    } else {
+      this.drawGradientPlanet(moonPx, moonPy, moonR, '#c8c8c8', earthX, earthY);
+    }
+    this.drawnBodies.push({ name: 'Lune', x: moonPx, y: moonPy, r: moonR });
+
+    // Objets mobiles (spacecraft)
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     this.spaceObjects.forEach(obj => {
       const sx = cx + obj.x * this.zoom;
       const sy = cy + obj.y * this.zoom;
@@ -209,7 +338,43 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.drawHoverTooltip();
   }
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< Updated upstream
+  /** Dessine une planète avec éclairage directionnel (source = parentX/Y). */
+=======
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
   private drawPlanet(px: number, py: number, r: number, color: string, parentX: number, parentY: number): void {
+=======
+  /** Planète avec image circulaire clippée + overlay d'ombre directionnelle. */
+  private drawBodyWithImage(img: HTMLImageElement, px: number, py: number, r: number, parentX: number, parentY: number): void {
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(px, py, r, 0, Math.PI * 2);
+    this.ctx.clip();
+    this.ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
+
+    // Overlay ombre côté opposé au parent (effet 3D)
+    const dx = px - parentX;
+    const dy = py - parentY;
+    const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    const shadowX = px + (dx / dist) * r * 0.6;
+    const shadowY = py + (dy / dist) * r * 0.6;
+    const shadow = this.ctx.createRadialGradient(shadowX, shadowY, r * 0.1, px, py, r);
+    shadow.addColorStop(0, 'rgba(0,0,0,0.55)');
+    shadow.addColorStop(0.6, 'rgba(0,0,0,0.15)');
+    shadow.addColorStop(1, 'transparent');
+    this.ctx.fillStyle = shadow;
+    this.ctx.fillRect(px - r, py - r, r * 2, r * 2);
+
+    this.ctx.restore();
+  }
+
+  /** Planète gradient (fallback sans image). */
+  private drawGradientPlanet(px: number, py: number, r: number, color: string, parentX: number, parentY: number): void {
+>>>>>>> Stashed changes
     const dx = px - parentX;
     const dy = py - parentY;
     const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -249,9 +414,25 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     let tx = bx + br + 10;
     let ty = by - bh / 2;
+<<<<<<< Updated upstream
     if (tx + bw > this.canvas.width)      tx = bx - br - bw - 10;
     if (ty < 4)                            ty = 4;
+=======
+<<<<<<< Updated upstream
+    if (tx + bw > this.canvas.width)  tx = bx - br - bw - 10;
+    if (ty < 4)                        ty = 4;
+=======
+<<<<<<< Updated upstream
+    if (tx + bw > this.canvas.width)      tx = bx - br - bw - 10;
+    if (ty < 4)                            ty = 4;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     if (ty + bh > this.canvas.height - 4) ty = this.canvas.height - bh - 4;
+=======
+    if (tx + bw > this.canvas.width)       tx = bx - br - bw - 10;
+    if (ty < 4)                             ty = 4;
+    if (ty + bh > this.canvas.height - 4)  ty = this.canvas.height - bh - 4;
+>>>>>>> Stashed changes
 
     this.ctx.fillStyle = 'rgba(0,0,0,0.75)';
     this.ctx.beginPath();

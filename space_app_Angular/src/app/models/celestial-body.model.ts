@@ -6,4 +6,5 @@ export interface CelestialBodyModel {
   orbitalRadius: number | null;
   refCoordX: number | null;
   refCoordY: number | null;
+  image: string | null;
 }
