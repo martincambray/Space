@@ -138,11 +138,11 @@
   position: fixed;
   top: 20px; left: calc(50% + 110px);
   transform: translateX(-50%);
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
   z-index: 100;
   transition: left 0.4s ease;
 }
-.toolbar-row { display: flex; gap: 12px; }
+.toolbar-row { display: flex; gap: 12px; justify-content: center; }
 
 .tool-btn {
   background: rgba(0,150,255,0.18); color: white;
@@ -160,6 +160,114 @@
 .tool-btn-large  { padding: 12px 24px; font-size: 1.2em; }
 .tool-btn-medium { padding: 10px 20px; font-size: 1em; }
 .tool-btn-small  { padding:  6px 12px; font-size: 0.9em; }
+
+/* ── Bouton désactivé (pas de mission sélectionnée) ──────────────────────── */
+.tool-btn:disabled {
+  opacity: 0.28;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ── Variantes colorées ──────────────────────────────────────────────────── */
+.tool-btn-green  { background: rgba(74,255,138,0.12); border-color: rgba(74,255,138,0.5); color: #4aff8a; }
+.tool-btn-green:hover  { background: rgba(74,255,138,0.28); border-color: #4aff8a;
+  text-shadow: 0 0 5px #fff,0 0 10px #4aff8a; box-shadow: 0 0 8px #4aff8a; }
+
+.tool-btn-blue   { background: rgba(0,150,255,0.12); border-color: rgba(0,150,255,0.5); color: #4db8ff; }
+.tool-btn-blue:hover   { background: rgba(0,150,255,0.3); border-color: #4db8ff;
+  text-shadow: 0 0 5px #fff,0 0 10px #4db8ff; box-shadow: 0 0 8px #4db8ff; }
+
+.tool-btn-orange { background: rgba(255,170,0,0.12); border-color: rgba(255,170,0,0.5); color: #ffaa00; }
+.tool-btn-orange:hover { background: rgba(255,170,0,0.28); border-color: #ffaa00;
+  text-shadow: 0 0 5px #fff,0 0 10px #ffaa00; box-shadow: 0 0 8px #ffaa00; }
+
+.tool-btn-red    { background: rgba(255,60,60,0.10); border-color: rgba(255,60,60,0.5); color: #ff6b6b; }
+.tool-btn-red:hover    { background: rgba(255,60,60,0.26); border-color: #ff6b6b;
+  text-shadow: 0 0 5px #fff,0 0 10px #ff6b6b; box-shadow: 0 0 8px #ff6b6b; }
+
+.tool-btn-grey   { background: rgba(180,180,200,0.08); border-color: rgba(180,180,200,0.35); color: rgba(200,200,215,0.75); }
+.tool-btn-grey:hover   { background: rgba(180,180,200,0.18); border-color: rgba(200,200,215,0.6);
+  color: rgba(220,220,235,0.95); box-shadow: 0 0 6px rgba(180,180,200,0.3); }
+
+/* ── Horloge ─────────────────────────────────────────────────────────────── */
+.clock-box {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 10px 22px; border-radius: 5px; gap: 3px; min-width: 150px;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 6px rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.06);
+}
+.clock-time {
+  font-family: 'Inter', monospace; font-size: 1.35rem; font-weight: 700;
+  color: #ffffff; letter-spacing: 0.06em; white-space: nowrap; line-height: 1.2;
+}
+.clock-date {
+  font-size: 0.72rem; font-weight: 400;
+  color: rgba(255,255,255,0.7); letter-spacing: 0.02em; white-space: nowrap; line-height: 1.2;
+}
+
+/* ── Mission picker ──────────────────────────────────────────────────────── */
+.picker-content {
+  background: rgba(2,5,25,0.96); border: 2px solid #00f0ff; border-radius: 14px;
+  padding: 28px; width: 500px; max-width: 95vw; max-height: 80vh; overflow-y: auto;
+  box-shadow: 0 0 20px rgba(0,240,255,0.3); color: white;
+}
+.picker-content h2 { font-size: 1.1rem; font-weight: 600; color: #00f0ff;
+  margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.picker-empty { color: rgba(255,255,255,0.4); text-align: center; padding: 24px 0; font-size: 0.9rem; }
+
+.mission-row { background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: all 0.2s; }
+.mission-row:hover { background: rgba(0,240,255,0.08); border-color: rgba(0,240,255,0.4); }
+.mission-row.row-active { border-color: #00f0ff; background: rgba(0,240,255,0.12); box-shadow: 0 0 10px rgba(0,240,255,0.2); }
+
+.mission-row-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.mission-row-name { font-size: 0.95rem; font-weight: 600; color: #e0e0ff; }
+.mission-row-badge { font-size: 0.72rem; font-weight: 600; padding: 2px 10px; border-radius: 20px; }
+.badge-planned  { background: rgba(255,200,0,0.12); border: 1px solid rgba(255,200,0,0.5); color: #ffcc00; }
+.badge-progress { background: rgba(0,240,255,0.12); border: 1px solid rgba(0,240,255,0.5); color: #00f0ff; }
+
+.mission-row-meta, .mission-row-sub {
+  font-size: 0.8rem; color: rgba(255,255,255,0.5);
+  display: flex; align-items: center; gap: 4px; margin-top: 4px;
+}
+.picker-footer { display: flex; justify-content: flex-end; gap: 10px;
+  margin-top: 18px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.1); }
+
+/* ── Actions panel ───────────────────────────────────────────────────────── */
+.actions-panel { background: rgba(2,5,25,0.96); border: 2px solid #00f0ff; border-radius: 14px;
+  padding: 28px; width: 440px; max-width: 95vw; box-shadow: 0 0 20px rgba(0,240,255,0.3); color: white; }
+.actions-panel h2 { font-size: 1.1rem; font-weight: 600; color: #00f0ff;
+  margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+.action-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.action-item { display: flex; align-items: center; gap: 14px; padding: 12px 14px;
+  border-radius: 10px; border: 1px solid rgba(0,150,255,0.2); background: rgba(0,150,255,0.06);
+  cursor: pointer; transition: all 0.2s; }
+.action-item:hover { background: rgba(0,150,255,0.15); border-color: rgba(0,150,255,0.5); }
+.action-item-icon { width: 36px; height: 36px; border-radius: 8px;
+  background: rgba(0,240,255,0.1); border: 1px solid rgba(0,240,255,0.3);
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.action-item-icon i { font-size: 1.2rem; color: #00f0ff; }
+.action-item-body { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.action-item-label { font-size: 0.9rem; font-weight: 600; color: #e0e0ff; }
+.action-item-desc  { font-size: 0.75rem; color: rgba(255,255,255,0.45); }
+.action-item-arrow { font-size: 1.2rem; color: rgba(0,240,255,0.4); flex-shrink: 0; }
+
+.action-feedback { display: flex; align-items: center; gap: 8px; padding: 8px 14px;
+  border-radius: 8px; background: rgba(74,255,138,0.1); border: 1px solid rgba(74,255,138,0.4);
+  color: #4aff8a; font-size: 0.85rem; font-weight: 500; margin-bottom: 12px; }
+
+/* ── Info panel ──────────────────────────────────────────────────────────── */
+.action-detail { display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.07); }
+.ad-label { font-size: 0.78rem; color: rgba(255,255,255,0.45);
+  text-transform: uppercase; letter-spacing: 0.05em; }
+.ad-value { font-size: 0.88rem; color: #a0c4ff; font-weight: 500; text-align: right; }
+
+.info-description { margin-bottom: 12px; padding: 12px 14px;
+  border-radius: 10px; background: rgba(0,150,255,0.07); border: 1px solid rgba(0,150,255,0.2); }
+.info-desc-text { font-size: 0.88rem; color: rgba(255,255,255,0.75); margin-top: 6px; line-height: 1.5; }
 
 /* ── SIMULATION ───────────────────────────────────────────────────────────── */
 .simulation-screen {

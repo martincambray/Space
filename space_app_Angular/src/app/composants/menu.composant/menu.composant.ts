@@ -1,7 +1,9 @@
 import {
-  AfterViewInit, Component, ElementRef, inject, OnDestroy, signal, ViewChild
+  AfterViewInit, ChangeDetectorRef, Component, computed, ElementRef,
+  inject, OnDestroy, signal, ViewChild
 } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { SlicePipe } from '@angular/common';
 import { Router } from '@angular/router';
 
 import { SimulationComponent } from '../simulation.composant/simulation.composant';
@@ -13,20 +15,17 @@ import { MissionTypeService } from '../../services/mission-type.service';
 import { SpacecraftModel } from '../../models/spacecraft.model';
 import { CelestialBodyModel } from '../../models/celestial-body.model';
 import { MissionTypeModel } from '../../models/mission-type.model';
-
-interface Planet {
-  name: string; radius: number; distance: number;
-  speed: number; angle: number; color: string; ring?: boolean;
-}
+import { MissionModel } from '../../models/mission.model';
 
 @Component({
   selector: 'app-menu',
-  imports: [ReactiveFormsModule, SimulationComponent],
+  imports: [ReactiveFormsModule, SimulationComponent, SlicePipe],
   templateUrl: './menu.composant.html',
   styleUrl: './menu.composant.css',
-
 })
 export class MenuComposant implements AfterViewInit, OnDestroy {
+
+  // ── ViewChild ─────────────────────────────────────────────────────────────
   @ViewChild('solarCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild(SimulationComponent) simulation!: SimulationComponent;
 
@@ -34,61 +33,89 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     document.body.classList.add('sidebar-open');
   }
 
-  private authService = inject(AuthService);
+  // ── Injections ────────────────────────────────────────────────────────────
+  private authService    = inject(AuthService);
   private missionService = inject(MissionService);
-  private spacecraftSvc = inject(SpacecraftService);
-  private bodySvc = inject(CelestialBodyService);
-  private typeSvc = inject(MissionTypeService);
-  private formBuilder = inject(FormBuilder);
-  private router = inject(Router);
+  private spacecraftSvc  = inject(SpacecraftService);
+  private bodySvc        = inject(CelestialBodyService);
+  private typeSvc        = inject(MissionTypeService);
+  private formBuilder    = inject(FormBuilder);
+  private router         = inject(Router);
+  private cdr            = inject(ChangeDetectorRef);
 
+  // ── Sidebar ───────────────────────────────────────────────────────────────
   protected sidebarOpen = signal(true);
-  protected showPopup = signal(false);
-  protected popupError = signal(false);
-  protected popupSuccess = signal(false);
+  protected userMail    = '';
 
+  // ── Popups ────────────────────────────────────────────────────────────────
+  protected showPopup          = signal(false);
+  protected popupError         = signal(false);
+  protected popupSuccess       = signal(false);
+  protected showMissionPicker  = signal(false);
+  protected showActionsPanel   = signal(false);
+  protected showInfoPanel      = signal(false);
+
+  // ── Mission active ────────────────────────────────────────────────────────
+  protected activeMission  = signal<MissionModel | null>(null);
+  protected missions       = signal<MissionModel[]>([]);
+  protected executedAction = signal<string | null>(null);
+
+  protected pickableMissions = computed(() =>
+    this.missions().filter(m => m.status === 'PLANNED' || m.status === 'IN_PROGRESS')
+  );
+
+  // Raccourcis lisibles dans le template
+  protected hasMission = computed(() => this.activeMission() !== null);
+
+  // ── Horloge ───────────────────────────────────────────────────────────────
+  protected clockTime = signal('');
+  protected clockDate = signal('');
+  private clockTimer: ReturnType<typeof setInterval> | null = null;
+
+  // ── Listes selects (popup création) ──────────────────────────────────────
   protected spacecrafts = signal<SpacecraftModel[]>([]);
-  protected bodies = signal<CelestialBodyModel[]>([]);
-  protected types = signal<MissionTypeModel[]>([]);
-  protected speedUp(): void { this.simulation.speedUp(); }
-  protected speedDown(): void { this.simulation.speedDown(); }
+  protected bodies      = signal<CelestialBodyModel[]>([]);
+  protected types       = signal<MissionTypeModel[]>([]);
 
-  protected userMail = '';
-
-  protected form!: FormGroup;
-  protected nameCtrl!: FormControl;
+  // ── Formulaire création mission ───────────────────────────────────────────
+  protected form!:             FormGroup;
+  protected nameCtrl!:         FormControl;
   protected spacecraftIdCtrl!: FormControl;
-  protected typeIdCtrl!: FormControl;
-  protected departureCtrl!: FormControl;
-  protected arrivalCtrl!: FormControl;
-  protected departureDateCtrl!: FormControl;
+  protected typeIdCtrl!:       FormControl;
+  protected departureCtrl!:    FormControl;
+  protected arrivalCtrl!:      FormControl;
+  protected departureDateCtrl!:FormControl;
 
-
-  private animationId = 0;
-  private paused = false;
-  private zoomFactor = 1;
-
-  private planets: Planet[] = [];
-
-  private readonly PLANET_COLORS: Record<string, string> = {
-    'Mercure': '#a9a9a9', 'Vénus': '#eedd82', 'Terre': '#4d9fff',
-    'Mars': '#ff4500', 'Jupiter': '#d2b48c', 'Saturne': '#f5deb3',
-    'Uranus': '#afeeee', 'Neptune': '#4169e1',
-  };
-  private readonly RINGED = new Set(['Saturne', 'Uranus']);
-
+  // ── Lifecycle ─────────────────────────────────────────────────────────────
   ngAfterViewInit(): void {
     this.decodeUser();
     this.loadSelects();
     this.initForm();
-    this.startCanvas();
+    this.startClock();
   }
 
   ngOnDestroy(): void {
-    cancelAnimationFrame(this.animationId);
+    if (this.clockTimer) clearInterval(this.clockTimer);
     document.body.classList.remove('sidebar-open');
   }
 
+  // ── Horloge ───────────────────────────────────────────────────────────────
+  private startClock(): void {
+    const tick = () => {
+      const now = new Date();
+      this.clockTime.set(now.toLocaleTimeString('fr-FR', {
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      }));
+      this.clockDate.set(now.toLocaleDateString('fr-FR', {
+        weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
+      }));
+      this.cdr.detectChanges(); // force CD hors zone Angular 21
+    };
+    tick();
+    this.clockTimer = setInterval(tick, 1000);
+  }
+
+  // ── Auth / sidebar ────────────────────────────────────────────────────────
   private decodeUser(): void {
     try {
       const payload = this.authService.token.split('.')[1];
@@ -107,12 +134,66 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     document.body.classList.toggle('sidebar-open', open);
   }
 
-  protected launch(): void { this.simulation.launch(); }
-  protected pause(): void { this.simulation.pause(); }
-  protected reset(): void { this.simulation.reset(); }
-  protected zoomIn(): void { this.simulation.zoomIn(); }
-  protected zoomOut(): void { this.simulation.zoomOut(); }
+  // ── Contrôles simulation (délégués au SimulationComponent) ───────────────
+  protected pause(): void    { this.simulation.pause(); }
+  protected zoomIn(): void   { this.simulation.zoomIn(); }
+  protected zoomOut(): void  { this.simulation.zoomOut(); }
+  protected speedUp(): void  { this.simulation.speedUp(); }
+  protected speedDown(): void{ this.simulation.speedDown(); }
 
+  // ── Sélecteur de mission ──────────────────────────────────────────────────
+  protected launch(): void {
+    this.missionService.findAll().subscribe({
+      next: d => { this.missions.set(d); this.showMissionPicker.set(true); },
+      error: () => this.showMissionPicker.set(true)
+    });
+  }
+
+  protected closeMissionPicker(): void { this.showMissionPicker.set(false); }
+
+  protected selectMission(m: MissionModel): void {
+    this.activeMission.set(m);
+    this.showMissionPicker.set(false);
+    this.simulation.launch();
+  }
+
+  protected cancel(): void {
+    this.activeMission.set(null);
+  }
+
+  protected missionStatusLabel(m: MissionModel): string {
+    return m.status === 'PLANNED' ? 'Planifiée' : 'En cours';
+  }
+
+  // ── Panel Actions spacecraft ──────────────────────────────────────────────
+  protected actions(): void { this.showActionsPanel.set(true); }
+  protected closeActionsPanel(): void {
+    this.showActionsPanel.set(false);
+    this.executedAction.set(null);
+  }
+
+  protected executeAction(label: string): void {
+    this.executedAction.set(label);
+    setTimeout(() => this.executedAction.set(null), 2500);
+  }
+
+  protected spacecraftActions(): { label: string; icon: string; desc: string }[] {
+    const m = this.activeMission();
+    if (!m) return [];
+    return [
+      { label: 'Ajuster la trajectoire',    icon: 'bx-navigation', desc: `Correction de cap vers ${m.arrivalBodyName}` },
+      { label: 'Communication Terre',        icon: 'bx-broadcast',  desc: 'Liaison RF avec le centre de contrôle' },
+      { label: 'Déployer panneaux solaires', icon: 'bx-sun',        desc: 'Orientation optimale face au Soleil' },
+      { label: 'Correction orbitale',        icon: 'bx-refresh',    desc: 'Impulsion moteur de correction d\'orbite' },
+      { label: 'Mode veille',                icon: 'bx-power-off',  desc: 'Mise en veille pour économie d\'énergie' },
+    ];
+  }
+
+  // ── Panel Info mission ────────────────────────────────────────────────────
+  protected openInfo(): void  { this.showInfoPanel.set(true); }
+  protected closeInfo(): void { this.showInfoPanel.set(false); }
+
+  // ── Popup création mission ────────────────────────────────────────────────
   protected openPopup(): void {
     this.popupError.set(false);
     this.popupSuccess.set(false);
@@ -127,12 +208,12 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.popupError.set(false);
     const raw = this.form.getRawValue();
     const req: CreateMissionRequest = {
-      name: raw.name.trim(),
-      spacecraftId: +raw.spacecraftId,
-      typeId: +raw.typeId,
+      name:            raw.name.trim(),
+      spacecraftId:    +raw.spacecraftId,
+      typeId:          +raw.typeId,
       departureBodyId: +raw.departureBodyId,
-      arrivalBodyId: +raw.arrivalBodyId,
-      departureDate: raw.departureDate,
+      arrivalBodyId:   +raw.arrivalBodyId,
+      departureDate:   raw.departureDate,
     };
     this.missionService.create(req).subscribe({
       next: () => {
@@ -144,117 +225,27 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     });
   }
 
-  private startCanvas(): void {
-    const canvas = this.canvasRef.nativeElement;
-    const ctx = canvas.getContext('2d')!;
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2;
-
-    const drawPlanet = (x: number, y: number, r: number, color: string, glow = false) => {
-      const g = ctx.createRadialGradient(x - r / 3, y - r / 3, r / 5, x, y, r);
-      g.addColorStop(0, 'white');
-      g.addColorStop(0.2, color);
-      g.addColorStop(1, 'black');
-      ctx.beginPath();
-      ctx.arc(x, y, r, 0, 2 * Math.PI);
-      ctx.fillStyle = g;
-      ctx.shadowBlur = glow ? 30 : 0;
-      ctx.shadowColor = glow ? color : '';
-      ctx.fill();
-      ctx.shadowBlur = 0;
-    };
-
-    const drawRing = (x: number, y: number, inner: number, outer: number) => {
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = outer - inner;
-      ctx.arc(x, y, (outer + inner) / 2, 0, 2 * Math.PI);
-      ctx.stroke();
-    };
-
-    const drawOrbit = (d: number) => {
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      ctx.lineWidth = 1;
-      ctx.arc(cx, cy, d * this.zoomFactor, 0, 2 * Math.PI);
-      ctx.stroke();
-    };
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      drawPlanet(cx, cy, 50, 'yellow', true);
-      this.planets.forEach(p => drawOrbit(p.distance));
-      this.planets.forEach(p => {
-        if (!this.paused) p.angle += p.speed;
-        const x = cx + p.distance * this.zoomFactor * Math.cos(p.angle);
-        const y = cy + p.distance * this.zoomFactor * Math.sin(p.angle);
-        drawPlanet(x, y, p.radius, p.color);
-        if (p.ring) drawRing(x, y, p.radius + 2, p.radius + 8);
-      });
-      this.animationId = requestAnimationFrame(draw);
-    };
-
-    draw();
-  }
-
+  // ── Form ──────────────────────────────────────────────────────────────────
   private initForm(): void {
-    this.nameCtrl = this.formBuilder.control('', Validators.required);
-    this.spacecraftIdCtrl = this.formBuilder.control('', Validators.required);
-    this.typeIdCtrl = this.formBuilder.control('', Validators.required);
-    this.departureCtrl = this.formBuilder.control('', Validators.required);
-    this.arrivalCtrl = this.formBuilder.control('', Validators.required);
+    this.nameCtrl          = this.formBuilder.control('', Validators.required);
+    this.spacecraftIdCtrl  = this.formBuilder.control('', Validators.required);
+    this.typeIdCtrl        = this.formBuilder.control('', Validators.required);
+    this.departureCtrl     = this.formBuilder.control('', Validators.required);
+    this.arrivalCtrl       = this.formBuilder.control('', Validators.required);
     this.departureDateCtrl = this.formBuilder.control('', Validators.required);
     this.form = this.formBuilder.group({
-      name: this.nameCtrl,
-      spacecraftId: this.spacecraftIdCtrl,
-      typeId: this.typeIdCtrl,
+      name:            this.nameCtrl,
+      spacecraftId:    this.spacecraftIdCtrl,
+      typeId:          this.typeIdCtrl,
       departureBodyId: this.departureCtrl,
-      arrivalBodyId: this.arrivalCtrl,
-      departureDate: this.departureDateCtrl,
+      arrivalBodyId:   this.arrivalCtrl,
+      departureDate:   this.departureDateCtrl,
     });
   }
 
   private loadSelects(): void {
     this.spacecraftSvc.findAll().subscribe({ next: d => this.spacecrafts.set(d) });
     this.typeSvc.findAll().subscribe({ next: d => this.types.set(d) });
-    this.bodySvc.findAll().subscribe({
-      next: d => {
-        this.bodies.set(d);
-        this.buildPlanetsFromApi(d);
-      }
-    });
-  }
-
-  private buildPlanetsFromApi(bodies: CelestialBodyModel[]): void {
-    // Corps en orbite solaire : exclure Soleil (orbitalRadius == 0) et corps < 1 M km (ex: Lune)
-    const solar = bodies
-      .filter(b => b.orbitalRadius != null && b.orbitalRadius > 1_000_000)
-      .sort((a, b) => (a.orbitalRadius ?? 0) - (b.orbitalRadius ?? 0));
-
-    if (solar.length === 0) return;
-
-    const maxOrb = solar[solar.length - 1].orbitalRadius ?? 1;
-
-    this.planets = solar.map(b => {
-      const orb = b.orbitalRadius ?? 1;
-      const distance = (orb / maxOrb) * 280 + 60;                   // 60..340
-      // Loi de Kepler : omega ∝ r^-1.5 ; normalisé sur la Terre (149.6 Mkm → speed 0.030)
-      const speed = 0.030 * Math.pow(149_600_000 / orb, 1.5);
-      // Rayon visuel : log-normalisé entre 5 et 26
-      const rawR = b.radius != null ? Math.log10(Math.max(b.radius, 1)) : 3;
-      const minLogR = Math.log10(2440);   // Mercure ≈ 2440 km
-      const maxLogR = Math.log10(71492);  // Jupiter ≈ 71492 km
-      const radius = 5 + ((rawR - minLogR) / (maxLogR - minLogR || 1)) * 21;
-
-      return {
-        name: b.name,
-        radius: Math.max(5, Math.min(26, radius)),
-        distance,
-        speed: Math.max(0.003, Math.min(0.06, speed)),
-        angle: Math.random() * 2 * Math.PI,
-        color: this.PLANET_COLORS[b.name] ?? '#aaaaaa',
-        ring: this.RINGED.has(b.name),
-      };
-    });
+    this.bodySvc.findAll().subscribe({ next: d => this.bodies.set(d) });
   }
 }

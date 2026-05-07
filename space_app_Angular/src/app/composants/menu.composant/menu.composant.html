@@ -10,7 +10,6 @@
     <li><a href="/celestial-body"><i class='bx bx-globe'></i><span class="links_name">Celestial Body</span></a></li>
     <li><a href="/mission"><i class='bx bx-task'></i><span class="links_name">Mission</span></a></li>
   </ul>
-
   <div class="sidebar-footer">
     <div class="sidebar-user">
       <div class="sidebar-avatar"><i class='bx bx-user-circle'></i></div>
@@ -27,17 +26,40 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar">
+
+  <!-- Rangée 1 : horloge + contrôles mission -->
   <div class="toolbar-row">
-    <button class="tool-btn tool-btn-large" (click)="launch()">Lancer</button>
-    <button class="tool-btn tool-btn-large" (click)="reset()">Reset</button>
-    <button class="tool-btn tool-btn-medium" (click)="pause()">Pause</button>
+    <div class="clock-box">
+      <span class="clock-time">{{ clockTime() }}</span>
+      <span class="clock-date">{{ clockDate() }}</span>
+    </div>
+
+    <button class="tool-btn tool-btn-large tool-btn-green"
+            (click)="launch()">Lancer</button>
+
+    <button class="tool-btn tool-btn-large tool-btn-blue"
+            [disabled]="!hasMission()"
+            (click)="actions()">Actions</button>
+
+    <button class="tool-btn tool-btn-large tool-btn-orange"
+            [disabled]="!hasMission()"
+            (click)="pause()">Pause</button>
+
+    <button class="tool-btn tool-btn-large tool-btn-red"
+            [disabled]="!hasMission()"
+            (click)="cancel()">Annuler</button>
+
+    <button class="tool-btn tool-btn-large tool-btn-grey"
+            [disabled]="!hasMission()"
+            (click)="openInfo()">Info</button>
   </div>
+
+  <!-- Rangée 2 : contrôles simulation (collègue) -->
   <div class="toolbar-row">
     <button class="tool-btn tool-btn-small" (click)="zoomIn()">Zoom +</button>
-    <button class="tool-btn tool-btn-small" (click)="zoomOut()">Zoom -</button>
+    <button class="tool-btn tool-btn-small" (click)="zoomOut()">Zoom −</button>
     <button class="tool-btn tool-btn-small" (click)="speedUp()">Vitesse +</button>
-    <button class="tool-btn tool-btn-small" (click)="speedDown()">Vitesse -</button>
-    <button class="tool-btn tool-btn-small" (click)="openPopup()">Infos</button>
+    <button class="tool-btn tool-btn-small" (click)="speedDown()">Vitesse −</button>
   </div>
 </div>
 
@@ -46,63 +68,199 @@
   <app-simulation></app-simulation>
 </div>
 
-<!-- POPUP MISSION -->
-@if (showPopup()) {
-<div class="popup-overlay" (click)="closePopup()">
-  <div class="popup-content" (click)="$event.stopPropagation()">
-    <h2>Configurer une mission</h2>
-    <form [formGroup]="form" (ngSubmit)="submitMission()">
+<!-- POPUP : sélection de mission -->
+@if (showMissionPicker()) {
+  <div class="popup-overlay" (click)="closeMissionPicker()">
+    <div class="picker-content" (click)="$event.stopPropagation()">
+      <h2><i class='bx bx-rocket'></i> Sélectionner une mission</h2>
 
-      <label>Nom de la mission</label>
-      <input type="text" formControlName="name" placeholder="Ex : Mission Mars Alpha" />
-
-      <label>Spacecraft</label>
-      <select formControlName="spacecraftId">
-        <option value="">-- choisir --</option>
-        @for (sc of spacecrafts(); track sc.id) {
-        <option [value]="sc.id">{{ sc.name }}</option>
-        }
-      </select>
-
-      <label>Type de mission</label>
-      <select formControlName="typeId">
-        <option value="">-- choisir --</option>
-        @for (t of types(); track t.id) {
-        <option [value]="t.id">{{ t.name }}</option>
-        }
-      </select>
-
-      <label>Corps de départ</label>
-      <select formControlName="departureBodyId">
-        <option value="">-- choisir --</option>
-        @for (b of bodies(); track b.id) {
-        <option [value]="b.id">{{ b.name }}</option>
-        }
-      </select>
-
-      <label>Corps d'arrivée</label>
-      <select formControlName="arrivalBodyId">
-        <option value="">-- choisir --</option>
-        @for (b of bodies(); track b.id) {
-        <option [value]="b.id">{{ b.name }}</option>
-        }
-      </select>
-
-      <label>Date de départ</label>
-      <input type="datetime-local" formControlName="departureDate" />
-
-      @if (popupError()) {
-      <p class="popup-error-msg">Erreur lors de la création de la mission.</p>
-      }
-      @if (popupSuccess()) {
-      <p class="popup-success-msg">Mission créée !</p>
+      @if (pickableMissions().length === 0) {
+        <p class="picker-empty">Aucune mission planifiée ou en cours.</p>
       }
 
-      <div class="popup-actions">
-        <button type="submit" class="tool-btn tool-btn-medium" [disabled]="form.invalid">Valider</button>
-        <button type="button" class="tool-btn tool-btn-medium" (click)="closePopup()">Annuler</button>
+      @for (m of pickableMissions(); track m.id) {
+        <div class="mission-row" [class.row-active]="m.id === activeMission()?.id"
+             (click)="selectMission(m)">
+          <div class="mission-row-main">
+            <span class="mission-row-name">{{ m.name }}</span>
+            <span class="mission-row-badge"
+                  [class.badge-planned]="m.status === 'PLANNED'"
+                  [class.badge-progress]="m.status === 'IN_PROGRESS'">
+              {{ missionStatusLabel(m) }}
+            </span>
+          </div>
+          <div class="mission-row-meta">
+            <i class='bx bx-right-arrow-alt'></i>
+            {{ m.departureBodyName }} → {{ m.arrivalBodyName }}
+          </div>
+          <div class="mission-row-sub">
+            <i class='bx bx-rocket'></i> {{ m.spacecraftName }}
+            &nbsp;&nbsp;
+            <i class='bx bx-calendar'></i> {{ m.departureDate | slice:0:10 }}
+          </div>
+        </div>
+      }
+
+      <div class="picker-footer">
+        <button class="tool-btn tool-btn-small" (click)="closeMissionPicker()">Fermer</button>
       </div>
-    </form>
+    </div>
   </div>
-</div>
+}
+
+<!-- PANEL : actions spacecraft -->
+@if (showActionsPanel() && activeMission()) {
+  <div class="popup-overlay" (click)="closeActionsPanel()">
+    <div class="actions-panel" (click)="$event.stopPropagation()">
+      <h2><i class='bx bx-joystick'></i> Actions — {{ activeMission()!.spacecraftName }}</h2>
+
+      @if (executedAction()) {
+        <div class="action-feedback">
+          <i class='bx bx-check-circle'></i> {{ executedAction() }} — exécuté
+        </div>
+      }
+
+      <div class="action-list">
+        @for (a of spacecraftActions(); track a.label) {
+          <div class="action-item" (click)="executeAction(a.label)">
+            <div class="action-item-icon"><i class="bx {{ a.icon }}"></i></div>
+            <div class="action-item-body">
+              <span class="action-item-label">{{ a.label }}</span>
+              <span class="action-item-desc">{{ a.desc }}</span>
+            </div>
+            <i class='bx bx-chevron-right action-item-arrow'></i>
+          </div>
+        }
+      </div>
+
+      <div class="picker-footer">
+        <button class="tool-btn tool-btn-small" (click)="closeActionsPanel()">Fermer</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- PANEL : info mission -->
+@if (showInfoPanel() && activeMission()) {
+  <div class="popup-overlay" (click)="closeInfo()">
+    <div class="actions-panel" (click)="$event.stopPropagation()">
+      <h2><i class='bx bx-info-circle'></i> Mission active</h2>
+
+      @if (activeMission()!.payload) {
+        <div class="info-description">
+          <span class="ad-label">Description</span>
+          <p class="info-desc-text">{{ activeMission()!.payload }}</p>
+        </div>
+      }
+
+      <div class="action-detail">
+        <span class="ad-label">Nom</span>
+        <span class="ad-value">{{ activeMission()!.name }}</span>
+      </div>
+      <div class="action-detail">
+        <span class="ad-label">Statut</span>
+        <span class="ad-value"
+              [class.badge-planned]="activeMission()!.status === 'PLANNED'"
+              [class.badge-progress]="activeMission()!.status === 'IN_PROGRESS'">
+          {{ missionStatusLabel(activeMission()!) }}
+        </span>
+      </div>
+      <div class="action-detail">
+        <span class="ad-label">Spacecraft</span>
+        <span class="ad-value">{{ activeMission()!.spacecraftName }}</span>
+      </div>
+      <div class="action-detail">
+        <span class="ad-label">Type</span>
+        <span class="ad-value">{{ activeMission()!.typeName }}</span>
+      </div>
+      <div class="action-detail">
+        <span class="ad-label">Trajet</span>
+        <span class="ad-value">
+          {{ activeMission()!.departureBodyName }} → {{ activeMission()!.arrivalBodyName }}
+        </span>
+      </div>
+      <div class="action-detail">
+        <span class="ad-label">Départ</span>
+        <span class="ad-value">{{ activeMission()!.departureDate | slice:0:16 }}</span>
+      </div>
+      @if (activeMission()!.arrivalDate) {
+        <div class="action-detail">
+          <span class="ad-label">Arrivée</span>
+          <span class="ad-value">{{ activeMission()!.arrivalDate! | slice:0:16 }}</span>
+        </div>
+      }
+      @if (activeMission()!.operatorMail) {
+        <div class="action-detail">
+          <span class="ad-label">Opérateur</span>
+          <span class="ad-value">{{ activeMission()!.operatorMail }}</span>
+        </div>
+      }
+
+      <div class="picker-footer">
+        <button class="tool-btn tool-btn-small" (click)="closeInfo()">Fermer</button>
+        <button class="tool-btn tool-btn-small tool-btn-red"
+                (click)="cancel(); closeInfo()">Quitter la mission</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- POPUP : création de mission -->
+@if (showPopup()) {
+  <div class="popup-overlay" (click)="closePopup()">
+    <div class="popup-content" (click)="$event.stopPropagation()">
+      <h2>Configurer une mission</h2>
+      <form [formGroup]="form" (ngSubmit)="submitMission()">
+        <label>Nom de la mission</label>
+        <input type="text" formControlName="name" placeholder="Ex : Mission Mars Alpha" />
+
+        <label>Spacecraft</label>
+        <select formControlName="spacecraftId">
+          <option value="">-- choisir --</option>
+          @for (sc of spacecrafts(); track sc.id) {
+            <option [value]="sc.id">{{ sc.name }}</option>
+          }
+        </select>
+
+        <label>Type de mission</label>
+        <select formControlName="typeId">
+          <option value="">-- choisir --</option>
+          @for (t of types(); track t.id) {
+            <option [value]="t.id">{{ t.name }}</option>
+          }
+        </select>
+
+        <label>Corps de départ</label>
+        <select formControlName="departureBodyId">
+          <option value="">-- choisir --</option>
+          @for (b of bodies(); track b.id) {
+            <option [value]="b.id">{{ b.name }}</option>
+          }
+        </select>
+
+        <label>Corps d'arrivée</label>
+        <select formControlName="arrivalBodyId">
+          <option value="">-- choisir --</option>
+          @for (b of bodies(); track b.id) {
+            <option [value]="b.id">{{ b.name }}</option>
+          }
+        </select>
+
+        <label>Date de départ</label>
+        <input type="datetime-local" formControlName="departureDate" />
+
+        @if (popupError()) {
+          <p class="popup-error-msg">Erreur lors de la création de la mission.</p>
+        }
+        @if (popupSuccess()) {
+          <p class="popup-success-msg">Mission créée !</p>
+        }
+
+        <div class="popup-actions">
+          <button type="submit"  class="tool-btn tool-btn-medium" [disabled]="form.invalid">Valider</button>
+          <button type="button"  class="tool-btn tool-btn-medium" (click)="closePopup()">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
 }
