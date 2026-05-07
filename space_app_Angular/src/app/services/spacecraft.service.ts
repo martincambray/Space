@@ -29,6 +29,7 @@ export class SpacecraftService {
 export interface CreateSpacecraftRequest {
   name: string;
   description: string;
+  type: string;
   batteryMax: number;
   fuelCapacity: number;
 }
