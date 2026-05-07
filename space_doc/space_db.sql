@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS spacecraft (
     o2_level              DOUBLE,
     odometer              DOUBLE,
     maintenance_count     INT,
+    available             BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id)
     );
 
