@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.format.annotation.DateTimeFormat;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -26,10 +27,12 @@ public class CreateMissionRequest
 
     @NotNull(message = "La date de départ est obligatoire")
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime departureDate;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
-    private LocalDateTime arrivalDate;  
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime arrivalDate;
 
     private Integer orbitalTime;  
     private String payload;      
