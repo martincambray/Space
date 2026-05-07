@@ -1,4 +1,4 @@
-package space.exception;
+package space.EXCEPTION;
 
 /**
  * Levée par ActionRegistry.execute() quand le Spacecraft n'est pas capable

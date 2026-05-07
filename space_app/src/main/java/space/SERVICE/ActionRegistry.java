@@ -8,6 +8,7 @@ import space.MODEL.Rover;
 import space.MODEL.Utilitaire;
 import space.MODEL.TYPE_ACTION;
 import space.ACTIONS.*;
+import space.EXCEPTION.ActionNotSupportedException;
 
 import java.util.List;
 import java.util.Map;
@@ -91,7 +92,7 @@ public class ActionRegistry {
      */
     public boolean execute(TYPE_ACTION action, Spacecraft spacecraft, double deltaV) {
         if (!canExecute(action, spacecraft)) {
-            throw new space.exception.ActionNotSupportedException(action.name(), spacecraft.getId());
+            throw new space.EXCEPTION.ActionNotSupportedException(action.name(), spacecraft.getId());
         }
 
         try {
