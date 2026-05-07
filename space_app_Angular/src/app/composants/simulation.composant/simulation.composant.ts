@@ -27,6 +27,10 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   // Pause
   private paused = false;
 
+
+  // vitesse de simulation
+  private speedFactor = 1;
+
   private planets: Planet[] = [
     { name: 'Mercure', color: '#a0a0a0', radius: 6, orbitA: 80, orbitB: 70, speed: 0.02 },
     { name: 'Vénus', color: '#e8cda0', radius: 9, orbitA: 130, orbitB: 120, speed: 0.015 },
@@ -61,11 +65,16 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   public zoomOut(): void { this.zoom /= 1.15; }
   public launch(): void { this.paused = false; }
   public pause(): void { this.paused = !this.paused; }
+
+  public speedUp(): void { this.speedFactor = Math.min(10, this.speedFactor * 1.5); }
+  public speedDown(): void { this.speedFactor = Math.max(0.1, this.speedFactor / 1.5); }
+
   public reset(): void {
     this.angles = this.planets.map(() => 0);
     this.zoom = 1;
     this.offsetX = 0;
     this.offsetY = 0;
+    this.speedFactor = 1;
   }
 
   // ── Événements ───────────────────────────────────────────────────────────
@@ -176,7 +185,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.ctx.stroke();
 
       // Angle
-      if (!this.paused) this.angles[i] += planet.speed;
+      if (!this.paused) this.angles[i] += planet.speed * this.speedFactor;
       const px = cx + a * Math.cos(this.angles[i]);
       const py = cy + b * Math.sin(this.angles[i]);
 

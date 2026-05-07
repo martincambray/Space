@@ -28,13 +28,15 @@
 <!-- TOOLBAR -->
 <div class="toolbar">
   <div class="toolbar-row">
-    <button class="tool-btn tool-btn-large"  (click)="launch()">Lancer</button>
-    <button class="tool-btn tool-btn-large"  (click)="reset()">Reset</button>
+    <button class="tool-btn tool-btn-large" (click)="launch()">Lancer</button>
+    <button class="tool-btn tool-btn-large" (click)="reset()">Reset</button>
     <button class="tool-btn tool-btn-medium" (click)="pause()">Pause</button>
   </div>
   <div class="toolbar-row">
     <button class="tool-btn tool-btn-small" (click)="zoomIn()">Zoom +</button>
     <button class="tool-btn tool-btn-small" (click)="zoomOut()">Zoom -</button>
+    <button class="tool-btn tool-btn-small" (click)="speedUp()">Vitesse +</button>
+    <button class="tool-btn tool-btn-small" (click)="speedDown()">Vitesse -</button>
     <button class="tool-btn tool-btn-small" (click)="openPopup()">Infos</button>
   </div>
 </div>
@@ -46,61 +48,61 @@
 
 <!-- POPUP MISSION -->
 @if (showPopup()) {
-  <div class="popup-overlay" (click)="closePopup()">
-    <div class="popup-content" (click)="$event.stopPropagation()">
-      <h2>Configurer une mission</h2>
-      <form [formGroup]="form" (ngSubmit)="submitMission()">
+<div class="popup-overlay" (click)="closePopup()">
+  <div class="popup-content" (click)="$event.stopPropagation()">
+    <h2>Configurer une mission</h2>
+    <form [formGroup]="form" (ngSubmit)="submitMission()">
 
-        <label>Nom de la mission</label>
-        <input type="text" formControlName="name" placeholder="Ex : Mission Mars Alpha" />
+      <label>Nom de la mission</label>
+      <input type="text" formControlName="name" placeholder="Ex : Mission Mars Alpha" />
 
-        <label>Spacecraft</label>
-        <select formControlName="spacecraftId">
-          <option value="">-- choisir --</option>
-          @for (sc of spacecrafts(); track sc.id) {
-            <option [value]="sc.id">{{ sc.name }}</option>
-          }
-        </select>
-
-        <label>Type de mission</label>
-        <select formControlName="typeId">
-          <option value="">-- choisir --</option>
-          @for (t of types(); track t.id) {
-            <option [value]="t.id">{{ t.name }}</option>
-          }
-        </select>
-
-        <label>Corps de départ</label>
-        <select formControlName="departureBodyId">
-          <option value="">-- choisir --</option>
-          @for (b of bodies(); track b.id) {
-            <option [value]="b.id">{{ b.name }}</option>
-          }
-        </select>
-
-        <label>Corps d'arrivée</label>
-        <select formControlName="arrivalBodyId">
-          <option value="">-- choisir --</option>
-          @for (b of bodies(); track b.id) {
-            <option [value]="b.id">{{ b.name }}</option>
-          }
-        </select>
-
-        <label>Date de départ</label>
-        <input type="datetime-local" formControlName="departureDate" />
-
-        @if (popupError()) {
-          <p class="popup-error-msg">Erreur lors de la création de la mission.</p>
+      <label>Spacecraft</label>
+      <select formControlName="spacecraftId">
+        <option value="">-- choisir --</option>
+        @for (sc of spacecrafts(); track sc.id) {
+        <option [value]="sc.id">{{ sc.name }}</option>
         }
-        @if (popupSuccess()) {
-          <p class="popup-success-msg">Mission créée !</p>
-        }
+      </select>
 
-        <div class="popup-actions">
-          <button type="submit"  class="tool-btn tool-btn-medium" [disabled]="form.invalid">Valider</button>
-          <button type="button"  class="tool-btn tool-btn-medium" (click)="closePopup()">Annuler</button>
-        </div>
-      </form>
-    </div>
+      <label>Type de mission</label>
+      <select formControlName="typeId">
+        <option value="">-- choisir --</option>
+        @for (t of types(); track t.id) {
+        <option [value]="t.id">{{ t.name }}</option>
+        }
+      </select>
+
+      <label>Corps de départ</label>
+      <select formControlName="departureBodyId">
+        <option value="">-- choisir --</option>
+        @for (b of bodies(); track b.id) {
+        <option [value]="b.id">{{ b.name }}</option>
+        }
+      </select>
+
+      <label>Corps d'arrivée</label>
+      <select formControlName="arrivalBodyId">
+        <option value="">-- choisir --</option>
+        @for (b of bodies(); track b.id) {
+        <option [value]="b.id">{{ b.name }}</option>
+        }
+      </select>
+
+      <label>Date de départ</label>
+      <input type="datetime-local" formControlName="departureDate" />
+
+      @if (popupError()) {
+      <p class="popup-error-msg">Erreur lors de la création de la mission.</p>
+      }
+      @if (popupSuccess()) {
+      <p class="popup-success-msg">Mission créée !</p>
+      }
+
+      <div class="popup-actions">
+        <button type="submit" class="tool-btn tool-btn-medium" [disabled]="form.invalid">Valider</button>
+        <button type="button" class="tool-btn tool-btn-medium" (click)="closePopup()">Annuler</button>
+      </div>
+    </form>
   </div>
+</div>
 }

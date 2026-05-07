@@ -1,7 +1,7 @@
 import {
   AfterViewInit, Component, ElementRef, inject, OnDestroy, signal, ViewChild
 } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators} from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 
 import { SimulationComponent } from '../simulation.composant/simulation.composant';
@@ -28,41 +28,45 @@ interface Planet {
 })
 export class MenuComposant implements AfterViewInit, OnDestroy {
   @ViewChild('solarCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild(SimulationComponent) simulation!: SimulationComponent;
 
   constructor() {
     document.body.classList.add('sidebar-open');
   }
 
-  private authService    = inject(AuthService);
+  private authService = inject(AuthService);
   private missionService = inject(MissionService);
-  private spacecraftSvc  = inject(SpacecraftService);
-  private bodySvc        = inject(CelestialBodyService);
-  private typeSvc        = inject(MissionTypeService);
-  private formBuilder    = inject(FormBuilder);
-  private router         = inject(Router);
+  private spacecraftSvc = inject(SpacecraftService);
+  private bodySvc = inject(CelestialBodyService);
+  private typeSvc = inject(MissionTypeService);
+  private formBuilder = inject(FormBuilder);
+  private router = inject(Router);
 
-  protected sidebarOpen  = signal(true);
-  protected showPopup    = signal(false);
-  protected popupError   = signal(false);
+  protected sidebarOpen = signal(true);
+  protected showPopup = signal(false);
+  protected popupError = signal(false);
   protected popupSuccess = signal(false);
 
   protected spacecrafts = signal<SpacecraftModel[]>([]);
-  protected bodies      = signal<CelestialBodyModel[]>([]);
-  protected types       = signal<MissionTypeModel[]>([]);
+  protected bodies = signal<CelestialBodyModel[]>([]);
+  protected types = signal<MissionTypeModel[]>([]);
+  protected speedUp(): void { this.simulation.speedUp(); }
+  protected speedDown(): void { this.simulation.speedDown(); }
 
   protected userMail = '';
 
-  protected form!:             FormGroup;
-  protected nameCtrl!:         FormControl;
+  protected form!: FormGroup;
+  protected nameCtrl!: FormControl;
   protected spacecraftIdCtrl!: FormControl;
-  protected typeIdCtrl!:       FormControl;
-  protected departureCtrl!:    FormControl;
-  protected arrivalCtrl!:      FormControl;
-  protected departureDateCtrl!:FormControl;
+  protected typeIdCtrl!: FormControl;
+  protected departureCtrl!: FormControl;
+  protected arrivalCtrl!: FormControl;
+  protected departureDateCtrl!: FormControl;
+
 
   private animationId = 0;
-  private paused      = false;
-  private zoomFactor  = 1;
+  private paused = false;
+  private zoomFactor = 1;
 
   private planets: Planet[] = [];
 
@@ -103,11 +107,11 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     document.body.classList.toggle('sidebar-open', open);
   }
 
-  protected launch(): void  { this.paused = false; }
-  protected pause(): void   { this.paused = !this.paused; }
-  protected reset(): void   { this.planets.forEach(p => p.angle = 0); }
-  protected zoomIn(): void  { this.zoomFactor *= 1.1; }
-  protected zoomOut(): void { this.zoomFactor /= 1.1; }
+  protected launch(): void { this.simulation.launch(); }
+  protected pause(): void { this.simulation.pause(); }
+  protected reset(): void { this.simulation.reset(); }
+  protected zoomIn(): void { this.simulation.zoomIn(); }
+  protected zoomOut(): void { this.simulation.zoomOut(); }
 
   protected openPopup(): void {
     this.popupError.set(false);
@@ -123,12 +127,12 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.popupError.set(false);
     const raw = this.form.getRawValue();
     const req: CreateMissionRequest = {
-      name:            raw.name.trim(),
-      spacecraftId:    +raw.spacecraftId,
-      typeId:          +raw.typeId,
+      name: raw.name.trim(),
+      spacecraftId: +raw.spacecraftId,
+      typeId: +raw.typeId,
       departureBodyId: +raw.departureBodyId,
-      arrivalBodyId:   +raw.arrivalBodyId,
-      departureDate:   raw.departureDate,
+      arrivalBodyId: +raw.arrivalBodyId,
+      departureDate: raw.departureDate,
     };
     this.missionService.create(req).subscribe({
       next: () => {
@@ -142,19 +146,19 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
 
   private startCanvas(): void {
     const canvas = this.canvasRef.nativeElement;
-    const ctx    = canvas.getContext('2d')!;
-    const cx = canvas.width  / 2;
+    const ctx = canvas.getContext('2d')!;
+    const cx = canvas.width / 2;
     const cy = canvas.height / 2;
 
     const drawPlanet = (x: number, y: number, r: number, color: string, glow = false) => {
-      const g = ctx.createRadialGradient(x - r/3, y - r/3, r/5, x, y, r);
+      const g = ctx.createRadialGradient(x - r / 3, y - r / 3, r / 5, x, y, r);
       g.addColorStop(0, 'white');
       g.addColorStop(0.2, color);
       g.addColorStop(1, 'black');
       ctx.beginPath();
       ctx.arc(x, y, r, 0, 2 * Math.PI);
-      ctx.fillStyle  = g;
-      ctx.shadowBlur  = glow ? 30 : 0;
+      ctx.fillStyle = g;
+      ctx.shadowBlur = glow ? 30 : 0;
       ctx.shadowColor = glow ? color : '';
       ctx.fill();
       ctx.shadowBlur = 0;
@@ -163,7 +167,7 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     const drawRing = (x: number, y: number, inner: number, outer: number) => {
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth   = outer - inner;
+      ctx.lineWidth = outer - inner;
       ctx.arc(x, y, (outer + inner) / 2, 0, 2 * Math.PI);
       ctx.stroke();
     };
@@ -171,7 +175,7 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     const drawOrbit = (d: number) => {
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      ctx.lineWidth   = 1;
+      ctx.lineWidth = 1;
       ctx.arc(cx, cy, d * this.zoomFactor, 0, 2 * Math.PI);
       ctx.stroke();
     };
@@ -194,19 +198,19 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
   }
 
   private initForm(): void {
-    this.nameCtrl          = this.formBuilder.control('', Validators.required);
-    this.spacecraftIdCtrl  = this.formBuilder.control('', Validators.required);
-    this.typeIdCtrl        = this.formBuilder.control('', Validators.required);
-    this.departureCtrl     = this.formBuilder.control('', Validators.required);
-    this.arrivalCtrl       = this.formBuilder.control('', Validators.required);
+    this.nameCtrl = this.formBuilder.control('', Validators.required);
+    this.spacecraftIdCtrl = this.formBuilder.control('', Validators.required);
+    this.typeIdCtrl = this.formBuilder.control('', Validators.required);
+    this.departureCtrl = this.formBuilder.control('', Validators.required);
+    this.arrivalCtrl = this.formBuilder.control('', Validators.required);
     this.departureDateCtrl = this.formBuilder.control('', Validators.required);
     this.form = this.formBuilder.group({
-      name:            this.nameCtrl,
-      spacecraftId:    this.spacecraftIdCtrl,
-      typeId:          this.typeIdCtrl,
+      name: this.nameCtrl,
+      spacecraftId: this.spacecraftIdCtrl,
+      typeId: this.typeIdCtrl,
       departureBodyId: this.departureCtrl,
-      arrivalBodyId:   this.arrivalCtrl,
-      departureDate:   this.departureDateCtrl,
+      arrivalBodyId: this.arrivalCtrl,
+      departureDate: this.departureDateCtrl,
     });
   }
 
@@ -232,24 +236,24 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     const maxOrb = solar[solar.length - 1].orbitalRadius ?? 1;
 
     this.planets = solar.map(b => {
-      const orb      = b.orbitalRadius ?? 1;
+      const orb = b.orbitalRadius ?? 1;
       const distance = (orb / maxOrb) * 280 + 60;                   // 60..340
       // Loi de Kepler : omega ∝ r^-1.5 ; normalisé sur la Terre (149.6 Mkm → speed 0.030)
-      const speed    = 0.030 * Math.pow(149_600_000 / orb, 1.5);
+      const speed = 0.030 * Math.pow(149_600_000 / orb, 1.5);
       // Rayon visuel : log-normalisé entre 5 et 26
-      const rawR     = b.radius != null ? Math.log10(Math.max(b.radius, 1)) : 3;
-      const minLogR  = Math.log10(2440);   // Mercure ≈ 2440 km
-      const maxLogR  = Math.log10(71492);  // Jupiter ≈ 71492 km
-      const radius   = 5 + ((rawR - minLogR) / (maxLogR - minLogR || 1)) * 21;
+      const rawR = b.radius != null ? Math.log10(Math.max(b.radius, 1)) : 3;
+      const minLogR = Math.log10(2440);   // Mercure ≈ 2440 km
+      const maxLogR = Math.log10(71492);  // Jupiter ≈ 71492 km
+      const radius = 5 + ((rawR - minLogR) / (maxLogR - minLogR || 1)) * 21;
 
       return {
-        name:     b.name,
-        radius:   Math.max(5, Math.min(26, radius)),
+        name: b.name,
+        radius: Math.max(5, Math.min(26, radius)),
         distance,
-        speed:    Math.max(0.003, Math.min(0.06, speed)),
-        angle:    Math.random() * 2 * Math.PI,
-        color:    this.PLANET_COLORS[b.name] ?? '#aaaaaa',
-        ring:     this.RINGED.has(b.name),
+        speed: Math.max(0.003, Math.min(0.06, speed)),
+        angle: Math.random() * 2 * Math.PI,
+        color: this.PLANET_COLORS[b.name] ?? '#aaaaaa',
+        ring: this.RINGED.has(b.name),
       };
     });
   }
