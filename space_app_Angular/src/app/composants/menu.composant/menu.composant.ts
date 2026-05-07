@@ -37,7 +37,7 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
   private formBuilder    = inject(FormBuilder);
   private router         = inject(Router);
 
-  protected sidebarOpen  = signal(false);
+  protected sidebarOpen  = signal(true);
   protected showPopup    = signal(false);
   protected popupError   = signal(false);
   protected popupSuccess = signal(false);
@@ -74,6 +74,7 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.loadSelects();
     this.initForm();
     this.startCanvas();
+    document.body.classList.add('sidebar-open');
   }
 
   ngOnDestroy(): void {
