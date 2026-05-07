@@ -29,6 +29,10 @@ interface Planet {
 export class MenuComposant implements AfterViewInit, OnDestroy {
   @ViewChild('solarCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
+  constructor() {
+    document.body.classList.add('sidebar-open');
+  }
+
   private authService    = inject(AuthService);
   private missionService = inject(MissionService);
   private spacecraftSvc  = inject(SpacecraftService);
@@ -74,7 +78,6 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.loadSelects();
     this.initForm();
     this.startCanvas();
-    document.body.classList.add('sidebar-open');
   }
 
   ngOnDestroy(): void {
