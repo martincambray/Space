@@ -7,6 +7,7 @@ import space.MODEL.PodHabite;
 import space.MODEL.Rover;
 import space.MODEL.Utilitaire;
 import space.MODEL.TYPE_ACTION;
+
 import space.ACTIONS.*;
 import space.EXCEPTION.ActionNotSupportedException;
 
@@ -97,7 +98,7 @@ public class ActionRegistry {
 
         try {
             Consumer actionInstance = buildAction(action);
-            actionInstance.run(deltaV);
+            actionInstance.accept(deltaV);
             return true;
         } catch (Exception e) {
             // L'action a échoué pour une raison interne — on retourne false

@@ -4,16 +4,12 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 
 @Entity
-public class Spacecraft
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+public abstract class Spacecraft
 {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +30,23 @@ public class Spacecraft
     @JsonIgnore
     @OneToMany(mappedBy = "spacecraft", fetch = FetchType.LAZY)
     private List<Mission> missions;
+
+    /**
+     * Retourne le type enum du spacecraft, dérivé de la valeur discriminante JPA.
+     * Non persisté — calculé à partir de la colonne discriminante par la sous-classe.
+     */
+    public abstract SPACECRAFT_TYPE getType();
+
+    /**
+     * Met à jour les consommables (batterie, carburant, O2...) en fonction
+     * de l'action exécutée. Forcément implémenté par chaque sous-classe
+     * selon ses propres ressources.
+     *
+     * @param action type d'action qui vient d'être exécutée
+     */
+    public abstract void updateConsommable(TYPE_ACTION action);
+
+    //——— Getter/Setter ——————————————————————————————————
 
     public int getId() {
         return id;
