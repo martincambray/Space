@@ -393,16 +393,17 @@
 
 .type-actions { display: flex; gap: 6px; }
 
-.action-btn {
+.type-actions .action-btn {
   display: flex; align-items: center; justify-content: center;
   width: 30px; height: 30px;
   border-radius: 6px; border: 1px solid; cursor: pointer;
   font-size: 0.9rem; transition: all 0.2s; background: transparent;
+  padding: 0;
 }
-.edit-btn   { border-color: rgba(0,150,255,0.4); color: #4db8ff; }
-.edit-btn:hover   { background: rgba(0,150,255,0.2); }
-.delete-btn { border-color: rgba(255,60,60,0.4); color: #ff6b6b; }
-.delete-btn:hover { background: rgba(255,60,60,0.2); }
+.type-actions .edit-btn   { border-color: rgba(0,150,255,0.4); color: #4db8ff; }
+.type-actions .edit-btn:hover   { background: rgba(0,150,255,0.2); }
+.type-actions .delete-btn { border-color: rgba(255,60,60,0.4); color: #ff6b6b; }
+.type-actions .delete-btn:hover { background: rgba(255,60,60,0.2); }
 
 .type-edit-form {
   display: flex; align-items: center; gap: 8px; width: 100%;
