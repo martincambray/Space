@@ -42,7 +42,7 @@ public class SpacecraftController {
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ADMIN')")
     public SpacecraftResponse create(@Valid @RequestBody CreateOrUpdateSpacecraftRequest request) {
-        Spacecraft sc = new Spacecraft();
+        Spacecraft sc = Spacecraft.of(request.getType());
         sc.setName(request.getName());
         sc.setDescription(request.getDescription());
         sc.setBatteryMax(request.getBatteryMax());

@@ -95,4 +95,15 @@ public abstract class Spacecraft
     public void setMissions(List<Mission> missions) {
         this.missions = missions;
     }
+
+    // ——— Factory method to get rigt instance without instanciating abstract class (not possible) —————————————
+
+    public static Spacecraft of(SPACECRAFT_TYPE type) {
+        return switch (type) {
+            case SATELLITE  -> new Satellite();
+            case POD_HABITE -> new PodHabite();
+            case ROVER      -> new Rover();
+            case UTILITAIRE -> new Utilitaire();
+        };
+    }
 }
