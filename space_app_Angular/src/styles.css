@@ -6,8 +6,9 @@ body, html {
   background: #000;
 }
 
-/* ── Règles sidebar-open : globales pour bypasser l'encapsulation Angular ── */
+/* ── Burger : décalage quand sidebar ouverte ── */
 body.sidebar-open #btn { left: 188px; }
 
-body.sidebar-open .toolbar           { left: calc(50% + 110px) !important; }
-body.sidebar-open .simulation-screen { left: calc(50% + 110px) !important; }
+/* ── Toolbar & simulation : recentrage quand sidebar FERMÉE ── */
+body:not(.sidebar-open) .toolbar           { left: 50% !important; }
+body:not(.sidebar-open) .simulation-screen { left: 50% !important; }
