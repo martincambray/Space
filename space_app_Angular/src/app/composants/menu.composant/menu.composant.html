@@ -68,6 +68,38 @@
   <app-simulation></app-simulation>
 </div>
 
+<!-- JAUGE GAUCHE : Batterie -->
+@if (hasMission()) {
+  <div class="gauge-panel gauge-panel-left">
+    <div class="gauge-group">
+      <span class="gauge-label">Batterie</span>
+      <span class="gauge-pct">{{ batteryPct() }}%</span>
+      <div class="gauge-track">
+        <div class="gauge-fill {{ gaugeClass(batteryPct()) }}"
+             [style.height.%]="batteryPct()"></div>
+      </div>
+      <span class="gauge-vals">{{ batteryCurrent() }} / {{ scBatteryMax() }}</span>
+      <i class='bx bx-bolt-circle gauge-icon'></i>
+    </div>
+  </div>
+}
+
+<!-- JAUGE DROITE : Carburant -->
+@if (hasMission()) {
+  <div class="gauge-panel gauge-panel-right">
+    <div class="gauge-group">
+      <span class="gauge-label">Carburant</span>
+      <span class="gauge-pct">{{ fuelPct() }}%</span>
+      <div class="gauge-track">
+        <div class="gauge-fill {{ gaugeClass(fuelPct()) }} gauge-fuel-color"
+             [style.height.%]="fuelPct()"></div>
+      </div>
+      <span class="gauge-vals">{{ fuelCurrent() }} / {{ scFuelMax() }}</span>
+      <i class='bx bx-droplet gauge-icon'></i>
+    </div>
+  </div>
+}
+
 <!-- POPUP : sélection de mission -->
 @if (showMissionPicker()) {
   <div class="popup-overlay" (click)="closeMissionPicker()">

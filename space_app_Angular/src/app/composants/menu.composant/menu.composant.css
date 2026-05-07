@@ -269,6 +269,101 @@
   border-radius: 10px; background: rgba(0,150,255,0.07); border: 1px solid rgba(0,150,255,0.2); }
 .info-desc-text { font-size: 0.88rem; color: rgba(255,255,255,0.75); margin-top: 6px; line-height: 1.5; }
 
+/* ── JAUGES ───────────────────────────────────────────────────────────────── */
+.gauge-panel {
+  position: fixed;
+  top: 12vh;
+  height: min(1000px, 80vh);
+  display: flex;
+  z-index: 100;
+  transition: left 0.4s ease;
+}
+
+/* Gauche : centré entre le bord droit de la sidebar (220px) et le bord gauche de la simulation */
+.gauge-panel-left {
+  left: calc((220px + 50% + 110px - min(750px, 45vw)) / 2);
+  transform: translateX(-50%);
+}
+
+/* Droite : centré entre le bord droit de la simulation et le bord droit du viewport */
+.gauge-panel-right {
+  left: calc((50% + 110px + min(750px, 45vw) + 100vw) / 2);
+  transform: translateX(-50%);
+}
+
+.gauge-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 44px;
+  height: 100%;
+  background: rgba(0, 5, 20, 0.75);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 8px;
+  padding: 10px 6px;
+  backdrop-filter: blur(8px);
+}
+
+.gauge-label {
+  font-size: 0.58rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  writing-mode: horizontal-tb;
+  text-align: center;
+}
+
+.gauge-pct {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.gauge-track {
+  flex: 1;
+  width: 18px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  position: relative;
+  overflow: hidden;
+}
+
+.gauge-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-radius: 4px;
+  transition: height 0.8s ease;
+}
+
+/* Batterie : vert → jaune → rouge */
+.gauge-high             { background: linear-gradient(to top, #4aff8a, #00c853); }
+.gauge-mid              { background: linear-gradient(to top, #ffaa00, #ff6d00); }
+.gauge-low              { background: linear-gradient(to top, #ff4444, #b71c1c);
+  box-shadow: 0 0 8px rgba(255, 60, 60, 0.6); }
+
+/* Carburant : même logique mais teinte bleue pour high/mid */
+.gauge-fuel-color.gauge-high { background: linear-gradient(to top, #4db8ff, #0066cc); }
+.gauge-fuel-color.gauge-mid  { background: linear-gradient(to top, #ffaa00, #ff6d00); }
+.gauge-fuel-color.gauge-low  { background: linear-gradient(to top, #ff4444, #b71c1c);
+  box-shadow: 0 0 8px rgba(255, 60, 60, 0.6); }
+
+.gauge-vals {
+  font-size: 0.54rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.gauge-icon {
+  font-size: 1.1rem;
+  color: rgba(0, 240, 255, 0.6);
+}
+
 /* ── SIMULATION ───────────────────────────────────────────────────────────── */
 .simulation-screen {
   position: fixed;

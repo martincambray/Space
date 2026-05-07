@@ -12,3 +12,6 @@ body.sidebar-open #btn { left: 188px; }
 /* ── Toolbar & simulation : recentrage quand sidebar FERMÉE ── */
 body:not(.sidebar-open) .toolbar           { left: 50% !important; }
 body:not(.sidebar-open) .simulation-screen { left: 50% !important; }
+/* Sidebar fermée : centrage sans l'offset de 110px de la sidebar */
+body:not(.sidebar-open) .gauge-panel-left  { left: calc((50% - min(750px, 45vw)) / 2) !important; }
+body:not(.sidebar-open) .gauge-panel-right { left: calc((50% + min(750px, 45vw) + 100vw) / 2) !important; }

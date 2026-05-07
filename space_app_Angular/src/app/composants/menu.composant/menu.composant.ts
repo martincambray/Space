@@ -67,6 +67,25 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
   // Raccourcis lisibles dans le template
   protected hasMission = computed(() => this.activeMission() !== null);
 
+  // ── Jauges batterie / carburant ───────────────────────────────────────────
+  protected batteryPct  = signal(100); // 0–100
+  protected fuelPct     = signal(100); // 0–100
+  protected scBatteryMax = signal(0);
+  protected scFuelMax    = signal(0);
+
+  protected batteryCurrent = computed(() =>
+    Math.round(this.scBatteryMax() * this.batteryPct() / 100)
+  );
+  protected fuelCurrent = computed(() =>
+    Math.round(this.scFuelMax() * this.fuelPct() / 100)
+  );
+
+  protected gaugeClass(pct: number): string {
+    if (pct > 50) return 'gauge-high';
+    if (pct > 20) return 'gauge-mid';
+    return 'gauge-low';
+  }
+
   // ── Horloge ───────────────────────────────────────────────────────────────
   protected clockTime = signal('');
   protected clockDate = signal('');
@@ -109,10 +128,34 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
       this.clockDate.set(now.toLocaleDateString('fr-FR', {
         weekday: 'short', day: '2-digit', month: 'short', year: 'numeric'
       }));
+      this.updateGauges();
       this.cdr.detectChanges(); // force CD hors zone Angular 21
     };
     tick();
     this.clockTimer = setInterval(tick, 1000);
+  }
+
+  private updateGauges(): void {
+    const m = this.activeMission();
+    if (!m) return;
+
+    if (m.status === 'PLANNED') {
+      this.batteryPct.set(100);
+      this.fuelPct.set(100);
+      return;
+    }
+
+    // IN_PROGRESS : consommation proportionnelle au temps écoulé
+    const depTime = Date.parse(m.departureDate);
+    const elapsed = Math.max(0, Date.now() - depTime);
+    // orbitalTime supposé en heures, défaut 720 h (30 jours)
+    const totalMs = (m.orbitalTime ?? 720) * 3_600_000;
+    const progress = Math.min(1, elapsed / totalMs);
+
+    // Batterie : décharge à 80% max sur la durée (reste ≥ 20%)
+    // Carburant : décharge à 90% max (reste ≥ 10%)
+    this.batteryPct.set(Math.max(5, Math.round((1 - progress * 0.8) * 100)));
+    this.fuelPct.set(Math.max(5, Math.round((1 - progress * 0.9) * 100)));
   }
 
   // ── Auth / sidebar ────────────────────────────────────────────────────────
@@ -155,10 +198,17 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.activeMission.set(m);
     this.showMissionPicker.set(false);
     this.simulation.launch();
+    // Charger les capacités max du spacecraft
+    const sc = this.spacecrafts().find(s => s.name === m.spacecraftName);
+    this.scBatteryMax.set(sc?.batteryMax ?? 100);
+    this.scFuelMax.set(sc?.fuelCapacity ?? 1000);
+    this.updateGauges();
   }
 
   protected cancel(): void {
     this.activeMission.set(null);
+    this.batteryPct.set(100);
+    this.fuelPct.set(100);
   }
 
   protected missionStatusLabel(m: MissionModel): string {
