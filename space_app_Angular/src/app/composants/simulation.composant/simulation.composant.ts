@@ -1,6 +1,7 @@
-import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild } from '@angular/core';
-import { Planet } from '../../models/planet.model';
+import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, inject } from '@angular/core';
 import { SpaceObject } from '../../models/space-object.model';
+import { CelestialBodyService } from '../../services/celestial-body.service';
+import { CelestialBodyModel } from '../../models/celestial-body.model';
 
 @Component({
   selector: 'app-simulation',
@@ -27,22 +28,29 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   // Pause
   private paused = false;
 
-
-  // vitesse de simulation
+  // Vitesse de simulation
   private speedFactor = 1;
 
-  private planets: Planet[] = [
-    { name: 'Mercure', color: '#a0a0a0', radius: 6, orbitA: 80, orbitB: 70, speed: 0.02 },
-    { name: 'Vénus', color: '#e8cda0', radius: 9, orbitA: 130, orbitB: 120, speed: 0.015 },
-    { name: 'Terre', color: '#4fa3e0', radius: 10, orbitA: 190, orbitB: 175, speed: 0.01 },
-    { name: 'Mars', color: '#c1440e', radius: 8, orbitA: 250, orbitB: 230, speed: 0.008 },
-    { name: 'Jupiter', color: '#c88b3a', radius: 20, orbitA: 340, orbitB: 310, speed: 0.005 },
-    { name: 'Saturne', color: '#e4d191', radius: 16, orbitA: 430, orbitB: 390, speed: 0.003 },
-    { name: 'Uranus', color: '#7de8e8', radius: 13, orbitA: 510, orbitB: 465, speed: 0.002 },
-    { name: 'Neptune', color: '#3f54ba', radius: 12, orbitA: 580, orbitB: 530, speed: 0.001 },
-  ];
+  // Corps célestes depuis le back (coordonnées en km)
+  private bodies: CelestialBodyModel[] = [];
+  // Facteur km → pixel, recalculé à chaque resize
+  private scale = 1;
 
-  private angles: number[] = this.planets.map(() => Math.random() * Math.PI * 2);
+  private readonly bodyColors: Record<string, string> = {
+    'Soleil':   '#ffcc00',
+    'Mercure':  '#a0a0a0',
+    'Vénus':    '#e8cda0',
+    'Terre':    '#4fa3e0',
+    'Lune':     '#d0d0d0',
+    'Mars':     '#c1440e',
+    'Jupiter':  '#c88b3a',
+    'Saturne':  '#e4d191',
+    'Uranus':   '#7de8e8',
+    'Neptune':  '#3f54ba',
+  };
+
+  private celestialBodyService = inject(CelestialBodyService);
+
   public spaceObjects: SpaceObject[] = [];
 
   ngAfterViewInit(): void {
@@ -51,7 +59,12 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.resize();
     this.generateStars();
     this.registerEvents();
-    this.animate();
+
+    this.celestialBodyService.findAll().subscribe(bodies => {
+      this.bodies = bodies;
+      this.computeScale();
+      this.animate();
+    });
   }
 
   ngOnDestroy(): void {
@@ -70,7 +83,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   public speedDown(): void { this.speedFactor = Math.max(0.1, this.speedFactor / 1.5); }
 
   public reset(): void {
-    this.angles = this.planets.map(() => 0);
     this.zoom = 1;
     this.offsetX = 0;
     this.offsetY = 0;
@@ -82,7 +94,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private registerEvents(): void {
     window.addEventListener('resize', () => this.resize());
 
-    // Molette → zoom centré sur le curseur
     this.canvas.addEventListener('wheel', (e: WheelEvent) => {
       e.preventDefault();
       const factor = e.deltaY < 0 ? 1.1 : 0.9;
@@ -90,7 +101,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       const mx = (e.clientX - rect.left) * (this.canvas.width / rect.width);
       const my = (e.clientY - rect.top) * (this.canvas.height / rect.height);
 
-      // Position de la souris relative au centre du système solaire
       const wx = mx - (this.canvas.width / 2 + this.offsetX);
       const wy = my - (this.canvas.height / 2 + this.offsetY);
 
@@ -99,7 +109,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.zoom *= factor;
     }, { passive: false });
 
-    // Drag → pan
     this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
       this.isDragging = true;
       this.dragStartX = e.clientX - this.offsetX;
@@ -123,7 +132,16 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private resize(): void {
     this.canvas.width = this.canvas.offsetWidth;
     this.canvas.height = this.canvas.offsetHeight;
+    this.computeScale();
     this.generateStars();
+  }
+
+  private computeScale(): void {
+    if (!this.bodies.length) return;
+    const maxCoord = Math.max(...this.bodies.map(b => Math.abs(b.refCoordX ?? 0)));
+    if (maxCoord === 0) return;
+    // Le corps le plus éloigné occupe 42% du demi-canvas
+    this.scale = (Math.min(this.canvas.width, this.canvas.height) * 0.42) / maxCoord;
   }
 
   private generateStars(): void {
@@ -172,49 +190,49 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.ctx.fillStyle = sunGlow;
     this.ctx.fill();
 
-    // Planètes
-    this.planets.forEach((planet, i) => {
-      const a = planet.orbitA * this.zoom;
-      const b = planet.orbitB * this.zoom;
+    // Corps célestes (sauf le Soleil, déjà dessiné)
+    this.bodies
+      .filter(b => (b.orbitalRadius ?? 0) > 0)
+      .forEach(body => {
+        const px = cx + (body.refCoordX ?? 0) * this.scale * this.zoom;
+        const py = cy + (body.refCoordY ?? 0) * this.scale * this.zoom;
 
-      // Orbite elliptique
-      this.ctx.beginPath();
-      this.ctx.ellipse(cx, cy, a, b, 0, 0, Math.PI * 2);
-      this.ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-      this.ctx.lineWidth = 1;
-      this.ctx.stroke();
+        // Anneau d'orbite
+        const orbitR = (body.orbitalRadius ?? 0) * this.scale * this.zoom;
+        this.ctx.beginPath();
+        this.ctx.arc(cx, cy, orbitR, 0, Math.PI * 2);
+        this.ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        this.ctx.lineWidth = 1;
+        this.ctx.stroke();
 
-      // Angle
-      if (!this.paused) this.angles[i] += planet.speed * this.speedFactor;
-      const px = cx + a * Math.cos(this.angles[i]);
-      const py = cy + b * Math.sin(this.angles[i]);
+        // Rayon visuel log-scalé sur le rayon réel (km)
+        const visualR = Math.max(3, Math.log10(body.radius ?? 1) * 3) * this.zoom;
 
-      // Planète avec dégradé adapté au soleil
-      const r = Math.max(4, planet.radius * this.zoom);
+        // Direction soleil → planète pour l'éclairage
+        const dx = px - cx;
+        const dy = py - cy;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const lightX = px - (dx / dist) * visualR * 0.4;
+        const lightY = py - (dy / dist) * visualR * 0.4;
 
-      // Direction soleil → planète
-      const dx = px - cx;
-      const dy = py - cy;
-      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      const nx = dx / dist;
-      const ny = dy / dist;
+        const color = this.bodyColors[body.name] ?? '#ffffff';
+        const g = this.ctx.createRadialGradient(lightX, lightY, 0, px, py, visualR);
+        g.addColorStop(0, 'white');
+        g.addColorStop(0.25, color);
+        g.addColorStop(1, '#000');
 
-      // Point éclairé côté soleil
-      const lightX = px - nx * r * 0.4;
-      const lightY = py - ny * r * 0.4;
+        this.ctx.beginPath();
+        this.ctx.arc(px, py, visualR, 0, Math.PI * 2);
+        this.ctx.fillStyle = g;
+        this.ctx.fill();
 
-      const g = this.ctx.createRadialGradient(lightX, lightY, 0, px, py, r);
-      g.addColorStop(0, 'white');
-      g.addColorStop(0.25, planet.color);
-      g.addColorStop(1, '#000');
+        // Nom du corps
+        this.ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        this.ctx.font = `${Math.max(10, 11 * this.zoom)}px sans-serif`;
+        this.ctx.fillText(body.name, px + visualR + 3, py + 4);
+      });
 
-      this.ctx.beginPath();
-      this.ctx.arc(px, py, r, 0, Math.PI * 2);
-      this.ctx.fillStyle = g;
-      this.ctx.fill();
-    });
-
-    // Objets mobiles
+    // Objets mobiles (vaisseaux)
     this.spaceObjects.forEach(obj => {
       const sx = cx + obj.x * this.zoom;
       const sy = cy + obj.y * this.zoom;
