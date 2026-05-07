@@ -50,10 +50,15 @@ CREATE TABLE IF NOT EXISTS spacecraft (
     id            INT NOT NULL AUTO_INCREMENT,
     name          VARCHAR(30),
     description   VARCHAR(255),
-    battery_max   DOUBLE,  -- kWh (approx)
-    fuel_capacity DOUBLE,  -- kg de propergol
+    battery_max   DOUBLE,
+    fuel_capacity DOUBLE,
+    type          VARCHAR(30) NOT NULL,  -- discriminateur JPA : SATELLITE, POD_HABITE, ROVER, UTILITAIRE
+    solar_panel_deployed  BOOLEAN,
+    o2_level              DOUBLE,
+    odometer              DOUBLE,
+    maintenance_count     INT,
     PRIMARY KEY (id)
-);
+    );
 
 -- =========================
 -- MISSIONS
@@ -161,11 +166,11 @@ INSERT IGNORE INTO utilisateur (mail, password, lastname, firstname, role) VALUE
 -- =========================
 -- VAISSEAUX (physiquement plausibles)
 -- =========================
-INSERT IGNORE INTO spacecraft (name, description, battery_max, fuel_capacity) VALUES
-('Satellite',   'Observation en orbite',      20000.0,   2000.0),
-('Pod Habité',  'Transport équipage',        18000.0, 120000.0),
-('Rover',       'Exploration surface',        6000.0,      0.0),
-('Module utilitaire', 'Cargo orbital',        2000.0,      0.0);
+INSERT IGNORE INTO spacecraft (name, description, battery_max, fuel_capacity, type) VALUES
+('Satellite',         'Observation en orbite',  20000.0,   2000.0, 'SATELLITE'),
+('Pod Habité',        'Transport équipage',     18000.0, 120000.0, 'POD_HABITE'),
+('Rover',             'Exploration surface',     6000.0,      0.0, 'ROVER'),
+('Module utilitaire', 'Cargo orbital',           2000.0,      0.0, 'UTILITAIRE');
 
 -- =========================
 -- MISSIONS (cohérentes)
