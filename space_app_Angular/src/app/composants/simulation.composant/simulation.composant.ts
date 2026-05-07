@@ -18,6 +18,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private stars: { x: number; y: number; r: number }[] = [];
 
   private zoom = 1;
+  private visualScale = 1;
   private offsetX = 0;
   private offsetY = 0;
   private isDragging = false;
@@ -67,8 +68,8 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', () => this.resize());
   }
 
-  public zoomIn():    void { this.zoom *= 1.15; }
-  public zoomOut():   void { this.zoom /= 1.15; }
+  public zoomIn():    void { this.zoom *= 1.15; this.visualScale *= 1.15; }
+  public zoomOut():   void { this.zoom /= 1.15; this.visualScale /= 1.15; }
   public launch():    void { this.paused = false; }
   public pause():     void { this.paused = !this.paused; }
   public speedUp():   void { this.speedFactor = Math.min(10, this.speedFactor * 1.5); }
@@ -76,6 +77,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   public reset(): void {
     this.zoom = 1;
+    this.visualScale = 1;
     this.offsetX = 0;
     this.offsetY = 0;
     this.speedFactor = 1;
@@ -168,7 +170,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.ctx.fill();
     });
 
-    const sunR = 30 * this.zoom;
+    const sunR = 30 * this.visualScale;
     const sunGlow = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
     sunGlow.addColorStop(0, '#fff7a1');
     sunGlow.addColorStop(0.4, '#ffcc00');
@@ -192,7 +194,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
         this.ctx.lineWidth = 1;
         this.ctx.stroke();
 
-        const visualR = Math.max(3, Math.log10(body.radius ?? 1) * 3) * this.zoom;
+        const visualR = Math.max(3, Math.log10(body.radius ?? 1) * 3) * this.visualScale;
         this.drawPlanet(px, py, visualR, this.bodyColors[body.name] ?? '#ffffff', cx, cy);
         this.drawnBodies.push({ name: body.name, x: px, y: py, r: visualR });
       });
