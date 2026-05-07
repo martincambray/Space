@@ -19,7 +19,7 @@ public class Satellite extends Spacecraft {
 
     /** Indique si les panneaux solaires sont déployés. */
     @Column(name = "solar_panel_deployed")
-    private boolean solarPanelDeployed = false;
+    private Boolean solarPanelDeployed = false;
 
     // -------------------------------------------------------------------------
     // Consommables — valeurs de delta par action (à affiner selon le métier)
@@ -52,6 +52,6 @@ public class Satellite extends Spacecraft {
         }
     }
 
-    public boolean isSolarPanelDeployed()              { return solarPanelDeployed; }
-    public void setSolarPanelDeployed(boolean deployed) { this.solarPanelDeployed = deployed; }
+    public Boolean isSolarPanelDeployed()              { return solarPanelDeployed; }
+    public void setSolarPanelDeployed(Boolean deployed) { this.solarPanelDeployed = deployed; }
 }

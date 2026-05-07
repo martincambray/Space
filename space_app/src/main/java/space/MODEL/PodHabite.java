@@ -26,7 +26,7 @@ public class PodHabite extends Spacecraft {
 
     /** Indique si les panneaux solaires sont déployés. */
     @Column(name = "solar_panel_deployed")
-    private boolean solarPanelDeployed = false;
+    private Boolean solarPanelDeployed = false;
 
     // -------------------------------------------------------------------------
     // Consommables
@@ -65,6 +65,6 @@ public class PodHabite extends Spacecraft {
     public Double getO2Level()                         { return o2Level; }
     public void setO2Level(Double o2Level)             { this.o2Level = o2Level; }
 
-    public boolean isSolarPanelDeployed()              { return solarPanelDeployed; }
-    public void setSolarPanelDeployed(boolean deployed) { this.solarPanelDeployed = deployed; }
+    public Boolean isSolarPanelDeployed()              { return solarPanelDeployed; }
+    public void setSolarPanelDeployed(Boolean deployed) { this.solarPanelDeployed = deployed; }
 }
