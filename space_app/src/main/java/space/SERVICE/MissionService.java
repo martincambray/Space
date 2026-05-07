@@ -17,6 +17,7 @@ import space.DTO.request.UpdateMissionStatusRequest;
 import space.DTO.response.MissionResponse;
 import space.MODEL.Mission;
 import space.MODEL.MissionStatus;
+import space.MODEL.Spacecraft;
 import space.MODEL.Utilisateur;
 
 @Service
@@ -64,8 +65,11 @@ public class MissionService {
         mission.setArrivalDate(request.getArrivalDate());
         mission.setOrbitalTime(request.getOrbitalTime());
 
-        mission.setSpacecraft(this.daoSpacecraft.findById(request.getSpacecraftId())
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Spacecraft introuvable")));
+        // TODO : ajouter méchanisme de changement de sc si le sc demandé n'est pas dispo
+        Spacecraft tmp_missionSpacecraft = this.daoSpacecraft.findById(request.getSpacecraftId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Spacecraft introuvable"));
+        tmp_missionSpacecraft.setAvailable(false);
+        mission.setSpacecraft(tmp_missionSpacecraft);
 
         mission.setType(this.daoMissionType.findById(request.getTypeId())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Type de mission introuvable")));
@@ -82,7 +86,12 @@ public class MissionService {
     public MissionResponse updateStatus(int id, UpdateMissionStatusRequest request) {
         Mission mission = this.daoMission.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        mission.setStatus(request.getStatus());
+        // TODO : verifier que l'ecriture ce fait grace à mission, peut etre un save à ajouter pour confirmer available en bdd
+        MissionStatus ms = request.getStatus();
+        if(ms == MissionStatus.COMPLETED){
+            mission.getSpacecraft().setAvailable(true);
+        }
+        mission.setStatus(ms);
         return MissionResponse.convert(this.daoMission.save(mission));
     }
 

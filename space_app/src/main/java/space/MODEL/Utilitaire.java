@@ -18,7 +18,7 @@ public class Utilitaire extends Spacecraft {
 
     /** Nombre d'opérations de maintenance effectuées. */
     @Column(name = "maintenance_count")
-    private int maintenanceCount = 0;
+    private Integer maintenanceCount = 0;
 
     // -------------------------------------------------------------------------
     // Consommables
@@ -41,7 +41,7 @@ public class Utilitaire extends Spacecraft {
         }
     }
 
-    public int getMaintenanceCount()              { return maintenanceCount; }
-    public void setMaintenanceCount(int count)    { this.maintenanceCount = count; }
+    public Integer getMaintenanceCount()              { return maintenanceCount; }
+    public void setMaintenanceCount(Integer count)    { this.maintenanceCount = count; }
 
 }

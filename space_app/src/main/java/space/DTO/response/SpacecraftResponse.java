@@ -8,6 +8,7 @@ public class SpacecraftResponse
     private int id;
     private String name;
     private String description;
+    private String type;
     private Double batteryMax;
     private Double fuelCapacity;
     private boolean available;
@@ -18,9 +19,10 @@ public class SpacecraftResponse
         resp.setId(s.getId());
         resp.setName(s.getName());
         resp.setDescription(s.getDescription());
+        resp.setType(s.getType().name());
         resp.setBatteryMax(s.getBatteryMax());
         resp.setFuelCapacity(s.getFuelCapacity());
-        resp.setAvailable(true);
+        resp.setAvailable(s.isAvailable());
         return resp;
     }
 
@@ -36,6 +38,9 @@ public class SpacecraftResponse
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
+
+    public String getType() { return type; }
+    public void setType(String type) { this.type = type; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }

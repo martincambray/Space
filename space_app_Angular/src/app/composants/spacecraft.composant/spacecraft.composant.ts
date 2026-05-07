@@ -28,6 +28,7 @@ export class SpacecraftComposant implements OnInit {
   protected form!:        FormGroup;
   protected nameCtrl!:    FormControl;
   protected descCtrl!:    FormControl;
+  protected typeCtrl!:    FormControl;
   protected batteryCtrl!: FormControl;
   protected fuelCtrl!:    FormControl;
 
@@ -37,11 +38,13 @@ export class SpacecraftComposant implements OnInit {
 
     this.nameCtrl    = this.formBuilder.control('', Validators.required);
     this.descCtrl    = this.formBuilder.control('');
+    this.typeCtrl    = this.formBuilder.control('', Validators.required);
     this.batteryCtrl = this.formBuilder.control('', [Validators.required, Validators.min(1)]);
     this.fuelCtrl    = this.formBuilder.control('', [Validators.required, Validators.min(1)]);
     this.form = this.formBuilder.group({
       name:         this.nameCtrl,
       description:  this.descCtrl,
+      type:         this.typeCtrl,
       batteryMax:   this.batteryCtrl,
       fuelCapacity: this.fuelCtrl,
     });
@@ -66,6 +69,7 @@ export class SpacecraftComposant implements OnInit {
     this.form.patchValue({
       name:         sc.name,
       description:  sc.description,
+      type:         sc.type,
       batteryMax:   sc.batteryMax,
       fuelCapacity: sc.fuelCapacity,
     });
@@ -84,6 +88,7 @@ export class SpacecraftComposant implements OnInit {
     const request: CreateSpacecraftRequest = {
       name:         raw.name.trim(),
       description:  raw.description?.trim() ?? '',
+      type:         raw.type,
       batteryMax:   +raw.batteryMax,
       fuelCapacity: +raw.fuelCapacity,
     };

@@ -31,6 +31,9 @@ public abstract class Spacecraft
     @OneToMany(mappedBy = "spacecraft", fetch = FetchType.LAZY)
     private List<Mission> missions;
 
+    @Column(name = "available")
+    private boolean available = true;
+
     /**
      * Retourne le type enum du spacecraft, dérivé de la valeur discriminante JPA.
      * Non persisté — calculé à partir de la colonne discriminante par la sous-classe.
@@ -95,6 +98,10 @@ public abstract class Spacecraft
     public void setMissions(List<Mission> missions) {
         this.missions = missions;
     }
+
+    public boolean isAvailable() { return available; }
+
+    public void setAvailable(boolean available) { this.available = available; }
 
     // ——— Factory method to get rigt instance without instanciating abstract class (not possible) —————————————
 

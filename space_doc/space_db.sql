@@ -50,10 +50,16 @@ CREATE TABLE IF NOT EXISTS spacecraft (
     id            INT NOT NULL AUTO_INCREMENT,
     name          VARCHAR(30),
     description   VARCHAR(255),
-    battery_max   DOUBLE,  -- kWh (approx)
-    fuel_capacity DOUBLE,  -- kg de propergol
+    battery_max   DOUBLE,
+    fuel_capacity DOUBLE,
+    type          VARCHAR(30) NOT NULL,  -- discriminateur JPA : SATELLITE, POD_HABITE, ROVER, UTILITAIRE
+    solar_panel_deployed  BOOLEAN,
+    o2_level              DOUBLE,
+    odometer              DOUBLE,
+    maintenance_count     INT,
+    available             BOOLEAN NOT NULL DEFAULT TRUE,
     PRIMARY KEY (id)
-);
+    );
 
 -- =========================
 -- MISSIONS
@@ -106,12 +112,16 @@ CREATE TABLE IF NOT EXISTS trajectory_log (
 -- DONNÉES : CORPS CÉLESTES
 -- =========================
 INSERT IGNORE INTO celestial_body (name, mass, radius, orbital_radius, ref_coord_x, ref_coord_y) VALUES
-('Soleil',  1.989e30, 696340.0,       0.0,          0.0,          0.0),
-('Mercure', 3.301e23,   2439.7,  57900000.0,  57900000.0,         0.0),
-('Vénus',   4.867e24,   6051.8, 108200000.0, 108200000.0,         0.0),
-('Terre',   5.972e24,   6371.0, 149600000.0, 149600000.0,         0.0),
-('Lune',    7.342e22,   1737.4,    384400.0, 149984400.0,         0.0),
-('Mars',    6.390e23,   3389.5, 227900000.0, 227900000.0,         0.0);
+  ('Soleil',   1.989e30,  696340.0,           0.0,            0.0,   0.0),
+  ('Mercure',  3.301e23,    2439.7,    57900000.0,     57900000.0,   0.0),
+  ('Vénus',    4.867e24,    6051.8,   108200000.0,    108200000.0,   0.0),
+  ('Terre',    5.972e24,    6371.0,   149600000.0,    149600000.0,   0.0),
+  ('Lune',     7.342e22,    1737.4,      384400.0,    149984400.0,   0.0),
+  ('Mars',     6.390e23,    3389.5,   227900000.0,    227900000.0,   0.0),
+  ('Jupiter',  1.898e27,   71492.0,   778500000.0,    778500000.0,   0.0),
+  ('Saturne',  5.683e26,   58232.0,  1432000000.0,   1432000000.0,  0.0),
+  ('Uranus',   8.681e25,   25362.0,  2867000000.0,   2867000000.0,  0.0),
+  ('Neptune',  1.024e26,   24622.0,  4495060000.0,   4495060000.0,  0.0);
 
 -- =========================
 -- TYPES DE MISSION
@@ -157,11 +167,11 @@ INSERT IGNORE INTO utilisateur (mail, password, lastname, firstname, role) VALUE
 -- =========================
 -- VAISSEAUX (physiquement plausibles)
 -- =========================
-INSERT IGNORE INTO spacecraft (name, description, battery_max, fuel_capacity) VALUES
-('Satellite',   'Observation en orbite',      20000.0,   2000.0),
-('Pod Habité',  'Transport équipage',        18000.0, 120000.0),
-('Rover',       'Exploration surface',        6000.0,      0.0),
-('Module utilitaire', 'Cargo orbital',        2000.0,      0.0);
+INSERT IGNORE INTO spacecraft (name, description, battery_max, fuel_capacity, type) VALUES
+('Satellite',         'Observation en orbite',  20000.0,   2000.0, 'SATELLITE'),
+('Pod Habité',        'Transport équipage',     18000.0, 120000.0, 'POD_HABITE'),
+('Rover',             'Exploration surface',     6000.0,      0.0, 'ROVER'),
+('Module utilitaire', 'Cargo orbital',           2000.0,      0.0, 'UTILITAIRE');
 
 -- =========================
 -- MISSIONS (cohérentes)
