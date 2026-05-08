@@ -32,7 +32,18 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private drawnBodies: { name: string; x: number; y: number; r: number }[] = [];
 
   private bodies: CelestialBodyModel[] = [];
-  private scale = 1;
+  private planetImages = new Map<string, HTMLImageElement>();
+
+  // Angle (radians) pour chaque corps, indexé par body.id
+  private angles = new Map<number, number>();
+  // Angle propre de la Lune autour de la Terre
+  private moonAngle = Math.random() * Math.PI * 2;
+
+  // Orbite de référence Terre (km) pour le calcul des vitesses Keplériennes
+  private readonly EARTH_ORBIT_KM = 149_600_000;
+  private readonly EARTH_SPEED_RAD_S = (2 * Math.PI) / (365.25 * 24 * 3600);
+
+  private readonly BG_COLOR = '#000010';
 
   private readonly bodyColors: Record<string, string> = {
     Soleil:  '#ffcc00',
@@ -58,7 +69,8 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.registerEvents();
     this.celestialBodyService.findAll().subscribe(bodies => {
       this.bodies = bodies;
-      this.computeScale();
+      this.initAngles();
+      this.loadImages(bodies);
       this.animate();
     });
   }
@@ -83,6 +95,56 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.speedFactor = 1;
   }
 
+  // ─── Initialisation ────────────────────────────────────────────────────────
+
+  private initAngles(): void {
+    this.bodies.forEach(b => {
+      if (!this.angles.has(b.id)) {
+        this.angles.set(b.id, Math.random() * Math.PI * 2);
+      }
+    });
+  }
+
+  private loadImages(bodies: CelestialBodyModel[]): void {
+    bodies.forEach(b => {
+      if (b.image) {
+        const img = new Image();
+        img.src = b.image;
+        this.planetImages.set(b.name, img);
+      }
+    });
+  }
+
+  // ─── Scale visuelle ────────────────────────────────────────────────────────
+
+  /**
+   * Rayon visuel en pixels pour une orbite réelle (km).
+   * Utilise sqrt pour espacer les planètes internes et ne pas écraser les externes.
+   */
+  private visualOrbitRadius(orbitalKm: number): number {
+    const neptuneOrbit = 4_495_060_000;
+    const maxPx = Math.min(this.canvas.width, this.canvas.height) * 0.46;
+    return Math.sqrt(orbitalKm / neptuneOrbit) * maxPx * this.zoom;
+  }
+
+  /**
+   * Rayon visuel du disque d'un corps (pixels).
+   */
+  private visualBodyRadius(radiusKm: number | null): number {
+    return Math.max(4, Math.log10(radiusKm ?? 1) * 5.5) * this.visualScale;
+  }
+
+  /**
+   * Vitesse angulaire Keplérienne (rad/frame à 60 fps simulé).
+   * Lune exclue — sa vitesse est calculée séparément.
+   */
+  private keplerSpeed(orbitalKm: number): number {
+    const speed = this.EARTH_SPEED_RAD_S * Math.pow(this.EARTH_ORBIT_KM / orbitalKm, 1.5);
+    return speed * (1 / 60) * this.speedFactor * 3e5; // accélération visuelle
+  }
+
+  // ─── Events ────────────────────────────────────────────────────────────────
+
   private registerEvents(): void {
     window.addEventListener('resize', () => this.resize());
 
@@ -97,6 +159,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.offsetX -= wx * (factor - 1);
       this.offsetY -= wy * (factor - 1);
       this.zoom *= factor;
+      this.visualScale *= factor;
     }, { passive: false });
 
     this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
@@ -116,7 +179,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       }
     });
 
-    this.canvas.addEventListener('mouseup', () => { this.isDragging = false; this.canvas.style.cursor = 'grab'; });
+    this.canvas.addEventListener('mouseup',    () => { this.isDragging = false; this.canvas.style.cursor = 'grab'; });
     this.canvas.addEventListener('mouseleave', () => {
       this.isDragging = false;
       this.canvas.style.cursor = 'grab';
@@ -129,15 +192,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private resize(): void {
     this.canvas.width  = this.canvas.offsetWidth;
     this.canvas.height = this.canvas.offsetHeight;
-    this.computeScale();
     this.generateStars();
-  }
-
-  private computeScale(): void {
-    if (!this.bodies.length) return;
-    const maxCoord = Math.max(...this.bodies.map(b => Math.abs(b.refCoordX ?? 0)));
-    if (maxCoord === 0) return;
-    this.scale = (Math.min(this.canvas.width, this.canvas.height) * 0.42) / maxCoord;
   }
 
   private generateStars(): void {
@@ -147,10 +202,27 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  // ─── Boucle d'animation ────────────────────────────────────────────────────
+
   private animate(): void {
     this.animationId = requestAnimationFrame(() => this.animate());
+    if (!this.paused) { this.advanceAngles(); }
     this.draw();
   }
+
+  private advanceAngles(): void {
+    this.bodies.forEach(b => {
+      const orbit = b.orbitalRadius ?? 0;
+      if (orbit <= 0 || b.name === 'Lune') return;
+      const current = this.angles.get(b.id) ?? 0;
+      this.angles.set(b.id, current + this.keplerSpeed(orbit));
+    });
+    // Lune : période ~27.3 j vs Terre ~365.25 j → 13.38× la vitesse angulaire terrestre.
+    // On utilise keplerSpeed(EARTH_ORBIT) comme base (speedFactor déjà inclus).
+    this.moonAngle += this.keplerSpeed(this.EARTH_ORBIT_KM) * 13.38;
+  }
+
+  // ─── Dessin ────────────────────────────────────────────────────────────────
 
   private draw(): void {
     const w  = this.canvas.width;
@@ -160,9 +232,11 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     this.drawnBodies = [];
 
-    this.ctx.fillStyle = '#000010';
+    // Fond
+    this.ctx.fillStyle = this.BG_COLOR;
     this.ctx.fillRect(0, 0, w, h);
 
+    // Étoiles
     this.stars.forEach(s => {
       this.ctx.beginPath();
       this.ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
@@ -170,35 +244,85 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.ctx.fill();
     });
 
-    const sunR = 30 * this.visualScale;
-    const sunGlow = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
-    sunGlow.addColorStop(0, '#fff7a1');
-    sunGlow.addColorStop(0.4, '#ffcc00');
-    sunGlow.addColorStop(1, 'transparent');
-    this.ctx.beginPath();
-    this.ctx.arc(cx, cy, sunR, 0, Math.PI * 2);
-    this.ctx.fillStyle = sunGlow;
-    this.ctx.fill();
+    // Soleil (toujours au centre)
+    const sunBody = this.bodies.find(b => b.name === 'Soleil');
+    const sunR = Math.max(28, this.visualBodyRadius(sunBody?.radius ?? 696340)) * this.visualScale;
+    const sunImg = this.planetImages.get('Soleil');
+    if (sunImg?.complete && sunImg.naturalWidth > 0) {
+      this.drawBodyWithImage(cx, cy, sunR, sunImg);
+    } else {
+      const sunGlow = this.ctx.createRadialGradient(cx, cy, 0, cx, cy, sunR);
+      sunGlow.addColorStop(0, '#fff7a1');
+      sunGlow.addColorStop(0.4, '#ffcc00');
+      sunGlow.addColorStop(1, 'transparent');
+      this.ctx.beginPath();
+      this.ctx.arc(cx, cy, sunR, 0, Math.PI * 2);
+      this.ctx.fillStyle = sunGlow;
+      this.ctx.fill();
+    }
     this.drawnBodies.push({ name: 'Soleil', x: cx, y: cy, r: sunR });
 
-    this.bodies
-      .filter(b => (b.orbitalRadius ?? 0) > 0)
-      .forEach(body => {
-        const px = cx + (body.refCoordX ?? 0) * this.scale * this.zoom;
-        const py = cy + (body.refCoordY ?? 0) * this.scale * this.zoom;
+    // Position de la Terre (nécessaire pour la Lune)
+    let earthX = cx, earthY = cy;
+    const earthBody = this.bodies.find(b => b.name === 'Terre');
+    if (earthBody && (earthBody.orbitalRadius ?? 0) > 0) {
+      const angle = this.angles.get(earthBody.id) ?? 0;
+      const orbitPx = this.visualOrbitRadius(earthBody.orbitalRadius!);
+      earthX = cx + Math.cos(angle) * orbitPx;
+      earthY = cy + Math.sin(angle) * orbitPx;
+    }
 
-        const orbitR = (body.orbitalRadius ?? 0) * this.scale * this.zoom;
-        this.ctx.beginPath();
-        this.ctx.arc(cx, cy, orbitR, 0, Math.PI * 2);
-        this.ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-        this.ctx.lineWidth = 1;
-        this.ctx.stroke();
+    // Planètes (excluant Soleil et Lune)
+    const planets = this.bodies.filter(b => (b.orbitalRadius ?? 0) > 0 && b.name !== 'Lune');
+    planets.forEach(body => {
+      const angle  = this.angles.get(body.id) ?? 0;
+      const orbitPx = this.visualOrbitRadius(body.orbitalRadius!);
+      const px = cx + Math.cos(angle) * orbitPx;
+      const py = cy + Math.sin(angle) * orbitPx;
 
-        const visualR = Math.max(3, Math.log10(body.radius ?? 1) * 3) * this.visualScale;
-        this.drawPlanet(px, py, visualR, this.bodyColors[body.name] ?? '#ffffff', cx, cy);
-        this.drawnBodies.push({ name: body.name, x: px, y: py, r: visualR });
-      });
+      // Orbite
+      this.ctx.beginPath();
+      this.ctx.arc(cx, cy, orbitPx, 0, Math.PI * 2);
+      this.ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      this.ctx.lineWidth = 1;
+      this.ctx.stroke();
 
+      const vr = this.visualBodyRadius(body.radius);
+      const img = this.planetImages.get(body.name);
+      if (img?.complete && img.naturalWidth > 0) {
+        this.drawBodyWithImage(px, py, vr, img);
+      } else {
+        this.drawGradientPlanet(px, py, vr, this.bodyColors[body.name] ?? '#ffffff', cx, cy);
+      }
+      this.drawnBodies.push({ name: body.name, x: px, y: py, r: vr });
+    });
+
+    // Lune — orbite autour de la Terre, visible seulement si l'orbite lunaire ≥ 50px
+    // (en dessous, elle est trop collée à la Terre pour être lisible)
+    const moonBody = this.bodies.find(b => b.name === 'Lune');
+    const moonOrbitPx = 28 * this.visualScale * this.zoom;
+    if (moonBody && moonOrbitPx >= 50) {
+
+      // Orbit de la Lune autour de la Terre
+      this.ctx.beginPath();
+      this.ctx.arc(earthX, earthY, moonOrbitPx, 0, Math.PI * 2);
+      this.ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      this.ctx.lineWidth = 0.8;
+      this.ctx.stroke();
+
+      const mx = earthX + Math.cos(this.moonAngle) * moonOrbitPx;
+      const my = earthY + Math.sin(this.moonAngle) * moonOrbitPx;
+      const moonR = this.visualBodyRadius(moonBody.radius);
+      const moonImg = this.planetImages.get('Lune');
+      if (moonImg?.complete && moonImg.naturalWidth > 0) {
+        this.drawBodyWithImage(mx, my, moonR, moonImg);
+      } else {
+        this.drawGradientPlanet(mx, my, moonR, this.bodyColors['Lune'], earthX, earthY);
+      }
+      this.drawnBodies.push({ name: 'Lune', x: mx, y: my, r: moonR });
+    }
+
+    // SpaceObjects additionnels
     this.spaceObjects.forEach(obj => {
       const sx = cx + obj.x * this.zoom;
       const sy = cy + obj.y * this.zoom;
@@ -211,7 +335,42 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.drawHoverTooltip();
   }
 
-  private drawPlanet(px: number, py: number, r: number, color: string, parentX: number, parentY: number): void {
+  // ─── Rendu d'un corps avec image + détourage ───────────────────────────────
+
+  private drawBodyWithImage(px: number, py: number, r: number, img: HTMLImageElement): void {
+    this.ctx.save();
+
+    // Clip circulaire
+    this.ctx.beginPath();
+    this.ctx.arc(px, py, r, 0, Math.PI * 2);
+    this.ctx.clip();
+
+    // Image
+    this.ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
+
+    // Ombre intérieure (côté nuit)
+    const shadow = this.ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, r * 0.1, px, py, r);
+    shadow.addColorStop(0,   'transparent');
+    shadow.addColorStop(0.6, 'transparent');
+    shadow.addColorStop(1,   'rgba(0,0,0,0.55)');
+    this.ctx.fillStyle = shadow;
+    this.ctx.fillRect(px - r, py - r, r * 2, r * 2);
+
+    this.ctx.restore();
+
+    // Anneau de fondu sur le bord (élimine l'artefact JPEG) — HORS clip
+    const edge = this.ctx.createRadialGradient(px, py, r * 0.88, px, py, r + 1);
+    edge.addColorStop(0, 'transparent');
+    edge.addColorStop(1, this.BG_COLOR);
+    this.ctx.beginPath();
+    this.ctx.arc(px, py, r + 1, 0, Math.PI * 2);
+    this.ctx.fillStyle = edge;
+    this.ctx.fill();
+  }
+
+  // ─── Rendu gradient (fallback sans image) ─────────────────────────────────
+
+  private drawGradientPlanet(px: number, py: number, r: number, color: string, parentX: number, parentY: number): void {
     const dx = px - parentX;
     const dy = py - parentY;
     const dist = Math.sqrt(dx * dx + dy * dy) || 1;
@@ -219,15 +378,17 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     const lightY = py - (dy / dist) * r * 0.4;
 
     const g = this.ctx.createRadialGradient(lightX, lightY, 0, px, py, r);
-    g.addColorStop(0, 'white');
+    g.addColorStop(0,    'white');
     g.addColorStop(0.25, color);
-    g.addColorStop(1, '#000');
+    g.addColorStop(1,    '#000');
 
     this.ctx.beginPath();
     this.ctx.arc(px, py, r, 0, Math.PI * 2);
     this.ctx.fillStyle = g;
     this.ctx.fill();
   }
+
+  // ─── Tooltip survol ────────────────────────────────────────────────────────
 
   private drawHoverTooltip(): void {
     const tolerance = 8;
