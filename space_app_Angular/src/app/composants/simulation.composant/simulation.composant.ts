@@ -18,7 +18,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private stars: { x: number; y: number; r: number }[] = [];
 
   private zoom = 1;
-  private visualScale = 1;
   private offsetX = 0;
   private offsetY = 0;
   private isDragging = false;
@@ -80,16 +79,15 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', () => this.resize());
   }
 
-  public zoomIn():    void { this.zoom *= 1.15; this.visualScale *= 1.15; }
-  public zoomOut():   void { this.zoom /= 1.15; this.visualScale /= 1.15; }
+  public zoomIn():    void { this.zoom *= 1.15; }
+  public zoomOut():   void { this.zoom /= 1.15; }
   public launch():    void { this.paused = false; }
   public pause():     void { this.paused = !this.paused; }
-  public speedUp():   void { this.speedFactor = Math.min(10, this.speedFactor * 1.5); }
+  public speedUp():   void { this.speedFactor = Math.min(20, this.speedFactor * 1.5); }
   public speedDown(): void { this.speedFactor = Math.max(0.1, this.speedFactor / 1.5); }
 
   public reset(): void {
     this.zoom = 1;
-    this.visualScale = 1;
     this.offsetX = 0;
     this.offsetY = 0;
     this.speedFactor = 1;
@@ -118,20 +116,60 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   // ─── Scale visuelle ────────────────────────────────────────────────────────
 
   /**
-   * Rayon visuel en pixels pour une orbite réelle (km).
-   * Utilise sqrt pour espacer les planètes internes et ne pas écraser les externes.
+   * Rayon orbital naturel en px (échelle sqrt, linéaire en zoom).
+   * Représentation physique : Neptune occupe 46 % du demi-écran à zoom=1.
    */
-  private visualOrbitRadius(orbitalKm: number): number {
+  private naturalOrbitPx(orbitalKm: number): number {
     const neptuneOrbit = 4_495_060_000;
     const maxPx = Math.min(this.canvas.width, this.canvas.height) * 0.46;
     return Math.sqrt(orbitalKm / neptuneOrbit) * maxPx * this.zoom;
   }
 
   /**
-   * Rayon visuel du disque d'un corps (pixels).
+   * Rayon visuel d'un corps en px.
+   * Croît en √zoom : les corps grossissent mais moins vite que les orbites,
+   * ce qui garantit que l'espacement augmente au zoom.
    */
-  private visualBodyRadius(radiusKm: number | null): number {
-    return Math.max(4, Math.log10(radiusKm ?? 1) * 5.5) * this.visualScale;
+  private bodyRadius(radiusKm: number | null): number {
+    return Math.max(4, Math.log10(radiusKm ?? 1) * 2.8) * Math.sqrt(this.zoom);
+  }
+
+  /** Rayon visuel du Soleil en px. */
+  private sunRadius(): number {
+    return 20 * Math.sqrt(this.zoom);
+  }
+
+  /**
+   * Orbites effectives avec contrainte de non-chevauchement.
+   *
+   * Algorithme :
+   *   1. Trier les corps par orbitalRadius réelle (croissant)
+   *   2. Pour chaque corps : orbitPx = max(orbite naturelle, bord externe du précédent + rayon corps + GAP)
+   *
+   * Résultat : les planètes internes peuvent être légèrement compressées à zoom=1,
+   * mais dès zoom≈2 leurs orbites naturelles prennent le dessus.
+   */
+  private computeOrbitMap(): Map<number, number> {
+    const GAP = 4; // px minimum entre les bords de deux corps adjacents
+    const sunR = this.sunRadius();
+
+    const sorted = [...this.bodies]
+      .filter(b => (b.orbitalRadius ?? 0) > 0 && b.name !== 'Lune')
+      .sort((a, b) => (a.orbitalRadius ?? 0) - (b.orbitalRadius ?? 0));
+
+    const map = new Map<number, number>();
+    let prevEdge = sunR; // bord extérieur du dernier corps positionné
+
+    for (const body of sorted) {
+      const natural = this.naturalOrbitPx(body.orbitalRadius!);
+      const r       = this.bodyRadius(body.radius);
+      const minCenter = prevEdge + r + GAP;
+      const orbit = Math.max(natural, minCenter);
+      map.set(body.id, orbit);
+      prevEdge = orbit + r;
+    }
+
+    return map;
   }
 
   /**
@@ -159,7 +197,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.offsetX -= wx * (factor - 1);
       this.offsetY -= wy * (factor - 1);
       this.zoom *= factor;
-      this.visualScale *= factor;
     }, { passive: false });
 
     this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
@@ -232,6 +269,9 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     this.drawnBodies = [];
 
+    // Orbites effectives avec contrainte de non-chevauchement (recalculé chaque frame)
+    const orbitMap = this.computeOrbitMap();
+
     // Fond
     this.ctx.fillStyle = this.BG_COLOR;
     this.ctx.fillRect(0, 0, w, h);
@@ -245,8 +285,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     });
 
     // Soleil (toujours au centre)
-    const sunBody = this.bodies.find(b => b.name === 'Soleil');
-    const sunR = Math.max(28, this.visualBodyRadius(sunBody?.radius ?? 696340)) * this.visualScale;
+    const sunR = this.sunRadius();
     const sunImg = this.planetImages.get('Soleil');
     if (sunImg?.complete && sunImg.naturalWidth > 0) {
       this.drawBodyWithImage(cx, cy, sunR, sunImg);
@@ -265,9 +304,9 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     // Position de la Terre (nécessaire pour la Lune)
     let earthX = cx, earthY = cy;
     const earthBody = this.bodies.find(b => b.name === 'Terre');
-    if (earthBody && (earthBody.orbitalRadius ?? 0) > 0) {
-      const angle = this.angles.get(earthBody.id) ?? 0;
-      const orbitPx = this.visualOrbitRadius(earthBody.orbitalRadius!);
+    if (earthBody && orbitMap.has(earthBody.id)) {
+      const angle   = this.angles.get(earthBody.id) ?? 0;
+      const orbitPx = orbitMap.get(earthBody.id)!;
       earthX = cx + Math.cos(angle) * orbitPx;
       earthY = cy + Math.sin(angle) * orbitPx;
     }
@@ -275,44 +314,41 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     // Planètes (excluant Soleil et Lune)
     const planets = this.bodies.filter(b => (b.orbitalRadius ?? 0) > 0 && b.name !== 'Lune');
     planets.forEach(body => {
-      const angle  = this.angles.get(body.id) ?? 0;
-      const orbitPx = this.visualOrbitRadius(body.orbitalRadius!);
+      const orbitPx = orbitMap.get(body.id) ?? this.naturalOrbitPx(body.orbitalRadius!);
+      const angle   = this.angles.get(body.id) ?? 0;
       const px = cx + Math.cos(angle) * orbitPx;
       const py = cy + Math.sin(angle) * orbitPx;
 
-      // Orbite
+      // Anneau orbital
       this.ctx.beginPath();
       this.ctx.arc(cx, cy, orbitPx, 0, Math.PI * 2);
       this.ctx.strokeStyle = 'rgba(255,255,255,0.08)';
       this.ctx.lineWidth = 1;
       this.ctx.stroke();
 
-      const vr = this.visualBodyRadius(body.radius);
+      const r   = this.bodyRadius(body.radius);
       const img = this.planetImages.get(body.name);
       if (img?.complete && img.naturalWidth > 0) {
-        this.drawBodyWithImage(px, py, vr, img);
+        this.drawBodyWithImage(px, py, r, img);
       } else {
-        this.drawGradientPlanet(px, py, vr, this.bodyColors[body.name] ?? '#ffffff', cx, cy);
+        this.drawGradientPlanet(px, py, r, this.bodyColors[body.name] ?? '#ffffff', cx, cy);
       }
-      this.drawnBodies.push({ name: body.name, x: px, y: py, r: vr });
+      this.drawnBodies.push({ name: body.name, x: px, y: py, r });
     });
 
-    // Lune — orbite autour de la Terre, visible seulement si l'orbite lunaire ≥ 50px
-    // (en dessous, elle est trop collée à la Terre pour être lisible)
+    // Lune — visible quand son orbite visuelle ≥ 40 px (zoom ≈ 2)
     const moonBody = this.bodies.find(b => b.name === 'Lune');
-    const moonOrbitPx = 28 * this.visualScale * this.zoom;
-    if (moonBody && moonOrbitPx >= 50) {
-
-      // Orbit de la Lune autour de la Terre
+    const moonOrbitPx = 28 * Math.sqrt(this.zoom);
+    if (moonBody && moonOrbitPx >= 40) {
       this.ctx.beginPath();
       this.ctx.arc(earthX, earthY, moonOrbitPx, 0, Math.PI * 2);
       this.ctx.strokeStyle = 'rgba(255,255,255,0.06)';
       this.ctx.lineWidth = 0.8;
       this.ctx.stroke();
 
-      const mx = earthX + Math.cos(this.moonAngle) * moonOrbitPx;
-      const my = earthY + Math.sin(this.moonAngle) * moonOrbitPx;
-      const moonR = this.visualBodyRadius(moonBody.radius);
+      const mx    = earthX + Math.cos(this.moonAngle) * moonOrbitPx;
+      const my    = earthY + Math.sin(this.moonAngle) * moonOrbitPx;
+      const moonR = this.bodyRadius(moonBody.radius);
       const moonImg = this.planetImages.get('Lune');
       if (moonImg?.complete && moonImg.naturalWidth > 0) {
         this.drawBodyWithImage(mx, my, moonR, moonImg);
