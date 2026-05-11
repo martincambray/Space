@@ -11,14 +11,13 @@ import space.MODEL.Utilisateur;
 
 public interface IDAOTrajectoryLogs extends JpaRepository<TrajectoryLogs, Integer> {
 
-    // Tous les calculs d'une mission, du plus récent au plus ancien.
+    /*// Tous les calculs d'une mission, du plus récent au plus ancien.
     List<TrajectoryLogs> findByMissionOrderByComputedAtDesc(Mission mission);
 
-    // Requête par id de mission (évite de charger l'entité Mission entière).
-    List<TrajectoryLogs> findByMission_IdOrderByComputedAtDesc(int missionId);
+
 
     // Tous les calculs effectués par un opérateur donné, du plus récent au plus ancien.
-    List<TrajectoryLogs> findByOperatorOrderByComputedAtDesc(Utilisateur operator);
+    List<TrajectoryLogs> findByOperatorOrderByComputedAtDesc(Utilisateur operator);*/
 
 
     /**
@@ -29,5 +28,4 @@ public interface IDAOTrajectoryLogs extends JpaRepository<TrajectoryLogs, Intege
      * @return liste des TrajectoryLog associés, ordonnés par computedAt DESC
      */
     List<TrajectoryLogs> findByMissionIdOrderByComputedAtDesc(int missionId);
-
 }

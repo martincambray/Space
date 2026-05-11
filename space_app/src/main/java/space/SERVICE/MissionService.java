@@ -86,11 +86,7 @@ public class MissionService {
     public MissionResponse updateStatus(int id, UpdateMissionStatusRequest request) {
         Mission mission = this.daoMission.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
-        // TODO : verifier que l'ecriture ce fait grace à mission, peut etre un save à ajouter pour confirmer available en bdd
         MISSION_STATUS ms = request.getStatus();
-        if(ms == MISSION_STATUS.COMPLETED){
-            mission.getSpacecraft().setAvailable(true);
-        }
         //Nettoyage de l'orbit si le status de la mission est COMPLETED ou CANCELED
         mission.transitionTo(request.getStatus(), TableauDeBord::evictOrbit);
         mission.setStatus(ms);

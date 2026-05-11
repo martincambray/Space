@@ -14,6 +14,7 @@ public class CreateCelestialBodyRequest {
     private Double refCoordY;
     private String image;
 
+    //TODO: Nettoyer les getter setter qui ne correspond pas au use case
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     public Double getMass() { return mass; }

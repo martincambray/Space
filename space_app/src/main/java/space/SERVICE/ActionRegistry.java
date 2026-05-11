@@ -93,7 +93,7 @@ public class ActionRegistry {
      */
     public boolean execute(TYPE_ACTION action, Spacecraft spacecraft, double deltaV) {
         if (!canExecute(action, spacecraft)) {
-            throw new space.EXCEPTION.ActionNotSupportedException(action.name(), spacecraft.getId());
+            throw new space.EXCEPTION.ActionNotSupportedException(action, spacecraft.getId());
         }
 
         try {

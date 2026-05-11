@@ -11,6 +11,7 @@ import space.MODEL.Utilisateur;
 
 public interface IDAOMission extends JpaRepository<Mission, Integer> 
 {
+    /*
     // Missions d'un opérateur donné 
     List<Mission> findByOperator(Utilisateur operator);
 
@@ -21,5 +22,5 @@ public interface IDAOMission extends JpaRepository<Mission, Integer>
     List<Mission> findBySpacecraft(Spacecraft spacecraft);
 
     // Combinaison (opérateur + statut) pour l'historique d'un opérateur
-    List<Mission> findByOperatorAndStatus(Utilisateur operator, MISSION_STATUS status);
+    List<Mission> findByOperatorAndStatus(Utilisateur operator, MISSION_STATUS status);*/
 }

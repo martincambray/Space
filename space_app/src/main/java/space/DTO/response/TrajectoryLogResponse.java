@@ -47,7 +47,7 @@ public class TrajectoryLogResponse
                 resp.setOrbitalRadius(result.getOrbitalRadius());
                 resp.setPoints(result.getPoints());
             } 
-            catch (Exception ex) 
+            catch (Exception ignored)
             {}
         }
 

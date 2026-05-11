@@ -6,7 +6,6 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,7 +20,7 @@ import org.springframework.web.server.ResponseStatusException;
 import jakarta.validation.Valid;
 import space.DAO.IDAOUtilisateur;
 import space.DTO.request.CreateUtilisateurRequest;
-import space.DTO.request.UpdateMeRequest;
+import space.DTO.request.UpdateUtilisateurOperateurRequest;
 import space.DTO.request.UpdateUtilisateurAdminRequest;
 import space.DTO.response.UtilisateurResponse;
 import space.MODEL.Utilisateur;
@@ -68,7 +67,7 @@ public class UtilisateurController {
 
     @PatchMapping("/me")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void updateMe(@Valid @RequestBody UpdateMeRequest request, Principal principal) {
+    public void updateMe(@Valid @RequestBody UpdateUtilisateurOperateurRequest request, Principal principal) {
         Utilisateur user = this.daoUtilisateur.findByMail(principal.getName())
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 

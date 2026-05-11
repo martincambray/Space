@@ -19,9 +19,9 @@ import space.MODEL.Orbit;
  */
 public class ActionResponse {
 
-    private int        spacecraftId;
+    private int         spacecraftId;
     private TYPE_ACTION actionType;
-    private Orbit      updatedOrbit;
+    private Orbit       updatedOrbit;
 
     private ActionResponse() {}
 

@@ -22,7 +22,7 @@ public class TrajectoryLogsController {
 
     @GetMapping("/mission/{missionId}")
     public List<TrajectoryLogResponse> findByMission(@PathVariable int missionId) {
-        return this.daoTrajectoryLogs.findByMission_IdOrderByComputedAtDesc(missionId).stream()
+        return this.daoTrajectoryLogs.findByMissionIdOrderByComputedAtDesc(missionId).stream()
             .map(TrajectoryLogResponse::convert)
             .toList();
     }

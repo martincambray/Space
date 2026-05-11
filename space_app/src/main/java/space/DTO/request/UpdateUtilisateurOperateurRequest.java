@@ -3,7 +3,7 @@ package space.DTO.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 
-public class UpdateMeRequest 
+public class UpdateUtilisateurOperateurRequest
 {
     @Email(message = "Format d'email invalide")
     private String mail;

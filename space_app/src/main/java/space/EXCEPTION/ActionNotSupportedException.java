@@ -1,5 +1,7 @@
 package space.EXCEPTION;
 
+import space.ENUM.TYPE_ACTION;
+
 /**
  * Levée par ActionRegistry.execute() quand le Spacecraft n'est pas capable
  * d'exécuter l'action demandée.
@@ -9,10 +11,10 @@ package space.EXCEPTION;
  */
 public class ActionNotSupportedException extends RuntimeException {
 
-    private final String actionType;
-    private final int    spacecraftId;
+    private final TYPE_ACTION actionType;
+    private final int         spacecraftId;
 
-    public ActionNotSupportedException(String actionType, int spacecraftId) {
+    public ActionNotSupportedException(TYPE_ACTION actionType, int spacecraftId) {
         super(String.format(
                 "Action %s non supportée par le spacecraft id:%d",
                 actionType, spacecraftId));
@@ -20,6 +22,6 @@ public class ActionNotSupportedException extends RuntimeException {
         this.spacecraftId = spacecraftId;
     }
 
-    public String getActionType()   { return actionType;   }
-    public int    getSpacecraftId() { return spacecraftId; }
+    public TYPE_ACTION getActionType()   { return actionType;   }
+    public int         getSpacecraftId() { return spacecraftId; }
 }
