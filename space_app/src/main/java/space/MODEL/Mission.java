@@ -131,11 +131,21 @@ public class Mission {
         double r = departureBody.getOrbitalRadius() * 1000.0; // km → m
         double vCirc = Math.sqrt(G * M_SUN / r);
 
-        // Position de départ : coordonnées de référence du corps céleste (en m)
-        // IMPORTANT : le vaisseau ne peux partir du centre d'une planète, sinon les calculs deviennent impossible
-        //             bien penser à ajouter à la position de départ du vaisseau au moins 1 rayon de la planète de départ
         double x0 = departureBody.getRefCoordX() * 1000.0; // km → m
         double y0 = departureBody.getRefCoordY() * 1000.0; // km → m
+
+        // Décalage tangentiel de 0,1 % du rayon orbital pour éloigner le vaisseau
+        // du corps de départ (les corps célestes sont fixes : sans offset, l'attraction
+        // gravitationnelle du corps de départ diverge dès le premier pas et fait planter
+        // l'intégrateur adaptatif avec NumberIsTooSmallException).
+        double mag = Math.sqrt(x0 * x0 + y0 * y0);
+        if (mag > 0) {
+            double tx = -y0 / mag;
+            double ty =  x0 / mag;
+            double offset = r * 0.001;
+            x0 += tx * offset;
+            y0 += ty * offset;
+        }
 
         // vx0 = 0, vy0 = vCirc : poussée tangentielle, orbite circulaire dans le plan XY
         return new double[]{ x0, y0, 0.0, vCirc };
