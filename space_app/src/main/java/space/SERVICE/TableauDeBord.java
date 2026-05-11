@@ -80,10 +80,7 @@ public class TableauDeBord {
 
         orbitCache.remove(missionId);
 
-        Orbit orbit = resolveOrbit(mission, null, 0.0);
-        persistTrajectoryLog(mission, orbit);
-
-        return orbit;
+        return resolveOrbit(mission, null, 0.0);
     }
 
     public Orbit getTrajectory(int missionId) {
@@ -230,12 +227,16 @@ public class TableauDeBord {
         } else {
             // Cache miss : calcul complet depuis les conditions initiales de la mission
             double[] ic = mission.getInitialConditions();
-            Orbit newOrbit = moteurPhysique.eulerOrbitInit(
-                    ic[0],  // x0
-                    ic[1],  // y0
-                    ic[2],  // vx0
-                    ic[3]   // vy0
-            );
+
+            // Mission vers le Soleil (orbitalRadius == 0) → transfert + circularisation
+            CelestialBody arrivalBody = mission.getArrivalBody();
+            boolean isSolarMission = arrivalBody != null
+                    && (arrivalBody.getOrbitalRadius() == null
+                        || arrivalBody.getOrbitalRadius() == 0.0);
+
+            Orbit newOrbit = isSolarMission
+                    ? moteurPhysique.eulerOrbitInitWithCircularization(ic[0], ic[1], ic[2], ic[3])
+                    : moteurPhysique.eulerOrbitInit(ic[0], ic[1], ic[2], ic[3]);
 
             orbitCache.put(missionId, newOrbit);
             return newOrbit;

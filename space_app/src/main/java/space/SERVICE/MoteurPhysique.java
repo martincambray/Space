@@ -26,7 +26,8 @@ public class MoteurPhysique {
     private final double SCAL_ABSOLUTE_TOLERANCE = 1e-8;
     private final double SCAL_RELATIVE_TOLERANCE = 1e-8;
 
-    private static final double G = 6.674e-11;
+    private static final double G     = 6.674e-11;
+    private static final double M_SUN = 1.989e30;
 
     /** Résolution temporelle en secondes — un pas = dt secondes */
     private double dt;
@@ -58,6 +59,41 @@ public class MoteurPhysique {
         double[] initialState = new double[]{x0, y0, vx0, vy0};
         List<double[]> steps = integrate(initialState, 0.0, 2 * Math.PI);
         return unpackStepsIntoOrbit(steps, new Orbit(), 0);
+    }
+
+    /**
+     * Trajectoire en deux phases pour une mission vers le Soleil :
+     *  1. Transfert de Hohmann inward jusqu'au périhélie (π radians angulaires)
+     *  2. Circularisation : vitesse circulaire appliquée au périhélie → orbite stable
+     *
+     * Le vaisseau suit la courbe d'approche puis reste en orbite rapide proche du Soleil.
+     */
+    public Orbit eulerOrbitInitWithCircularization(double x0, double y0, double vx0, double vy0) {
+        Orbit orbit = new Orbit();
+
+        // Phase 1 : transfert inward jusqu'au périhélie (demi-ellipse = π)
+        List<double[]> transferSteps = integrate(new double[]{x0, y0, vx0, vy0}, 0.0, Math.PI);
+        unpackStepsIntoOrbit(transferSteps, orbit, 0);
+
+        if (transferSteps.isEmpty()) return orbit;
+
+        // État au périhélie
+        double[] last = transferSteps.get(transferSteps.size() - 1);
+        double xp = last[0], yp = last[1];
+        double rp = Math.sqrt(xp * xp + yp * yp);
+        if (rp < 1.0) return orbit;
+
+        // Phase 2 : orbite circulaire au périhélie — vitesse tangentielle v = √(GM/r)
+        double vCircP = Math.sqrt(G * M_SUN / rp);
+        double tx = -yp / rp;
+        double ty =  xp / rp;
+        double tPerihelion = transferSteps.size() * dt;
+        List<double[]> circSteps = integrate(
+                new double[]{xp, yp, tx * vCircP, ty * vCircP},
+                tPerihelion, 2 * Math.PI);
+        unpackStepsIntoOrbit(circSteps, orbit, transferSteps.size());
+
+        return orbit;
     }
 
     /**
@@ -155,13 +191,21 @@ public class MoteurPhysique {
     // ── Privé : physique ─────────────────────────────────────────────────────
 
     /**
-     * Somme les accélérations gravitationnelles exercées par chaque corps céleste
-     * sur le vaisseau en (x, y) — méthode de Cowell.
+     * Accélération gravitationnelle exercée par le Soleil uniquement.
+     *
+     * Les planètes (orbitalRadius > 0) sont exclues : elles sont fixes dans ce modèle,
+     * ce qui rendrait leur attraction numériquement instable au voisinage du point de départ
+     * et physiquement incorrecte pour une simulation héliocentrique de transfert orbital.
+     * Le Soleil représente 99,86 % de la masse du système solaire — approximation valide
+     * pour tous les transferts interplanétaires simulés ici.
      */
     private double[] computeAcceleration(double x, double y) {
         double ax = 0.0;
         double ay = 0.0;
         for (CelestialBody body : celestialBodies) {
+            // Exclure les planètes et la Lune — conserver uniquement le Soleil (orbitalRadius == 0)
+            if (body.getOrbitalRadius() != null && body.getOrbitalRadius() > 0) continue;
+
             double bx   = body.getRefCoordX() * 1000.0; // km → m
             double by   = body.getRefCoordY() * 1000.0; // km → m
             double dx   = bx - x;

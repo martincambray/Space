@@ -147,8 +147,31 @@ public class Mission {
             y0 += ty * offset;
         }
 
-        // vx0 = 0, vy0 = vCirc : poussée tangentielle, orbite circulaire dans le plan XY
-        return new double[]{ x0, y0, 0.0, vCirc };
+        // Vitesse initiale selon le corps d'arrivée (transfert de Hohmann)
+        double v0;
+        if (arrivalBody == null || (arrivalBody.getId() == departureBody.getId())) {
+            // Pas de destination ou orbite locale : orbite circulaire
+            v0 = vCirc;
+        } else {
+            double rArrival = arrivalBody.getOrbitalRadius() != null
+                    ? arrivalBody.getOrbitalRadius() * 1000.0 : 0.0; // km → m
+
+            if (rArrival <= 0) {
+                // Corps central (Soleil) : trajectoire fortement décélérée,
+                // le vaisseau plonge vers le Soleil avec un périhélie ≈ 0,09 UA
+                v0 = vCirc * 0.4;
+            } else if (rArrival < r * 0.05) {
+                // Corps géocentrique (Lune, orbite basse…) : même orbite solaire
+                v0 = vCirc;
+            } else {
+                // Transfert de Hohmann interplanétaire :
+                // a = demi grand-axe de l'ellipse de transfert
+                double a = (r + rArrival) / 2.0;
+                v0 = Math.sqrt(G * M_SUN * (2.0 / r - 1.0 / a));
+            }
+        }
+
+        return new double[]{ x0, y0, 0.0, v0 };
     }
 
     // -------------------------------------------------------------------------

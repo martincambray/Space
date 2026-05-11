@@ -211,8 +211,8 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.simulation.displayMission(m, sc?.image ?? null, null);
     this.trajectoryLoading.set(true);
 
-    // Récupération de la trajectoire calculée par le moteur physique
-    this.trajectorySvc.getPoints(m.id, 500).subscribe({
+    // Récupération de la trajectoire calculée par le moteur physique (force recompute via POST)
+    this.trajectorySvc.computeAndGetPoints(m.id, 500).subscribe({
       next: traj => {
         this.trajectoryLoading.set(false);
         // Si la mission est toujours la même (pas de changement entre-temps)
