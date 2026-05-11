@@ -3,7 +3,7 @@ package space.DTO.request;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
-import space.MODEL.SPACECRAFT_TYPE;
+import space.ENUM.SPACECRAFT_TYPE;
 
 public class CreateOrUpdateSpacecraftRequest 
 {

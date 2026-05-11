@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import space.DAO.IDAOMission;
 import space.DAO.IDAOSpacecraft;
 import space.DAO.IDAOTrajectoryLogs;
+import space.ENUM.TYPE_ACTION;
 import space.EXCEPTION.ActionNotSupportedException;
 import space.MODEL.*;
 
@@ -65,10 +66,18 @@ public class TableauDeBord {
     // API publique
     // =========================================================================
 
+    /**
+     *
+     *
+     * @param missionId    identifiant de la mission concernée
+     * @return Orbit       mise à jour (perturbée ou nouvellement calculée)
+     * @throws ResponseStatusException     404 si mission ou spacecraft introuvable
+     * @throws ActionNotSupportedException si le spacecraft ne supporte pas l'action
+     * @throws ResponseStatusException     500 si l'exécution de l'action échoue
+     */
     public Orbit computeTrajectory(int missionId) {
         Mission mission = loadMission(missionId);
 
-        // Force a fresh computation by evicting any cached orbit first
         orbitCache.remove(missionId);
 
         Orbit orbit = resolveOrbit(mission, null, 0.0);

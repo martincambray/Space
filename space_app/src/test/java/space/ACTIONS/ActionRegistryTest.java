@@ -15,7 +15,7 @@ import space.EXCEPTION.ActionNotSupportedException;
 import space.MODEL.PodHabite;
 import space.MODEL.Rover;
 import space.MODEL.Satellite;
-import space.MODEL.TYPE_ACTION;
+import space.ENUM.TYPE_ACTION;
 import space.MODEL.Utilitaire;
 import space.SERVICE.ActionRegistry;
 

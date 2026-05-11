@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-import space.MODEL.Role;
+import space.ENUM.TYPE_COMPTE;
 
 public class CreateUtilisateurRequest 
 {
@@ -24,7 +24,7 @@ public class CreateUtilisateurRequest
     private String firstname;
 
     @NotNull(message = "Le rôle est obligatoire")
-    private Role role;
+    private TYPE_COMPTE role;
 
     public String getMail() { return mail; }
     public void setMail(String mail) { this.mail = mail; }
@@ -38,6 +38,6 @@ public class CreateUtilisateurRequest
     public String getFirstname() { return firstname; }
     public void setFirstname(String firstname) { this.firstname = firstname; }
 
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public TYPE_COMPTE getRole() { return role; }
+    public void setRole(TYPE_COMPTE role) { this.role = role; }
 }

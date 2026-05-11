@@ -3,14 +3,14 @@ package space.DTO.response;
 import java.time.LocalDateTime;
 
 import space.MODEL.Mission;
-import space.MODEL.MissionStatus;
+import space.ENUM.MISSION_STATUS;
 
 
 public class MissionResponse 
 {
     private int id;
     private String name;
-    private MissionStatus status;
+    private MISSION_STATUS status;
     private String operatorMail;
     private String spacecraftName;
     private String typeName;
@@ -63,8 +63,8 @@ public class MissionResponse
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public MissionStatus getStatus() { return status; }
-    public void setStatus(MissionStatus status) { this.status = status; }
+    public MISSION_STATUS getStatus() { return status; }
+    public void setStatus(MISSION_STATUS status) { this.status = status; }
 
     public String getOperatorMail() { return operatorMail; }
     public void setOperatorMail(String operatorMail) { this.operatorMail = operatorMail; }

@@ -1,6 +1,6 @@
 package space.DTO.response;
 
-import space.MODEL.TYPE_ACTION;
+import space.ENUM.TYPE_ACTION;
 import space.MODEL.Orbit;
 
 /**

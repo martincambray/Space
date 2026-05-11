@@ -1,0 +1,5 @@
+package space.ENUM;
+
+public enum MISSION_STATUS {
+    PLANNED,IN_PROGRESS,COMPLETED,CANCELLED
+}

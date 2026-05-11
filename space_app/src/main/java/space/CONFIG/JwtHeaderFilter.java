@@ -1,6 +1,6 @@
 package space.CONFIG;
 
-import space.MODEL.Role;
+import space.ENUM.TYPE_COMPTE;
 import space.MODEL.Utilisateur;
 
 import java.io.IOException;
@@ -84,7 +84,7 @@ public class JwtHeaderFilter extends OncePerRequestFilter
                 {
                     List<GrantedAuthority> authorities = new ArrayList<>();
 
-                    if (utilisateur.getRole() == Role.ADMIN) 
+                    if (utilisateur.getRole() == TYPE_COMPTE.ADMIN)
                     {
                         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
                     } 

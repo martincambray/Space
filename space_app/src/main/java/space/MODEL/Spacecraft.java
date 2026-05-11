@@ -5,6 +5,8 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.*;
+import space.ENUM.SPACECRAFT_TYPE;
+import space.ENUM.TYPE_ACTION;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)

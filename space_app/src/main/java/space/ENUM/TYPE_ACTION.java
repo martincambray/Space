@@ -1,4 +1,4 @@
-package space.MODEL;
+package space.ENUM;
 
 /**
  * Enumération de toutes les actions déclenchables sur un Spacecraft.

@@ -1,6 +1,6 @@
 package space.DTO.response;
 
-import space.MODEL.Role;
+import space.ENUM.TYPE_COMPTE;
 import space.MODEL.Utilisateur;
 
 public class UtilisateurResponse 
@@ -9,7 +9,7 @@ public class UtilisateurResponse
     private String mail;
     private String lastname;
     private String firstname;
-    private Role role;
+    private TYPE_COMPTE role;
     private boolean suspended;
 
     public static UtilisateurResponse convert(Utilisateur u)
@@ -36,8 +36,8 @@ public class UtilisateurResponse
     public String getFirstname() { return firstname; }
     public void setFirstname(String firstname) { this.firstname = firstname; }
 
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
+    public TYPE_COMPTE getRole() { return role; }
+    public void setRole(TYPE_COMPTE role) { this.role = role; }
 
     public boolean isSuspended() { return suspended; }
     public void setSuspended(boolean suspended) { this.suspended = suspended; }

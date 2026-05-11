@@ -1,14 +1,14 @@
 package space.DTO.request;
 
 import jakarta.validation.constraints.NotNull;
-import space.MODEL.MissionStatus;
+import space.ENUM.MISSION_STATUS;
 
 public class UpdateMissionStatusRequest 
 {
     @NotNull(message = "Le statut est obligatoire")
-    private MissionStatus status;
+    private MISSION_STATUS status;
 
-    public MissionStatus getStatus() { return status; }
-    public void setStatus(MissionStatus status) { this.status = status; }
+    public MISSION_STATUS getStatus() { return status; }
+    public void setStatus(MISSION_STATUS status) { this.status = status; }
 }
     

@@ -2,7 +2,7 @@ package space.CONFIG;
 
 
 import space.DAO.IDAOUtilisateur;
-import space.MODEL.Role;
+import space.ENUM.TYPE_COMPTE;
 
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -46,7 +46,7 @@ public class JpaUserDetailsService implements UserDetailsService
             .map(u -> User.builder()
                 .username(mail)
                 .password(u.getPassword())
-                .roles(u.getRole() == Role.ADMIN ? "ADMIN" : "OPERATEUR")
+                .roles(u.getRole() == TYPE_COMPTE.ADMIN ? "ADMIN" : "OPERATEUR")
                 .build()
             )
             .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + mail));

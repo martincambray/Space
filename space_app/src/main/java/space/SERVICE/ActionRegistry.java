@@ -6,7 +6,7 @@ import space.MODEL.Satellite;
 import space.MODEL.PodHabite;
 import space.MODEL.Rover;
 import space.MODEL.Utilitaire;
-import space.MODEL.TYPE_ACTION;
+import space.ENUM.TYPE_ACTION;
 
 import space.ACTIONS.*;
 import space.EXCEPTION.ActionNotSupportedException;

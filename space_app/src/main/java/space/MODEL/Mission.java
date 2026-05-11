@@ -16,6 +16,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import space.ENUM.MISSION_STATUS;
+
 /**
  * Entité JPA représentant une mission spatiale.
  *
@@ -45,7 +47,7 @@ public class Mission {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 30, nullable = false)
-    private MissionStatus status = MissionStatus.PLANNED;
+    private MISSION_STATUS status = MISSION_STATUS.PLANNED;
 
     @ManyToOne
     @JoinColumn(name = "operator_id")
@@ -156,12 +158,12 @@ public class Mission {
      *                       typiquement TableauDeBord::evictOrbit
      * @throws IllegalArgumentException si la transition de statut est invalide
      */
-    public void transitionTo(MissionStatus newStatus,
+    public void transitionTo(MISSION_STATUS newStatus,
                              java.util.function.IntConsumer onMissionEnded) {
         validateTransition(newStatus);
         this.status = newStatus;
 
-        if (newStatus == MissionStatus.COMPLETED || newStatus == MissionStatus.CANCELLED) {
+        if (newStatus == MISSION_STATUS.COMPLETED || newStatus == MISSION_STATUS.CANCELLED) {
             // Libère le spacecraft pour de futures missions
             if (spacecraft != null) {
                 spacecraft.setAvailable(true);
@@ -184,12 +186,12 @@ public class Mission {
      *
      * @throws IllegalArgumentException si la transition est interdite
      */
-    private void validateTransition(MissionStatus newStatus) {
+    private void validateTransition(MISSION_STATUS newStatus) {
         boolean valid = switch (this.status) {
-            case PLANNED     -> newStatus == MissionStatus.IN_PROGRESS
-                    || newStatus == MissionStatus.CANCELLED;
-            case IN_PROGRESS -> newStatus == MissionStatus.COMPLETED
-                    || newStatus == MissionStatus.CANCELLED;
+            case PLANNED     -> newStatus == MISSION_STATUS.IN_PROGRESS
+                    || newStatus == MISSION_STATUS.CANCELLED;
+            case IN_PROGRESS -> newStatus == MISSION_STATUS.COMPLETED
+                    || newStatus == MISSION_STATUS.CANCELLED;
             case COMPLETED,
                  CANCELLED   -> false; // états terminaux
         };
@@ -210,8 +212,8 @@ public class Mission {
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
-    public MissionStatus getStatus() { return status; }
-    public void setStatus(MissionStatus status) { this.status = status; }
+    public MISSION_STATUS getStatus() { return status; }
+    public void setStatus(MISSION_STATUS status) { this.status = status; }
 
     public Utilisateur getOperator() { return operator; }
     public void setOperator(Utilisateur operator) { this.operator = operator; }

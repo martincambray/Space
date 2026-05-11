@@ -16,7 +16,7 @@ import space.DTO.request.CreateMissionRequest;
 import space.DTO.request.UpdateMissionStatusRequest;
 import space.DTO.response.MissionResponse;
 import space.MODEL.Mission;
-import space.MODEL.MissionStatus;
+import space.ENUM.MISSION_STATUS;
 import space.MODEL.Spacecraft;
 import space.MODEL.Utilisateur;
 
@@ -57,7 +57,7 @@ public class MissionService {
 
         Mission mission = new Mission();
         mission.setName(request.getName());
-        mission.setStatus(MissionStatus.PLANNED);
+        mission.setStatus(MISSION_STATUS.PLANNED);
         mission.setOperator(operator);
         mission.setCreatedAt(LocalDateTime.now());
         mission.setPayload(request.getPayload());
@@ -87,8 +87,8 @@ public class MissionService {
         Mission mission = this.daoMission.findById(id)
             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
         // TODO : verifier que l'ecriture ce fait grace à mission, peut etre un save à ajouter pour confirmer available en bdd
-        MissionStatus ms = request.getStatus();
-        if(ms == MissionStatus.COMPLETED){
+        MISSION_STATUS ms = request.getStatus();
+        if(ms == MISSION_STATUS.COMPLETED){
             mission.getSpacecraft().setAvailable(true);
         }
         //Nettoyage de l'orbit si le status de la mission est COMPLETED ou CANCELED

@@ -7,6 +7,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import space.ENUM.TYPE_COMPTE;
 
 @Entity
 public class Utilisateur {
@@ -29,7 +30,7 @@ public class Utilisateur {
 
     @Enumerated(EnumType.STRING)
     @Column(length = 30, nullable = false)
-    private Role role;
+    private TYPE_COMPTE role;
 
     @Column(nullable = false)
     private boolean suspended = false;
@@ -74,11 +75,11 @@ public class Utilisateur {
         this.firstname = firstname;
     }
 
-    public Role getRole() {
+    public TYPE_COMPTE getRole() {
         return role;
     }
 
-    public void setRole(Role role) {
+    public void setRole(TYPE_COMPTE role) {
         this.role = role;
     }
 

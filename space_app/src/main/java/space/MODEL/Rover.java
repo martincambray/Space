@@ -1,6 +1,8 @@
 package space.MODEL;
 
 import jakarta.persistence.*;
+import space.ENUM.SPACECRAFT_TYPE;
+import space.ENUM.TYPE_ACTION;
 
 /**
  * Spacecraft de type Rover.

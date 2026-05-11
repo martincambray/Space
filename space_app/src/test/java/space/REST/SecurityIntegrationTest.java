@@ -1,6 +1,5 @@
 package space.REST;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -16,7 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import space.CONFIG.JwtUtils;
 import space.DAO.IDAOUtilisateur;
-import space.MODEL.Role;
+import space.ENUM.TYPE_COMPTE;
 import space.MODEL.Utilisateur;
 
 import java.util.List;
@@ -63,7 +62,7 @@ class SecurityIntegrationTest {
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    private Utilisateur fakeUser(String mail, Role role) {
+    private Utilisateur fakeUser(String mail, TYPE_COMPTE role) {
         Utilisateur u = new Utilisateur();
         u.setMail(mail);
         u.setRole(role);
@@ -79,12 +78,12 @@ class SecurityIntegrationTest {
     @BeforeEach
     void setUp() {
         // Utilisateur OPERATEUR mocké
-        Utilisateur operateur = fakeUser("operateur@space.fr", Role.OPERATEUR);
+        Utilisateur operateur = fakeUser("operateur@space.fr", TYPE_COMPTE.OPERATEUR);
         when(daoUtilisateur.findByMail("operateur@space.fr"))
             .thenReturn(Optional.of(operateur));
 
         // Utilisateur ADMIN mocké
-        Utilisateur admin = fakeUser("admin@space.fr", Role.ADMIN);
+        Utilisateur admin = fakeUser("admin@space.fr", TYPE_COMPTE.ADMIN);
         when(daoUtilisateur.findByMail("admin@space.fr"))
             .thenReturn(Optional.of(admin));
 

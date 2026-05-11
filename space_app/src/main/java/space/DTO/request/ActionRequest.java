@@ -1,7 +1,7 @@
 package space.DTO.request;
 
 import jakarta.validation.constraints.NotNull;
-import space.MODEL.TYPE_ACTION;
+import space.ENUM.TYPE_ACTION;
 
 /**
  * Corps de la requête POST /api/action/{spacecraftId}.

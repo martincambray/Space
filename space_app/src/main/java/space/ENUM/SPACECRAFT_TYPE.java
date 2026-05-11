@@ -1,4 +1,4 @@
-package space.MODEL;
+package space.ENUM;
 
 /**
  * Type physique d'un Spacecraft.
