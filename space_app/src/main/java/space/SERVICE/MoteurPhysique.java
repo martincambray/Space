@@ -21,6 +21,11 @@ import java.util.stream.IntStream;
 @Service
 public class MoteurPhysique {
 
+    private final double MIN_STEP = 1e-6;
+    private final double MAX_STEP = 1e5;
+    private final double SCAL_ABSOLUTE_TOLERANCE = 1e-8;
+    private final double SCAL_RELATIVE_TOLERANCE = 1e-8;
+
     private static final double G = 6.674e-11;
 
     /** Résolution temporelle en secondes — un pas = dt secondes */
@@ -30,14 +35,14 @@ public class MoteurPhysique {
     private final List<CelestialBody> celestialBodies;
 
     /** Intégrateur ODE — DormandPrince853 (pas adaptatif, haute précision) */
-    private FirstOrderIntegrator integrator;
+    //private FirstOrderIntegrator integrator;
 
     public MoteurPhysique(IDAOCelestialBody celestialBodyDAO) {
         this.celestialBodies = celestialBodyDAO.findAll();
         this.dt = 60.0;
-        this.integrator = new DormandPrince853Integrator(
-            1.0, 1e5, 1e-10, 1e-10
-        );
+        /*this.integrator = new DormandPrince853Integrator(
+            1e-6, 1e5, 1e-3, 1e-3
+        );*/
     }
 
     // ── API publique ─────────────────────────────────────────────────────────
@@ -78,6 +83,7 @@ public class MoteurPhysique {
     // ── Privé : intégration ──────────────────────────────────────────────────
 
     private List<double[]> integrate(double[] y0, double t_start, double thetaWindow) {
+        FirstOrderIntegrator integrator = new DormandPrince853Integrator(MIN_STEP, MAX_STEP, SCAL_ABSOLUTE_TOLERANCE, SCAL_RELATIVE_TOLERANCE);
         List<double[]> steps = new ArrayList<>();
         if (thetaWindow <= 0.0) return steps;
 
@@ -199,6 +205,6 @@ public class MoteurPhysique {
     public double getDt() { return dt; }
     public void setDt(double dt) { this.dt = dt; }
     public List<CelestialBody> getCelestialBodies() { return celestialBodies; }
-    public FirstOrderIntegrator getIntegrator() { return integrator; }
-    public void setIntegrator(FirstOrderIntegrator integrator) { this.integrator = integrator; }
+    //public FirstOrderIntegrator getIntegrator() { return integrator; }
+    //public void setIntegrator(FirstOrderIntegrator integrator) { this.integrator = integrator; }
 }

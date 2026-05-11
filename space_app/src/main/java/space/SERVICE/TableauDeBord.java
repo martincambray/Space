@@ -6,14 +6,12 @@ import org.springframework.http.HttpStatus;
 
 import space.DAO.IDAOMission;
 import space.DAO.IDAOSpacecraft;
+import space.DAO.IDAOTrajectoryLogs;
 import space.EXCEPTION.ActionNotSupportedException;
-import space.MODEL.Mission;
-import space.MODEL.Orbit;
-import space.MODEL.Spacecraft;
-import space.MODEL.TYPE_ACTION;
-import space.SERVICE.ActionRegistry;
+import space.MODEL.*;
 
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -37,12 +35,13 @@ public class TableauDeBord {
     // Peuplé lazily au premier POST /api/action pour une mission donnée.
     // Invalidé quand la mission passe en COMPLETED ou CANCELLED.
     // -------------------------------------------------------------------------
-    private final Map<Integer, Orbit> orbitCache = new LinkedHashMap<>();
+    private static final Map<Integer, Orbit> orbitCache = new LinkedHashMap<>();
 
-    private final ActionRegistry actionRegistry;
-    private final MoteurPhysique moteurPhysique;
-    private final IDAOSpacecraft daoSpacecraft;
-    private final IDAOMission    daoMission;
+    private final ActionRegistry     actionRegistry;
+    private final MoteurPhysique     moteurPhysique;
+    private final IDAOSpacecraft     daoSpacecraft;
+    private final IDAOMission        daoMission;
+    private final IDAOTrajectoryLogs daoTrajectoryLogs;
 
     /**
      * Fenêtre angulaire utilisée pour le recalcul partiel de l'orbite après
@@ -53,16 +52,35 @@ public class TableauDeBord {
     public TableauDeBord(ActionRegistry actionRegistry,
                          MoteurPhysique moteurPhysique,
                          IDAOSpacecraft daoSpacecraft,
-                         IDAOMission daoMission) {
-        this.actionRegistry = actionRegistry;
-        this.moteurPhysique = moteurPhysique;
-        this.daoSpacecraft  = daoSpacecraft;
-        this.daoMission     = daoMission;
+                         IDAOMission daoMission,
+                         IDAOTrajectoryLogs daoTrajectoryLogs) {
+        this.actionRegistry    = actionRegistry;
+        this.moteurPhysique    = moteurPhysique;
+        this.daoSpacecraft     = daoSpacecraft;
+        this.daoMission        = daoMission;
+        this.daoTrajectoryLogs = daoTrajectoryLogs;
     }
 
     // =========================================================================
     // API publique
     // =========================================================================
+
+    public Orbit computeTrajectory(int missionId) {
+        Mission mission = loadMission(missionId);
+
+        // Force a fresh computation by evicting any cached orbit first
+        orbitCache.remove(missionId);
+
+        Orbit orbit = resolveOrbit(mission, null, 0.0);
+        persistTrajectoryLog(mission, orbit);
+
+        return orbit;
+    }
+
+    public Orbit getTrajectory(int missionId) {
+        Mission mission = loadMission(missionId);
+        return resolveOrbit(mission, null, 0.0);
+    }
 
     /**
      * Exécute une action sur le Spacecraft d'une mission et retourne l'orbite
@@ -123,7 +141,7 @@ public class TableauDeBord {
      *
      * @param missionId identifiant de la mission dont l'orbite doit être évincée
      */
-    public void evictOrbit(int missionId) {
+    public static void evictOrbit(int missionId) {
         orbitCache.remove(missionId);
     }
 
@@ -143,6 +161,15 @@ public class TableauDeBord {
     // =========================================================================
     // Logique interne de résolution d'orbite
     // =========================================================================
+    /**
+     * Charge une Mission depuis la DB ou lève une 404.
+     */
+    private Mission loadMission(int missionId) {
+        return daoMission.findById(missionId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Mission introuvable id : " + missionId));
+    }
 
     /**
      * Retourne l'orbite pour cette mission, en la calculant si nécessaire.
@@ -164,7 +191,7 @@ public class TableauDeBord {
             Orbit cachedOrbit = orbitCache.get(missionId);
 
             // Seules les actions qui modifient le delta-v nécessitent un recalcul orbital
-            if (action.isAffecteTrajectoire()) {
+            if (action != null && action.isAffecteTrajectoire()) {
                 int    lastStepIndex = getLastStepIndex(cachedOrbit);
                 double tStart        = lastStepIndex * moteurPhysique.getDt();
 
@@ -188,8 +215,7 @@ public class TableauDeBord {
 
         } else {
             // Cache miss : calcul complet depuis les conditions initiales de la mission
-            //TODO : DECOMMENTER MLA PARTIE D4EN DESSOUS
-            /*double[] ic = mission.getInitialConditions();
+            double[] ic = mission.getInitialConditions();
             Orbit newOrbit = moteurPhysique.eulerOrbitInit(
                     ic[0],  // x0
                     ic[1],  // y0
@@ -197,8 +223,7 @@ public class TableauDeBord {
                     ic[3]   // vy0
             );
 
-            orbitCache.put(missionId, newOrbit);*/
-            Orbit newOrbit = null;
+            orbitCache.put(missionId, newOrbit);
             return newOrbit;
         }
     }
@@ -217,5 +242,19 @@ public class TableauDeBord {
                 .mapToInt(i -> i)
                 .max()
                 .orElse(0);
+    }
+
+    private void persistTrajectoryLog(Mission mission, Orbit orbit) {
+        TrajectoryLogs log = new TrajectoryLogs();
+        log.setMission(mission);
+        log.setOperator(mission.getOperator());
+        log.setBody(mission.getDepartureBody());
+        log.setComputedAt(LocalDateTime.now());
+
+        double[] ic = mission.getInitialConditions();
+        log.setInitialSpeed(Math.sqrt(ic[2] * ic[2] + ic[3] * ic[3]));
+        log.setAltitude(Math.sqrt(ic[0] * ic[0] + ic[1] * ic[1]));
+
+        daoTrajectoryLogs.save(log);
     }
 }

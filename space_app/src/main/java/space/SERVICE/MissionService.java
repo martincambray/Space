@@ -91,6 +91,8 @@ public class MissionService {
         if(ms == MissionStatus.COMPLETED){
             mission.getSpacecraft().setAvailable(true);
         }
+        //Nettoyage de l'orbit si le status de la mission est COMPLETED ou CANCELED
+        mission.transitionTo(request.getStatus(), TableauDeBord::evictOrbit);
         mission.setStatus(ms);
         return MissionResponse.convert(this.daoMission.save(mission));
     }

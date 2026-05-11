@@ -16,6 +16,22 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+/**
+ * Entité JPA représentant une mission spatiale.
+ *
+ * Responsabilités :
+ *  1. Porter les données de la mission (statut, dates, corps célestes, spacecraft)
+ *  2. Fournir les conditions initiales orbitales via getInitialConditions()
+ *  3. Gérer les transitions de statut et déclencher les effets de bord associés
+ *     (éviction du cache orbit, libération du spacecraft)
+ *
+ * Relations JPA :
+ *  - operator       → Compte        (N:1)
+ *  - spacecraft     → Spacecraft    (N:1)
+ *  - missionType    → MissionType   (N:1)
+ *  - departureBody  → CelestialBody (N:1)
+ *  - arrivalBody    → CelestialBody (N:1)
+ */
 
 @Entity
 public class Mission {
@@ -72,6 +88,119 @@ public class Mission {
     @JsonIgnore
     @OneToMany(mappedBy = "mission", fetch = FetchType.LAZY)
     private List<TrajectoryLogs> trajectoryLogs;
+
+    // -------------------------------------------------------------------------
+    // Logique métier — conditions initiales orbitales
+    // -------------------------------------------------------------------------
+
+    /**
+     * Retourne le vecteur d'état initial [x0, y0, vx0, vy0] utilisé par
+     * MoteurPhysique pour initialiser l'intégration orbitale.
+     *
+     * Position initiale : coordonnées de référence du corps de départ
+     * (CelestialBody.refCoordX / refCoordY), exprimées en mètres.
+     *
+     * Vitesse initiale : vitesse circulaire keplerienne calculée à partir
+     * de la distance au Soleil (orbitalRadius du corps de départ).
+     * La vitesse est appliquée entièrement sur vy (direction tangentielle),
+     * ce qui correspond à une orbite circulaire dans le plan XY.
+     *
+     * v_circ = sqrt(G * M_soleil / r)
+     *   G        = 6.674e-11  N·m²/kg²
+     *   M_soleil = 1.989e30   kg
+     *   r        = orbitalRadius du corps de départ converti en mètres
+     *
+     * @return double[] { x0 (m), y0 (m), vx0 (m/s), vy0 (m/s) }
+     * @throws IllegalStateException si departureBody est null
+     */
+    public double[] getInitialConditions() {
+        if (departureBody == null) {
+            throw new IllegalStateException(
+                    "Mission id:" + id + " — departureBody est null, " +
+                            "impossible de calculer les conditions initiales");
+        }
+
+
+
+        // Vitesse circulaire keplerienne à la distance orbitale du corps de départ
+        // orbitalRadius est stocké en km dans la DB → conversion en mètres
+        final double G       = 6.674e-11;
+        final double M_SUN   = 1.989e30;
+        double r = departureBody.getOrbitalRadius() * 1000.0; // km → m
+        double vCirc = Math.sqrt(G * M_SUN / r);
+
+        // Position de départ : coordonnées de référence du corps céleste (en m)
+        double x0 = departureBody.getRefCoordX() + r;
+        double y0 = departureBody.getRefCoordY() + r;
+
+        // vx0 = 0, vy0 = vCirc : poussée tangentielle, orbite circulaire dans le plan XY
+        return new double[]{ x0, y0, 0.0, vCirc };
+    }
+
+    // -------------------------------------------------------------------------
+    // Logique métier — transitions de statut
+    // -------------------------------------------------------------------------
+
+    /**
+     * Effectue la transition de statut et déclenche les effets de bord associés.
+     *
+     * Effets de bord sur COMPLETED ou CANCELLED :
+     *  - Le spacecraft est libéré (available = true)
+     *  - L'éviction du cache orbit est déléguée à TableauDeBord via le callback
+     *    fourni en paramètre, pour éviter une dépendance circulaire entre
+     *    Mission et TableauDeBord.
+     *
+     * @param newStatus      nouveau statut cible
+     * @param onMissionEnded callback appelé avec missionId quand la mission
+     *                       se termine (COMPLETED ou CANCELLED) —
+     *                       typiquement TableauDeBord::evictOrbit
+     * @throws IllegalArgumentException si la transition de statut est invalide
+     */
+    public void transitionTo(MissionStatus newStatus,
+                             java.util.function.IntConsumer onMissionEnded) {
+        validateTransition(newStatus);
+        this.status = newStatus;
+
+        if (newStatus == MissionStatus.COMPLETED || newStatus == MissionStatus.CANCELLED) {
+            // Libère le spacecraft pour de futures missions
+            if (spacecraft != null) {
+                spacecraft.setAvailable(true);
+            }
+            // Éviction du cache orbit via callback — pas de dépendance directe à TableauDeBord
+            if (onMissionEnded != null) {
+                onMissionEnded.accept(this.id);
+            }
+        }
+    }
+
+    /**
+     * Vérifie que la transition demandée est cohérente avec le cycle de vie.
+     *
+     * Transitions valides :
+     *   PLANNED     → IN_PROGRESS, CANCELLED
+     *   IN_PROGRESS → COMPLETED,   CANCELLED
+     *   COMPLETED   → (aucune)
+     *   CANCELLED   → (aucune)
+     *
+     * @throws IllegalArgumentException si la transition est interdite
+     */
+    private void validateTransition(MissionStatus newStatus) {
+        boolean valid = switch (this.status) {
+            case PLANNED     -> newStatus == MissionStatus.IN_PROGRESS
+                    || newStatus == MissionStatus.CANCELLED;
+            case IN_PROGRESS -> newStatus == MissionStatus.COMPLETED
+                    || newStatus == MissionStatus.CANCELLED;
+            case COMPLETED,
+                 CANCELLED   -> false; // états terminaux
+        };
+
+        if (!valid) {
+            throw new IllegalArgumentException(String.format(
+                    "Transition de statut invalide : %s → %s pour la mission id:%d",
+                    this.status, newStatus, this.id));
+        }
+    }
+
 
     // ── Getters / Setters ─────────────────────────────────────────────────
 
