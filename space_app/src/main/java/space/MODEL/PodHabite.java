@@ -31,6 +31,7 @@ public class PodHabite extends Spacecraft {
     // -------------------------------------------------------------------------
     // Consommables
     // -------------------------------------------------------------------------
+    //TODO : passer les consommation en relatif
     private static final double BATTERY_RECHARGE_PANNEAU   =  50.0;  // Wh
     private static final double BATTERY_COST_COLLECTE      = -10.0;  // Wh
     private static final double BATTERY_COST_GESTION_O2    =  -8.0;  // Wh
