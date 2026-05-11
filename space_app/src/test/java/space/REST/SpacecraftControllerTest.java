@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import space.CONFIG.JwtUtils;
 import space.DAO.IDAOSpacecraft;
 import space.DAO.IDAOUtilisateur;
+import space.ENUM.TYPE_COMPTE;
 import space.MODEL.Role;
 import space.MODEL.Rover;
 import space.MODEL.Satellite;
@@ -62,12 +63,12 @@ class SpacecraftControllerTest {
     void setUp() {
         Utilisateur admin = new Utilisateur();
         admin.setMail("admin@space.fr");
-        admin.setRole(Role.ADMIN);
+        admin.setRole(TYPE_COMPTE.ADMIN);
         admin.setPassword("$2a$10$7EqJtq98hPqEX7fNZaFWoO.28Ez04yU2AE3GX.aN7DEwJjJqXDhYW");
 
         Utilisateur op = new Utilisateur();
         op.setMail("op@space.fr");
-        op.setRole(Role.OPERATEUR);
+        op.setRole(TYPE_COMPTE.OPERATEUR);
         op.setPassword("$2a$10$7EqJtq98hPqEX7fNZaFWoO.28Ez04yU2AE3GX.aN7DEwJjJqXDhYW");
 
         when(daoUtilisateur.findByMail("admin@space.fr")).thenReturn(Optional.of(admin));

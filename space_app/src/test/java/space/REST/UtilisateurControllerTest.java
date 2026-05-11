@@ -16,7 +16,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import space.CONFIG.JwtUtils;
 import space.DAO.IDAOUtilisateur;
-import space.MODEL.Role;
+import space.ENUM.TYPE_COMPTE;
 import space.MODEL.Utilisateur;
 
 import java.util.List;
@@ -66,7 +66,7 @@ class UtilisateurControllerTest {
         admin = new Utilisateur();
         admin.setId(1);
         admin.setMail("admin@space.fr");
-        admin.setRole(Role.ADMIN);
+        admin.setRole(TYPE_COMPTE.ADMIN);
         admin.setPassword("$2a$10$7EqJtq98hPqEX7fNZaFWoO.28Ez04yU2AE3GX.aN7DEwJjJqXDhYW");
         admin.setLastname("Root");
         admin.setFirstname("Admin");
@@ -74,7 +74,7 @@ class UtilisateurControllerTest {
         operateur = new Utilisateur();
         operateur.setId(2);
         operateur.setMail("op@space.fr");
-        operateur.setRole(Role.OPERATEUR);
+        operateur.setRole(TYPE_COMPTE.OPERATEUR);
         operateur.setPassword("$2a$10$7EqJtq98hPqEX7fNZaFWoO.28Ez04yU2AE3GX.aN7DEwJjJqXDhYW");
         operateur.setLastname("Op");
         operateur.setFirstname("User");

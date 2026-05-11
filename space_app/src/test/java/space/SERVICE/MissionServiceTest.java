@@ -19,6 +19,8 @@ import space.DAO.IDAOUtilisateur;
 import space.DTO.request.CreateMissionRequest;
 import space.DTO.request.UpdateMissionStatusRequest;
 import space.DTO.response.MissionResponse;
+import space.ENUM.MISSION_STATUS;
+import space.ENUM.TYPE_COMPTE;
 import space.MODEL.CelestialBody;
 import space.MODEL.Mission;
 import space.MODEL.MissionStatus;
@@ -63,7 +65,7 @@ class MissionServiceTest {
         Mission m = new Mission();
         m.setId(id);
         m.setName(name);
-        m.setStatus(MissionStatus.PLANNED);
+        m.setStatus(MISSION_STATUS.PLANNED);
         Satellite sc = new Satellite();
         sc.setName("SC-" + id);
         m.setSpacecraft(sc);
@@ -73,7 +75,7 @@ class MissionServiceTest {
     private Utilisateur operator(String mail) {
         Utilisateur u = new Utilisateur();
         u.setMail(mail);
-        u.setRole(Role.OPERATEUR);
+        u.setRole(TYPE_COMPTE.OPERATEUR);
         return u;
     }
 
@@ -226,7 +228,7 @@ class MissionServiceTest {
             Mission saved = new Mission();
             saved.setId(10);
             saved.setName("Mission-1");
-            saved.setStatus(MissionStatus.PLANNED);
+            saved.setStatus(MISSION_STATUS.PLANNED);
 
             when(daoUtilisateur.findByMail("op@space.fr")).thenReturn(Optional.of(operator("op@space.fr")));
             when(daoSpacecraft.findById(1)).thenReturn(Optional.of(sc));
@@ -263,7 +265,7 @@ class MissionServiceTest {
         void updateStatus_notFound() {
             when(daoMission.findById(99)).thenReturn(Optional.empty());
             UpdateMissionStatusRequest req = new UpdateMissionStatusRequest();
-            req.setStatus(MissionStatus.COMPLETED);
+            req.setStatus(MISSION_STATUS.COMPLETED);
             ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                     () -> service.updateStatus(99, req));
             assertEquals(HttpStatus.NOT_FOUND, ex.getStatusCode());
@@ -280,11 +282,11 @@ class MissionServiceTest {
             when(daoMission.save(any())).thenReturn(m);
 
             UpdateMissionStatusRequest req = new UpdateMissionStatusRequest();
-            req.setStatus(MissionStatus.COMPLETED);
+            req.setStatus(MISSION_STATUS.COMPLETED);
             service.updateStatus(1, req);
 
             assertTrue(sc.isAvailable(), "Le spacecraft doit être libéré après COMPLETED");
-            assertEquals(MissionStatus.COMPLETED, m.getStatus());
+            assertEquals(MISSION_STATUS.COMPLETED, m.getStatus());
         }
 
         @Test
@@ -298,11 +300,11 @@ class MissionServiceTest {
             when(daoMission.save(any())).thenReturn(m);
 
             UpdateMissionStatusRequest req = new UpdateMissionStatusRequest();
-            req.setStatus(MissionStatus.CANCELLED);
+            req.setStatus(MISSION_STATUS.CANCELLED);
             service.updateStatus(1, req);
 
             assertFalse(sc.isAvailable(), "Le spacecraft ne doit pas être libéré sur CANCELLED");
-            assertEquals(MissionStatus.CANCELLED, m.getStatus());
+            assertEquals(MISSION_STATUS.CANCELLED, m.getStatus());
         }
 
         @Test
@@ -316,11 +318,11 @@ class MissionServiceTest {
             when(daoMission.save(any())).thenReturn(m);
 
             UpdateMissionStatusRequest req = new UpdateMissionStatusRequest();
-            req.setStatus(MissionStatus.IN_PROGRESS);
+            req.setStatus(MISSION_STATUS.IN_PROGRESS);
             service.updateStatus(1, req);
 
             assertFalse(sc.isAvailable());
-            assertEquals(MissionStatus.IN_PROGRESS, m.getStatus());
+            assertEquals(MISSION_STATUS.IN_PROGRESS, m.getStatus());
         }
     }
 

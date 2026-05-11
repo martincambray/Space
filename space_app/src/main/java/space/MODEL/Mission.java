@@ -132,6 +132,8 @@ public class Mission {
         double vCirc = Math.sqrt(G * M_SUN / r);
 
         // Position de départ : coordonnées de référence du corps céleste (en m)
+        // IMPORTANT : le vaisseau ne peux partir du centre d'une planète, sinon les calculs deviennent impossible
+        //             bien penser à ajouter à la position de départ du vaisseau au moins 1 rayon de la planète de départ
         double x0 = departureBody.getRefCoordX() + r;
         double y0 = departureBody.getRefCoordY() + r;
 

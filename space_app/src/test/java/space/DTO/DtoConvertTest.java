@@ -7,14 +7,14 @@ import org.junit.jupiter.api.Test;
 import space.DTO.response.MissionResponse;
 import space.DTO.response.SpacecraftResponse;
 import space.DTO.response.UtilisateurResponse;
+import space.ENUM.MISSION_STATUS;
+import space.ENUM.TYPE_COMPTE;
 import space.MODEL.CelestialBody;
 import space.MODEL.Mission;
-import space.MODEL.MissionStatus;
 import space.MODEL.MissionType;
 import space.MODEL.PodHabite;
-import space.MODEL.Role;
 import space.MODEL.Rover;
-import space.MODEL.SPACECRAFT_TYPE;
+import space.ENUM.SPACECRAFT_TYPE;
 import space.MODEL.Satellite;
 import space.MODEL.Spacecraft;
 import space.MODEL.Utilitaire;
@@ -47,7 +47,7 @@ class DtoConvertTest {
             Mission m = new Mission();
             m.setId(42);
             m.setName("Mars Alpha");
-            m.setStatus(MissionStatus.PLANNED);
+            m.setStatus(MISSION_STATUS.PLANNED);
             LocalDateTime dep = LocalDateTime.of(2025, 6, 1, 12, 0);
             m.setDepartureDate(dep);
             m.setPayload("Rover scientifique");
@@ -59,7 +59,7 @@ class DtoConvertTest {
 
             assertEquals(42,                      resp.getId());
             assertEquals("Mars Alpha",            resp.getName());
-            assertEquals(MissionStatus.PLANNED,   resp.getStatus());
+            assertEquals(MISSION_STATUS.PLANNED,   resp.getStatus());
             assertEquals(dep,                     resp.getDepartureDate());
             assertEquals("Rover scientifique",    resp.getPayload());
             assertEquals(now,                     resp.getCreatedAt());
@@ -181,7 +181,7 @@ class DtoConvertTest {
             u.setMail("alice@space.fr");
             u.setLastname("Dupont");
             u.setFirstname("Alice");
-            u.setRole(Role.ADMIN);
+            u.setRole(TYPE_COMPTE.ADMIN);
             u.setSuspended(false);
 
             UtilisateurResponse resp = UtilisateurResponse.convert(u);
@@ -190,7 +190,7 @@ class DtoConvertTest {
             assertEquals("alice@space.fr", resp.getMail());
             assertEquals("Dupont",       resp.getLastname());
             assertEquals("Alice",        resp.getFirstname());
-            assertEquals(Role.ADMIN,     resp.getRole());
+            assertEquals(TYPE_COMPTE.ADMIN,     resp.getRole());
             assertFalse(resp.isSuspended());
         }
 
@@ -199,7 +199,7 @@ class DtoConvertTest {
         void suspended_true_maps() {
             Utilisateur u = new Utilisateur();
             u.setMail("sus@space.fr");
-            u.setRole(Role.OPERATEUR);
+            u.setRole(TYPE_COMPTE.OPERATEUR);
             u.setSuspended(true);
             assertTrue(UtilisateurResponse.convert(u).isSuspended());
         }
@@ -208,8 +208,8 @@ class DtoConvertTest {
         @DisplayName("Rôle OPERATEUR correctement mappé")
         void role_operateur_maps() {
             Utilisateur u = new Utilisateur();
-            u.setRole(Role.OPERATEUR);
-            assertEquals(Role.OPERATEUR, UtilisateurResponse.convert(u).getRole());
+            u.setRole(TYPE_COMPTE.OPERATEUR);
+            assertEquals(TYPE_COMPTE.OPERATEUR, UtilisateurResponse.convert(u).getRole());
         }
     }
 
