@@ -348,7 +348,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
       const mx    = earthX + Math.cos(this.moonAngle) * moonOrbitPx;
       const my    = earthY + Math.sin(this.moonAngle) * moonOrbitPx;
-      const moonR = this.bodyRadius(moonBody.radius);
+      const moonR = this.bodyRadius(moonBody.radius) * 0.5;
       const moonImg = this.planetImages.get('Lune');
       if (moonImg?.complete && moonImg.naturalWidth > 0) {
         this.drawBodyWithImage(mx, my, moonR, moonImg);
