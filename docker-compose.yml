@@ -41,7 +41,7 @@ services:
 
     networks:
       - space
-z
+
 networks:
   space:
     name: space
