@@ -158,6 +158,11 @@ public class TableauDeBord {
         return thetaWindow;
     }
 
+    /** Pas de temps du moteur physique en secondes (délégué à MoteurPhysique). */
+    public double getDt() {
+        return moteurPhysique.getDt();
+    }
+
     // =========================================================================
     // Logique interne de résolution d'orbite
     // =========================================================================

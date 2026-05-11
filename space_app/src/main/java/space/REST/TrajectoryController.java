@@ -3,6 +3,7 @@ package space.REST;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import space.DTO.response.TrajectoryPointsResponse;
 import space.DTO.response.TrajectoryResponse;
 import space.SERVICE.TableauDeBord;
 import space.MODEL.Orbit;
@@ -53,5 +54,21 @@ public class TrajectoryController {
     public TrajectoryResponse getTrajectory(@PathVariable int missionId) {
         Orbit orbit = tableauDeBord.getTrajectory(missionId);
         return TrajectoryResponse.convert(missionId, orbit);
+    }
+
+    /**
+     * Retourne N points équidistants de la trajectoire en coordonnées héliocentrées.
+     * Évite le transfert des 500k+ pas bruts — conçu pour la visualisation frontend.
+     *
+     * @param missionId identifiant de la mission
+     * @param n         nombre de points souhaités (défaut 500, max recommandé 1000)
+     * @return points [x,y] en mètres + métadonnées (totalSteps, dt)
+     */
+    @GetMapping("/{missionId}/points")
+    @ResponseStatus(HttpStatus.OK)
+    public TrajectoryPointsResponse getPoints(@PathVariable int missionId,
+                                              @RequestParam(defaultValue = "500") int n) {
+        Orbit orbit = tableauDeBord.getTrajectory(missionId);
+        return TrajectoryPointsResponse.sample(missionId, orbit, n, tableauDeBord.getDt());
     }
 }
