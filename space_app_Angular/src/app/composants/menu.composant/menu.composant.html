@@ -42,6 +42,13 @@
               (click)="cancel()">Quitter</button>
     }
 
+    @if (trajectoryLoading()) {
+      <div class="traj-loading">
+        <span class="traj-spinner"></span>
+        <span class="traj-label">Trajectoire…</span>
+      </div>
+    }
+
     <button class="tool-btn tool-btn-large tool-btn-blue"
             [disabled]="!hasMission()"
             (click)="actions()">Actions</button>

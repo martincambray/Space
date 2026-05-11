@@ -3,6 +3,7 @@ import { SpaceObject } from '../../models/space-object.model';
 import { CelestialBodyService } from '../../services/celestial-body.service';
 import { CelestialBodyModel } from '../../models/celestial-body.model';
 import { MissionModel } from '../../models/mission.model';
+import { TrajectoryPointsModel } from '../../models/trajectory-points.model';
 
 @Component({
   selector: 'app-simulation',
@@ -37,6 +38,14 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   // Mission sélectionnée par l'utilisateur depuis le menu
   private displayedMission: MissionModel | null = null;
   private spacecraftImg: HTMLImageElement | null = null;
+
+  // Trajectoire calculée par le moteur physique (points héliocentrés en mètres)
+  private trajectoryPoints: [number, number][] = [];
+  private trajectoryTotalSteps = 0;
+  private trajectoryDt = 60; // secondes par pas (valeur du backend)
+
+  // Position courante du spacecraft le long de la trajectoire (index flottant)
+  private trajectoryStepFrac = 0;
 
   // Angle (radians) pour chaque corps, indexé par body.id
   private angles = new Map<number, number>();
@@ -118,9 +127,20 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     });
   }
 
-  /** Appelé par le MenuComposant quand l'utilisateur sélectionne ou désélectionne une mission. */
-  public displayMission(mission: MissionModel | null, spacecraftImageBase64: string | null): void {
+  /**
+   * Appelé par le MenuComposant quand l'utilisateur sélectionne ou désélectionne une mission.
+   *
+   * @param mission              mission à afficher, ou null pour réinitialiser
+   * @param spacecraftImageBase64 image base64 du spacecraft (optionnelle)
+   * @param trajectory           points de trajectoire calculés par le moteur physique
+   */
+  public displayMission(
+    mission: MissionModel | null,
+    spacecraftImageBase64: string | null,
+    trajectory: TrajectoryPointsModel | null = null
+  ): void {
     this.displayedMission = mission;
+
     if (mission && spacecraftImageBase64) {
       const img = new Image();
       img.src = spacecraftImageBase64;
@@ -128,6 +148,39 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     } else {
       this.spacecraftImg = null;
     }
+
+    if (trajectory && trajectory.points.length > 0) {
+      this.trajectoryPoints    = trajectory.points;
+      this.trajectoryTotalSteps = trajectory.totalSteps;
+      this.trajectoryDt        = trajectory.dt;
+      this.trajectoryStepFrac  = this.computeInitialStep(mission, trajectory);
+    } else {
+      this.trajectoryPoints    = [];
+      this.trajectoryTotalSteps = 0;
+      this.trajectoryStepFrac  = 0;
+    }
+  }
+
+  /**
+   * Calcule l'index de départ dans les points downsamplés en fonction
+   * du temps réel écoulé depuis la date de départ de la mission.
+   * Pour une mission PLANNED (départ dans le futur), retourne 0.
+   */
+  private computeInitialStep(
+    mission: MissionModel | null,
+    traj: TrajectoryPointsModel
+  ): number {
+    if (!mission || mission.status !== 'IN_PROGRESS') return 0;
+
+    const depMs = Date.parse(mission.departureDate);
+    if (isNaN(depMs)) return 0;
+
+    const elapsed_s = Math.max(0, (Date.now() - depMs) / 1000);
+    const orbitPeriod_s = traj.totalSteps * traj.dt;
+    if (orbitPeriod_s <= 0) return 0;
+
+    const fraction = (elapsed_s % orbitPeriod_s) / orbitPeriod_s;
+    return fraction * traj.points.length;
   }
 
   // ─── Scale visuelle ────────────────────────────────────────────────────────
@@ -274,6 +327,27 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     // Lune : période ~27.3 j vs Terre ~365.25 j → 13.38× la vitesse angulaire terrestre.
     // On utilise keplerSpeed(EARTH_ORBIT) comme base (speedFactor déjà inclus).
     this.moonAngle += this.keplerSpeed(this.EARTH_ORBIT_KM) * 13.38;
+
+    // Avancer la position du spacecraft le long de la trajectoire
+    this.advanceTrajectory();
+  }
+
+  /**
+   * Fait avancer le spacecraft d'un pas par frame, synchronisé avec speedFactor.
+   *
+   * Le spacecraft est traité comme un objet keplérien à la distance du corps de départ :
+   * il complète une orbite en autant de frames que la planète de départ.
+   * stepsPerFrame = (keplerSpeed_rad/frame / 2π) × N_points
+   */
+  private advanceTrajectory(): void {
+    const n = this.trajectoryPoints.length;
+    if (n === 0 || !this.displayedMission) return;
+
+    const depBody = this.bodies.find(b => b.name === this.displayedMission!.departureBodyName);
+    const depOrbitKm = depBody?.orbitalRadius ?? this.EARTH_ORBIT_KM;
+
+    const stepsPerFrame = (this.keplerSpeed(depOrbitKm) / (2 * Math.PI)) * n;
+    this.trajectoryStepFrac = (this.trajectoryStepFrac + stepsPerFrame) % n;
   }
 
   // ─── Dessin ────────────────────────────────────────────────────────────────
@@ -444,22 +518,117 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.ctx.fill();
   }
 
+  // ─── Système de coordonnées trajectoire ───────────────────────────────────
+
+  /**
+   * Convertit des coordonnées héliocentrées physiques (mètres) en pixels canvas.
+   * Utilise la même échelle sqrt que les orbites planétaires (naturalOrbitPx),
+   * garantissant un alignement visuel cohérent avec les corps célestes.
+   */
+  private physicalToCanvas(x_m: number, y_m: number, cx: number, cy: number): [number, number] {
+    const r_m  = Math.sqrt(x_m * x_m + y_m * y_m);
+    const r_km = r_m / 1000;
+    const r_px = this.naturalOrbitPx(r_km);
+    const angle = Math.atan2(y_m, x_m);
+    return [
+      cx + r_px * Math.cos(angle),
+      cy + r_px * Math.sin(angle),
+    ];
+  }
+
   // ─── Missions actives ──────────────────────────────────────────────────────
 
   private drawActiveMissions(): void {
     const mission = this.displayedMission;
     if (!mission) return;
 
+    const w  = this.canvas.width;
+    const h  = this.canvas.height;
+    const cx = w / 2 + this.offsetX;
+    const cy = h / 2 + this.offsetY;
+
+    // ── Trajectoire réelle issue du moteur physique ──
+    if (this.trajectoryPoints.length >= 2) {
+      this.drawTrajectoryPath(cx, cy);
+      this.drawSpacecraftOnTrajectory(cx, cy, mission);
+    } else {
+      // Fallback : ligne simple entre corps de départ et d'arrivée
+      this.drawFallbackLine(mission, cx, cy);
+    }
+  }
+
+  /**
+   * Trace le chemin complet de la trajectoire.
+   * Segment passé (depuis le début jusqu'à la position courante) : cyan opaque.
+   * Segment futur : cyan transparent.
+   */
+  private drawTrajectoryPath(cx: number, cy: number): void {
+    const pts   = this.trajectoryPoints;
+    const curIdx = Math.floor(this.trajectoryStepFrac) % pts.length;
+
+    // Segment futur (entière trajectoire en fond discret)
+    this.ctx.save();
+    this.ctx.setLineDash([3, 7]);
+    this.ctx.strokeStyle = 'rgba(0,240,255,0.18)';
+    this.ctx.lineWidth   = 1;
+    this.ctx.beginPath();
+    const [fx0, fy0] = this.physicalToCanvas(pts[0][0], pts[0][1], cx, cy);
+    this.ctx.moveTo(fx0, fy0);
+    for (let i = 1; i < pts.length; i++) {
+      const [px, py] = this.physicalToCanvas(pts[i][0], pts[i][1], cx, cy);
+      this.ctx.lineTo(px, py);
+    }
+    this.ctx.stroke();
+    this.ctx.restore();
+
+    // Segment passé (du début à la position courante) : tracé solide
+    if (curIdx > 0) {
+      this.ctx.save();
+      this.ctx.setLineDash([]);
+      this.ctx.strokeStyle = 'rgba(0,240,255,0.55)';
+      this.ctx.lineWidth   = 1.5;
+      this.ctx.beginPath();
+      const [sx0, sy0] = this.physicalToCanvas(pts[0][0], pts[0][1], cx, cy);
+      this.ctx.moveTo(sx0, sy0);
+      for (let i = 1; i <= curIdx && i < pts.length; i++) {
+        const [px, py] = this.physicalToCanvas(pts[i][0], pts[i][1], cx, cy);
+        this.ctx.lineTo(px, py);
+      }
+      this.ctx.stroke();
+      this.ctx.restore();
+    }
+  }
+
+  /** Dessine le spacecraft à sa position courante sur la trajectoire. */
+  private drawSpacecraftOnTrajectory(cx: number, cy: number, mission: MissionModel): void {
+    const pts    = this.trajectoryPoints;
+    const curIdx = Math.floor(this.trajectoryStepFrac) % pts.length;
+    const [sx, sy] = this.physicalToCanvas(pts[curIdx][0], pts[curIdx][1], cx, cy);
+    const r = 10;
+
+    const img = this.spacecraftImg;
+    if (img?.complete && img.naturalWidth > 0) {
+      this.drawSpacecraftIcon(sx, sy, r, img);
+    } else {
+      this.drawRocketFallback(sx, sy, r);
+    }
+
+    // Label du spacecraft
+    this.ctx.font      = '500 11px Inter, sans-serif';
+    this.ctx.fillStyle = 'rgba(0,240,255,0.9)';
+    this.ctx.fillText(mission.spacecraftName, sx + r + 4, sy + 4);
+  }
+
+  /** Fallback quand la trajectoire n'est pas encore disponible. */
+  private drawFallbackLine(mission: MissionModel, cx: number, cy: number): void {
     const dep = this.drawnBodies.find(b => b.name === mission.departureBodyName);
     const arr = this.drawnBodies.find(b => b.name === mission.arrivalBodyName);
     if (!dep || !arr) return;
 
-    // Position : milieu de la trajectoire
     const mx = (dep.x + arr.x) / 2;
     const my = (dep.y + arr.y) / 2;
     const r  = 10;
 
-    // Ligne de trajectoire pointillée
     this.ctx.save();
     this.ctx.setLineDash([4, 6]);
     this.ctx.strokeStyle = 'rgba(0,240,255,0.35)';
@@ -470,7 +639,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.ctx.stroke();
     this.ctx.restore();
 
-    // Icône spacecraft
     const img = this.spacecraftImg;
     if (img?.complete && img.naturalWidth > 0) {
       this.drawSpacecraftIcon(mx, my, r, img);
@@ -478,8 +646,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.drawRocketFallback(mx, my, r);
     }
 
-    // Label
-    this.ctx.font = '500 11px Inter, sans-serif';
+    this.ctx.font      = '500 11px Inter, sans-serif';
     this.ctx.fillStyle = 'rgba(0,240,255,0.9)';
     this.ctx.fillText(mission.spacecraftName, mx + r + 4, my + 4);
   }

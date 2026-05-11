@@ -12,6 +12,7 @@ import { MissionService, CreateMissionRequest } from '../../services/mission.ser
 import { SpacecraftService } from '../../services/spacecraft.service';
 import { CelestialBodyService } from '../../services/celestial-body.service';
 import { MissionTypeService } from '../../services/mission-type.service';
+import { TrajectoryService } from '../../services/trajectory.service';
 import { SpacecraftModel } from '../../models/spacecraft.model';
 import { CelestialBodyModel } from '../../models/celestial-body.model';
 import { MissionTypeModel } from '../../models/mission-type.model';
@@ -34,14 +35,15 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
   }
 
   // ── Injections ────────────────────────────────────────────────────────────
-  private authService    = inject(AuthService);
-  private missionService = inject(MissionService);
-  private spacecraftSvc  = inject(SpacecraftService);
-  private bodySvc        = inject(CelestialBodyService);
-  private typeSvc        = inject(MissionTypeService);
-  private formBuilder    = inject(FormBuilder);
-  private router         = inject(Router);
-  private cdr            = inject(ChangeDetectorRef);
+  private authService       = inject(AuthService);
+  private missionService    = inject(MissionService);
+  private spacecraftSvc     = inject(SpacecraftService);
+  private bodySvc           = inject(CelestialBodyService);
+  private typeSvc           = inject(MissionTypeService);
+  private trajectorySvc     = inject(TrajectoryService);
+  private formBuilder       = inject(FormBuilder);
+  private router            = inject(Router);
+  private cdr               = inject(ChangeDetectorRef);
 
   // ── Sidebar ───────────────────────────────────────────────────────────────
   protected sidebarOpen = signal(true);
@@ -56,9 +58,10 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
   protected showInfoPanel      = signal(false);
 
   // ── Mission active ────────────────────────────────────────────────────────
-  protected activeMission  = signal<MissionModel | null>(null);
-  protected missions       = signal<MissionModel[]>([]);
-  protected executedAction = signal<string | null>(null);
+  protected activeMission      = signal<MissionModel | null>(null);
+  protected missions           = signal<MissionModel[]>([]);
+  protected executedAction     = signal<string | null>(null);
+  protected trajectoryLoading  = signal(false);
 
   protected pickableMissions = computed(() =>
     this.missions().filter(m => m.status === 'PLANNED' || m.status === 'IN_PROGRESS')
@@ -198,20 +201,38 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.activeMission.set(m);
     this.showMissionPicker.set(false);
     this.simulation.launch();
-    // Charger les capacités max du spacecraft
+
     const sc = this.spacecrafts().find(s => s.name === m.spacecraftName);
     this.scBatteryMax.set(sc?.batteryMax ?? 100);
     this.scFuelMax.set(sc?.fuelCapacity ?? 1000);
     this.updateGauges();
-    // Afficher le spacecraft dans la simulation
-    this.simulation.displayMission(m, sc?.image ?? null);
+
+    // Affichage immédiat (sans trajectoire) pendant le chargement
+    this.simulation.displayMission(m, sc?.image ?? null, null);
+    this.trajectoryLoading.set(true);
+
+    // Récupération de la trajectoire calculée par le moteur physique
+    this.trajectorySvc.getPoints(m.id, 500).subscribe({
+      next: traj => {
+        this.trajectoryLoading.set(false);
+        // Si la mission est toujours la même (pas de changement entre-temps)
+        if (this.activeMission()?.id === m.id) {
+          this.simulation.displayMission(m, sc?.image ?? null, traj);
+        }
+      },
+      error: () => {
+        // Fallback silencieux : la simulation reste avec la ligne simple
+        this.trajectoryLoading.set(false);
+      }
+    });
   }
 
   protected cancel(): void {
     this.activeMission.set(null);
     this.batteryPct.set(100);
     this.fuelPct.set(100);
-    this.simulation.displayMission(null, null);
+    this.trajectoryLoading.set(false);
+    this.simulation.displayMission(null, null, null);
   }
 
   protected missionStatusLabel(m: MissionModel): string {
