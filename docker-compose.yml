@@ -2,64 +2,46 @@ name: space-mission-control
 
 services:
 
-  mysql:
-    image: mysql:8.0.45
-    container_name: space-mysql
-
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      timeout: 3s
-      retries: 10
-      interval: 5s
-
-    volumes:
-      - db_data:/var/lib/mysql
-      - ./space_doc/space_db.sql:/docker-entrypoint-initdb.d/setup.sql
-
-    networks:
-      - space
-
+  # ── Étape 1 : Spring Boot ────────────────────────────────────────
   boot:
     build:
       context: space_app
     container_name: space-boot
 
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql/smc_db
+      SPRING_DATASOURCE_URL: jdbc:mysql://48.220.33.217:3316/smc_db
       SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_DATASOURCE_PASSWORD: bu5q+Fx5Cq3bJ0jLHhAZsF5m3IbGuNBm
 
     ports:
       - 8080:8080
 
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/8080' 2>/dev/null"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+      start_period: 30s
+
+    networks:
+      - space
+
+  # ── Étape 2 : Angular ────────────────────────────────────────────
+  angular:
+    build:
+      context: space_app_Angular
+    container_name: space-angular
+
+    ports:
+      - 4200:80
+
     depends_on:
-      mysql:
+      boot:
         condition: service_healthy
 
     networks:
       - space
-
-  angular:
-    build:
-      context: space_app_Agular
-    container_name: space-angular
-
-    ports:
-      - 80:80
-
-    depends_on:
-      - boot
-
-    networks:
-      - space
-
-volumes:
-  db_data:
-    name: space-db-data
-
+z
 networks:
   space:
     name: space

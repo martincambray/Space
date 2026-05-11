@@ -16,7 +16,7 @@ RUN mvn package -DskipTests -B
 
 
 # ── Étape 2 : Image finale ───────────────────────────────────
-FROM eclipse-temurin:21-jdk
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
