@@ -283,7 +283,7 @@ class UtilisateurControllerTest {
             Utilisateur newUser = new Utilisateur();
             newUser.setId(3);
             newUser.setMail("new@space.fr");
-            newUser.setRole(Role.OPERATEUR);
+            //newUser.setRole(Role.OPERATEUR);
             when(daoUtilisateur.save(any())).thenReturn(newUser);
 
             mockMvc.perform(post("/api/utilisateur")
