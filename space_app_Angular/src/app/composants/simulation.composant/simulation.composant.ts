@@ -20,6 +20,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private stars: { x: number; y: number; r: number }[] = [];
 
   private zoom = 1;
+  private wheelZoom = 1;
   private offsetX = 0;
   private offsetY = 0;
   private isDragging = false;
@@ -46,11 +47,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   // Position courante du spacecraft le long de la trajectoire (index flottant)
   private trajectoryStepFrac = 0;
-
-  // Angle (radians) pour chaque corps, indexé par body.id
-  private angles = new Map<number, number>();
-  // Angle propre de la Lune autour de la Terre
-  private moonAngle = Math.random() * Math.PI * 2;
 
   // Orbite de référence Terre (km) pour le calcul des vitesses Keplériennes
   private readonly EARTH_ORBIT_KM = 149_600_000;
@@ -82,7 +78,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.registerEvents();
     this.celestialBodyService.findAll().subscribe(bodies => {
       this.bodies = bodies;
-      this.initAngles();
       this.loadImages(bodies);
       this.animate();
     });
@@ -102,20 +97,13 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   public reset(): void {
     this.zoom = 1;
+    this.wheelZoom = 1;
     this.offsetX = 0;
     this.offsetY = 0;
     this.speedFactor = 1;
   }
 
   // ─── Initialisation ────────────────────────────────────────────────────────
-
-  private initAngles(): void {
-    this.bodies.forEach(b => {
-      if (!this.angles.has(b.id)) {
-        this.angles.set(b.id, Math.random() * Math.PI * 2);
-      }
-    });
-  }
 
   private loadImages(bodies: CelestialBodyModel[]): void {
     bodies.forEach(b => {
@@ -192,7 +180,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   private naturalOrbitPx(orbitalKm: number): number {
     const neptuneOrbit = 4_495_060_000;
     const maxPx = Math.min(this.canvas.width, this.canvas.height) * 0.46;
-    return Math.sqrt(orbitalKm / neptuneOrbit) * maxPx * this.zoom;
+    return Math.sqrt(orbitalKm / neptuneOrbit) * maxPx * this.zoom * this.wheelZoom;
   }
 
   /**
@@ -201,45 +189,12 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
    * ce qui garantit que l'espacement augmente au zoom.
    */
   private bodyRadius(radiusKm: number | null): number {
-    return Math.max(4, Math.log10(radiusKm ?? 1) * 2.8) * Math.sqrt(this.zoom);
+    return Math.max(4, Math.log10(radiusKm ?? 1) * 2.8) * this.zoom;
   }
 
   /** Rayon visuel du Soleil en px. */
   private sunRadius(): number {
-    return 20 * Math.sqrt(this.zoom);
-  }
-
-  /**
-   * Orbites effectives avec contrainte de non-chevauchement.
-   *
-   * Algorithme :
-   *   1. Trier les corps par orbitalRadius réelle (croissant)
-   *   2. Pour chaque corps : orbitPx = max(orbite naturelle, bord externe du précédent + rayon corps + GAP)
-   *
-   * Résultat : les planètes internes peuvent être légèrement compressées à zoom=1,
-   * mais dès zoom≈2 leurs orbites naturelles prennent le dessus.
-   */
-  private computeOrbitMap(): Map<number, number> {
-    const GAP = 4; // px minimum entre les bords de deux corps adjacents
-    const sunR = this.sunRadius();
-
-    const sorted = [...this.bodies]
-      .filter(b => (b.orbitalRadius ?? 0) > 0 && b.name !== 'Lune')
-      .sort((a, b) => (a.orbitalRadius ?? 0) - (b.orbitalRadius ?? 0));
-
-    const map = new Map<number, number>();
-    let prevEdge = sunR; // bord extérieur du dernier corps positionné
-
-    for (const body of sorted) {
-      const natural = this.naturalOrbitPx(body.orbitalRadius!);
-      const r       = this.bodyRadius(body.radius);
-      const minCenter = prevEdge + r + GAP;
-      const orbit = Math.max(natural, minCenter);
-      map.set(body.id, orbit);
-      prevEdge = orbit + r;
-    }
-
-    return map;
+    return 20 * this.zoom;
   }
 
   /**
@@ -266,7 +221,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       const wy = my - (this.canvas.height / 2 + this.offsetY);
       this.offsetX -= wx * (factor - 1);
       this.offsetY -= wy * (factor - 1);
-      this.zoom *= factor;
+      this.wheelZoom *= factor;
     }, { passive: false });
 
     this.canvas.addEventListener('mousedown', (e: MouseEvent) => {
@@ -313,23 +268,8 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   private animate(): void {
     this.animationId = requestAnimationFrame(() => this.animate());
-    if (!this.paused) { this.advanceAngles(); }
+    if (!this.paused) { this.advanceTrajectory(); }
     this.draw();
-  }
-
-  private advanceAngles(): void {
-    this.bodies.forEach(b => {
-      const orbit = b.orbitalRadius ?? 0;
-      if (orbit <= 0 || b.name === 'Lune') return;
-      const current = this.angles.get(b.id) ?? 0;
-      this.angles.set(b.id, current + this.keplerSpeed(orbit));
-    });
-    // Lune : période ~27.3 j vs Terre ~365.25 j → 13.38× la vitesse angulaire terrestre.
-    // On utilise keplerSpeed(EARTH_ORBIT) comme base (speedFactor déjà inclus).
-    this.moonAngle += this.keplerSpeed(this.EARTH_ORBIT_KM) * 13.38;
-
-    // Avancer la position du spacecraft le long de la trajectoire
-    this.advanceTrajectory();
   }
 
   /**
@@ -359,9 +299,6 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     const cy = h / 2 + this.offsetY;
 
     this.drawnBodies = [];
-
-    // Orbites effectives avec contrainte de non-chevauchement (recalculé chaque frame)
-    const orbitMap = this.computeOrbitMap();
 
     // Fond
     this.ctx.fillStyle = this.BG_COLOR;
@@ -395,20 +332,18 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     // Position de la Terre (nécessaire pour la Lune)
     let earthX = cx, earthY = cy;
     const earthBody = this.bodies.find(b => b.name === 'Terre');
-    if (earthBody && orbitMap.has(earthBody.id)) {
-      const angle   = this.angles.get(earthBody.id) ?? 0;
-      const orbitPx = orbitMap.get(earthBody.id)!;
-      earthX = cx + Math.cos(angle) * orbitPx;
-      earthY = cy + Math.sin(angle) * orbitPx;
+    if (earthBody && earthBody.refCoordX != null && earthBody.refCoordY != null) {
+      [earthX, earthY] = this.refCoordsToCanvas(earthBody.refCoordX, earthBody.refCoordY, cx, cy);
     }
 
     // Planètes (excluant Soleil et Lune)
     const planets = this.bodies.filter(b => (b.orbitalRadius ?? 0) > 0 && b.name !== 'Lune');
     planets.forEach(body => {
-      const orbitPx = orbitMap.get(body.id) ?? this.naturalOrbitPx(body.orbitalRadius!);
-      const angle   = this.angles.get(body.id) ?? 0;
-      const px = cx + Math.cos(angle) * orbitPx;
-      const py = cy + Math.sin(angle) * orbitPx;
+      const orbitPx = this.naturalOrbitPx(body.orbitalRadius!);
+      let px = cx + orbitPx, py = cy;
+      if (body.refCoordX != null && body.refCoordY != null) {
+        [px, py] = this.refCoordsToCanvas(body.refCoordX, body.refCoordY, cx, cy);
+      }
 
       // Anneau orbital
       this.ctx.beginPath();
@@ -429,7 +364,7 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     // Lune — visible quand son orbite visuelle ≥ 40 px (zoom ≈ 2)
     const moonBody = this.bodies.find(b => b.name === 'Lune');
-    const moonOrbitPx = 28 * Math.sqrt(this.zoom);
+    const moonOrbitPx = 28 * this.zoom;
     if (moonBody && moonOrbitPx >= 40) {
       this.ctx.beginPath();
       this.ctx.arc(earthX, earthY, moonOrbitPx, 0, Math.PI * 2);
@@ -437,8 +372,10 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.ctx.lineWidth = 0.8;
       this.ctx.stroke();
 
-      const mx    = earthX + Math.cos(this.moonAngle) * moonOrbitPx;
-      const my    = earthY + Math.sin(this.moonAngle) * moonOrbitPx;
+      let mx = earthX + moonOrbitPx, my = earthY;
+      if (moonBody.refCoordX != null && moonBody.refCoordY != null) {
+        [mx, my] = this.refCoordsToCanvas(moonBody.refCoordX, moonBody.refCoordY, cx, cy);
+      }
       const moonR = this.bodyRadius(moonBody.radius) * 0.5;
       const moonImg = this.planetImages.get('Lune');
       if (moonImg?.complete && moonImg.naturalWidth > 0) {
@@ -534,6 +471,14 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       cx + r_px * Math.cos(angle),
       cy + r_px * Math.sin(angle),
     ];
+  }
+
+  private refCoordsToCanvas(x_km: number, y_km: number, cx: number, cy: number): [number, number] {
+    const r_km = Math.sqrt(x_km * x_km + y_km * y_km);
+    if (r_km === 0) return [cx, cy];
+    const r_px = this.naturalOrbitPx(r_km);
+    const angle = Math.atan2(y_km, x_km);
+    return [cx + r_px * Math.cos(angle), cy + r_px * Math.sin(angle)];
   }
 
   // ─── Missions actives ──────────────────────────────────────────────────────
