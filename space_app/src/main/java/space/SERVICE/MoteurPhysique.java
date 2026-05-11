@@ -162,8 +162,8 @@ public class MoteurPhysique {
         double ax = 0.0;
         double ay = 0.0;
         for (CelestialBody body : celestialBodies) {
-            double bx   = body.getRefCoordX();
-            double by   = body.getRefCoordY();
+            double bx   = body.getRefCoordX() * 1000.0; // km → m
+            double by   = body.getRefCoordY() * 1000.0; // km → m
             double dx   = bx - x;
             double dy   = by - y;
             double dist = Math.sqrt(dx * dx + dy * dy);
