@@ -134,8 +134,8 @@ public class Mission {
         // Position de départ : coordonnées de référence du corps céleste (en m)
         // IMPORTANT : le vaisseau ne peux partir du centre d'une planète, sinon les calculs deviennent impossible
         //             bien penser à ajouter à la position de départ du vaisseau au moins 1 rayon de la planète de départ
-        double x0 = departureBody.getRefCoordX() + r;
-        double y0 = departureBody.getRefCoordY() + r;
+        double x0 = departureBody.getRefCoordX() * 1000.0; // km → m
+        double y0 = departureBody.getRefCoordY() * 1000.0; // km → m
 
         // vx0 = 0, vy0 = vCirc : poussée tangentielle, orbite circulaire dans le plan XY
         return new double[]{ x0, y0, 0.0, vCirc };

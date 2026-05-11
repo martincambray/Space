@@ -364,18 +364,15 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
     // Lune — visible quand son orbite visuelle ≥ 40 px (zoom ≈ 2)
     const moonBody = this.bodies.find(b => b.name === 'Lune');
-    const moonOrbitPx = 28 * this.zoom;
-    if (moonBody && moonOrbitPx >= 40) {
+    const moonOrbitPx = this.naturalOrbitPx(this.EARTH_ORBIT_KM) * 0.04;
+    if (moonBody && moonOrbitPx >= 2) {
       this.ctx.beginPath();
       this.ctx.arc(earthX, earthY, moonOrbitPx, 0, Math.PI * 2);
       this.ctx.strokeStyle = 'rgba(255,255,255,0.06)';
       this.ctx.lineWidth = 0.8;
       this.ctx.stroke();
 
-      let mx = earthX + moonOrbitPx, my = earthY;
-      if (moonBody.refCoordX != null && moonBody.refCoordY != null) {
-        [mx, my] = this.refCoordsToCanvas(moonBody.refCoordX, moonBody.refCoordY, cx, cy);
-      }
+      const mx = earthX + moonOrbitPx, my = earthY;
       const moonR = this.bodyRadius(moonBody.radius) * 0.5;
       const moonImg = this.planetImages.get('Lune');
       if (moonImg?.complete && moonImg.naturalWidth > 0) {
