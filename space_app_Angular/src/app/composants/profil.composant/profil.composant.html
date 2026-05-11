@@ -80,25 +80,38 @@
 
         <div class="users-list">
           @for (u of users(); track u.id) {
-            <div class="user-row">
+            <div class="user-row" [class.ejected]="u.suspended">
               <div class="user-info">
-                <i class='bx bx-user'></i>
+                @if (u.suspended) {
+                  <span class="crewmate-mini">
+                    <span class="cm-body"><span class="cm-visor"></span><span class="cm-bp"></span></span>
+                    <span class="cm-legs"><span class="cm-leg"></span><span class="cm-leg"></span></span>
+                  </span>
+                } @else {
+                  <i class='bx bx-user'></i>
+                }
                 <div>
-                  <span class="user-name">{{ u.firstname }} {{ u.lastname }}</span>
+                  <span class="user-name" [class.striked]="u.suspended">{{ u.firstname }} {{ u.lastname }}</span>
                   <span class="user-mail">{{ u.mail }}</span>
                 </div>
               </div>
               <div class="user-actions">
                 <span class="role-pill" [class.admin]="u.role === 'ADMIN'">{{ u.role }}</span>
-                <button class="action-btn edit-btn" (click)="openEditUser(u)" title="Modifier">
-                  <i class='bx bx-edit'></i>
-                </button>
-                <button class="action-btn delete-btn"
-                        (click)="confirmDeleteUser(u.id)"
-                        [disabled]="isEditingSelf(u.id)"
-                        title="{{ isEditingSelf(u.id) ? 'Vous ne pouvez pas vous supprimer' : 'Supprimer' }}">
-                  <i class='bx bx-trash'></i>
-                </button>
+                @if (u.suspended) {
+                  <button class="action-btn reinstate-btn" (click)="reinstateUser(u.id)" title="Ré-intégrer">
+                    <i class='bx bx-log-in'></i> Ré-intégrer
+                  </button>
+                } @else {
+                  <button class="action-btn edit-btn" (click)="openEditUser(u)"
+                          [disabled]="isEditingSelf(u.id)" title="Modifier">
+                    <i class='bx bx-edit'></i>
+                  </button>
+                  <button class="action-btn delete-btn" (click)="ejectUser(u)"
+                          [disabled]="isEditingSelf(u.id)"
+                          title="{{ isEditingSelf(u.id) ? 'Impossible de s\'auto-éjecter' : 'Éjecter' }}">
+                    <i class='bx bx-trash'></i>
+                  </button>
+                }
               </div>
             </div>
           }
@@ -108,6 +121,32 @@
 
   </main>
 </div>
+
+@if (ejectedUser(); as ej) {
+  <div class="ejection-overlay" (click)="dismissEjection()">
+    <div class="ej-stars">
+      @for (s of [1,2,3,4,5,6,7,8,9,10,11,12]; track s) {
+        <span class="ej-star" [style.left.%]="(s * 37) % 100" [style.top.%]="(s * 53) % 100"
+              [style.animation-delay.ms]="s * 120"></span>
+      }
+    </div>
+    <div class="ej-content">
+      <div class="crewmate-big ejecting">
+        <div class="cm-big-body">
+          <div class="cm-big-visor"></div>
+          <div class="cm-big-bp"></div>
+        </div>
+        <div class="cm-big-legs">
+          <div class="cm-big-leg"></div>
+          <div class="cm-big-leg"></div>
+        </div>
+      </div>
+      <p class="ej-name">{{ ej.firstname }} {{ ej.lastname }}</p>
+      <p class="ej-msg">a été éjecté.</p>
+      <p class="ej-sub">Cliquer pour fermer</p>
+    </div>
+  </div>
+}
 
 @if (showUserModal()) {
   <div class="modal-overlay" (click)="closeUserModal()">

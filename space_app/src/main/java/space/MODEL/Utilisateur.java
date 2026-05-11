@@ -31,6 +31,9 @@ public class Utilisateur {
     @Column(length = 30, nullable = false)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean suspended = false;
+
     public int getId() {
         return id;
     }
@@ -77,5 +80,13 @@ public class Utilisateur {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public boolean isSuspended() {
+        return suspended;
+    }
+
+    public void setSuspended(boolean suspended) {
+        this.suspended = suspended;
     }
 }

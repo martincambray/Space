@@ -6,4 +6,5 @@ export interface UtilisateurModel {
   lastname: string;
   firstname: string;
   role: Role;
+  suspended: boolean;
 }
