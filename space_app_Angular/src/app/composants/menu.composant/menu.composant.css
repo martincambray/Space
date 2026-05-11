@@ -189,6 +189,10 @@
 .tool-btn-grey:hover   { background: rgba(180,180,200,0.18); border-color: rgba(200,200,215,0.6);
   color: rgba(220,220,235,0.95); box-shadow: 0 0 6px rgba(180,180,200,0.3); }
 
+.tool-btn-purple { background: rgba(160,80,255,0.12); border-color: rgba(160,80,255,0.5); color: #c084fc; }
+.tool-btn-purple:hover { background: rgba(160,80,255,0.28); border-color: #c084fc;
+  text-shadow: 0 0 5px #fff,0 0 10px #c084fc; box-shadow: 0 0 8px #c084fc; }
+
 /* ── Horloge ─────────────────────────────────────────────────────────────── */
 .clock-box {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
