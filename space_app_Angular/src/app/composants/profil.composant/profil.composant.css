@@ -460,3 +460,185 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── Utilisateur éjecté (ligne) ── */
+.user-row.ejected {
+  background: rgba(255, 40, 40, 0.06);
+  border-color: rgba(255, 60, 60, 0.25);
+  opacity: 0.75;
+}
+
+.user-name.striked {
+  text-decoration: line-through;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.reinstate-btn {
+  border-color: rgba(80, 255, 140, 0.5) !important;
+  color: #4aff8a !important;
+  width: auto !important;
+  padding: 0 12px;
+  gap: 5px;
+  font-size: 0.78rem;
+}
+
+.reinstate-btn:hover {
+  background: rgba(80, 255, 140, 0.15) !important;
+}
+
+/* ── Crewmate mini (dans la liste) ── */
+.crewmate-mini {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  width: 22px;
+  flex-shrink: 0;
+}
+
+.cm-body {
+  position: relative;
+  width: 22px; height: 26px;
+  background: #c51111;
+  border-radius: 11px 11px 4px 4px;
+}
+
+.cm-visor {
+  position: absolute;
+  top: 5px; left: 3px;
+  width: 13px; height: 8px;
+  background: #93d6e9;
+  border-radius: 4px;
+}
+
+.cm-bp {
+  position: absolute;
+  top: 7px; right: -6px;
+  width: 6px; height: 10px;
+  background: #a00000;
+  border-radius: 3px;
+}
+
+.cm-legs {
+  display: flex; gap: 3px;
+  margin-top: 1px;
+}
+
+.cm-leg {
+  width: 7px; height: 7px;
+  background: #c51111;
+  border-radius: 0 0 3px 3px;
+}
+
+/* ── Overlay éjection Among Us ── */
+.ejection-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.92);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 999;
+  cursor: pointer;
+  animation: ejOverlayIn 0.3s ease;
+}
+
+@keyframes ejOverlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.ej-stars { position: absolute; inset: 0; pointer-events: none; }
+
+.ej-star {
+  position: absolute;
+  width: 3px; height: 3px;
+  background: white;
+  border-radius: 50%;
+  animation: twinkle 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes twinkle {
+  from { opacity: 0.2; transform: scale(0.8); }
+  to   { opacity: 1;   transform: scale(1.4); }
+}
+
+.ej-content {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  z-index: 1;
+}
+
+/* ── Crewmate grand ── */
+.crewmate-big {
+  position: relative;
+  display: flex; flex-direction: column; align-items: center;
+  margin-bottom: 8px;
+}
+
+.crewmate-big.ejecting {
+  animation: ejectSpin 3.5s ease-in forwards;
+}
+
+@keyframes ejectSpin {
+  0%   { transform: translate(0, 0)      rotate(0deg)    scale(1);   opacity: 1; }
+  20%  { transform: translate(-30px, -40px) rotate(-120deg) scale(1.05); opacity: 1; }
+  50%  { transform: translate(60px, -100px)  rotate(-270deg) scale(0.8); opacity: 1; }
+  80%  { transform: translate(180px, -180px) rotate(-450deg) scale(0.4); opacity: 0.6; }
+  100% { transform: translate(320px, -260px) rotate(-600deg) scale(0.1); opacity: 0; }
+}
+
+.cm-big-body {
+  position: relative;
+  width: 80px; height: 95px;
+  background: #c51111;
+  border-radius: 40px 40px 16px 16px;
+}
+
+.cm-big-visor {
+  position: absolute;
+  top: 18px; left: 10px;
+  width: 50px; height: 30px;
+  background: #93d6e9;
+  border-radius: 10px;
+  box-shadow: inset 0 4px 8px rgba(0,0,0,0.25);
+}
+
+.cm-big-bp {
+  position: absolute;
+  top: 22px; right: -20px;
+  width: 22px; height: 36px;
+  background: #a00000;
+  border-radius: 8px;
+}
+
+.cm-big-legs {
+  display: flex; gap: 10px;
+  margin-top: 3px;
+}
+
+.cm-big-leg {
+  width: 24px; height: 24px;
+  background: #c51111;
+  border-radius: 0 0 10px 10px;
+}
+
+/* ── Texte éjection ── */
+.ej-name {
+  font-size: 2rem; font-weight: 800;
+  color: #ffffff;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  animation: fadeSlideUp 0.5s 0.4s ease both;
+}
+
+.ej-msg {
+  font-size: 1.1rem; font-weight: 500;
+  color: rgba(255, 180, 180, 0.9);
+  animation: fadeSlideUp 0.5s 0.65s ease both;
+}
+
+.ej-sub {
+  font-size: 0.78rem; color: rgba(255,255,255,0.35);
+  animation: fadeSlideUp 0.5s 1.2s ease both;
+}
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

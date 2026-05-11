@@ -10,8 +10,9 @@ public class UtilisateurResponse
     private String lastname;
     private String firstname;
     private Role role;
+    private boolean suspended;
 
-    public static UtilisateurResponse convert(Utilisateur u) 
+    public static UtilisateurResponse convert(Utilisateur u)
     {
         UtilisateurResponse resp = new UtilisateurResponse();
         resp.setId(u.getId());
@@ -19,6 +20,7 @@ public class UtilisateurResponse
         resp.setLastname(u.getLastname());
         resp.setFirstname(u.getFirstname());
         resp.setRole(u.getRole());
+        resp.setSuspended(u.isSuspended());
         return resp;
     }
 
@@ -36,4 +38,7 @@ public class UtilisateurResponse
 
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
+
+    public boolean isSuspended() { return suspended; }
+    public void setSuspended(boolean suspended) { this.suspended = suspended; }
 }

@@ -103,13 +103,23 @@ public class UtilisateurController {
         this.daoUtilisateur.save(user);
     }
 
-    @DeleteMapping("/{id}")
+    @PatchMapping("/{id}/suspend")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(@PathVariable int id) {
-        if (!this.daoUtilisateur.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        this.daoUtilisateur.deleteById(id);
+    public void suspendUser(@PathVariable int id) {
+        Utilisateur user = this.daoUtilisateur.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        user.setSuspended(true);
+        this.daoUtilisateur.save(user);
+    }
+
+    @PatchMapping("/{id}/reinstate")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasRole('ADMIN')")
+    public void reinstateUser(@PathVariable int id) {
+        Utilisateur user = this.daoUtilisateur.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        user.setSuspended(false);
+        this.daoUtilisateur.save(user);
     }
 }

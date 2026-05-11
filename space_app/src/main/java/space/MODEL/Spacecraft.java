@@ -34,6 +34,9 @@ public abstract class Spacecraft
     @Column(name = "available")
     private boolean available = true;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String image;
+
     /**
      * Retourne le type enum du spacecraft, dérivé de la valeur discriminante JPA.
      * Non persisté — calculé à partir de la colonne discriminante par la sous-classe.
@@ -102,6 +105,10 @@ public abstract class Spacecraft
     public boolean isAvailable() { return available; }
 
     public void setAvailable(boolean available) { this.available = available; }
+
+    public String getImage() { return image; }
+
+    public void setImage(String image) { this.image = image; }
 
     // ——— Factory method to get rigt instance without instanciating abstract class (not possible) —————————————
 

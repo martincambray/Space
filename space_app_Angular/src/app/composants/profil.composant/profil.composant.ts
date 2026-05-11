@@ -152,16 +152,40 @@ export class ProfilComposant implements OnInit {
     }
   }
 
-  protected confirmDeleteUser(id: number): void {
-    if (id === this.user()?.id) {
-      alert('Vous ne pouvez pas supprimer votre propre compte.');
-      return;
-    }
-    if (!confirm('Supprimer cet utilisateur ?')) return;
-    this.utilisateurService.delete(id).subscribe({
-      next: () => this.users.update(list => list.filter(u => u.id !== id)),
-      error: () => alert('Erreur lors de la suppression.')
+  protected ejectedUser = signal<UtilisateurModel | null>(null);
+
+  protected ejectUser(u: UtilisateurModel): void {
+    if (u.id === this.user()?.id) return;
+    // Son joué immédiatement dans le contexte du clic (geste utilisateur direct)
+    // — les navigateurs bloquent l'autoplay dans les callbacks async
+    this.playEjectionSound();
+    this.utilisateurService.suspend(u.id).subscribe({
+      next: () => {
+        this.users.update(list => list.map(x => x.id === u.id ? { ...x, suspended: true } : x));
+        this.ejectedUser.set(u);
+        setTimeout(() => this.ejectedUser.set(null), 4200);
+      },
+      error: () => alert('Erreur lors de l\'éjection.')
     });
+  }
+
+  protected reinstateUser(id: number): void {
+    this.utilisateurService.reinstate(id).subscribe({
+      next: () => this.users.update(list => list.map(u => u.id === id ? { ...u, suspended: false } : u)),
+      error: () => alert('Erreur lors de la réintégration.')
+    });
+  }
+
+  protected dismissEjection(): void {
+    this.ejectedUser.set(null);
+  }
+
+  private playEjectionSound(): void {
+    try {
+      const audio = new Audio('/sounds/ejected.mp3');
+      audio.volume = 0.8;
+      audio.play().catch(() => { /* autoplay bloqué par le navigateur */ });
+    } catch (_) { /* Audio non disponible */ }
   }
 
   protected isEditingSelf(id: number): boolean {

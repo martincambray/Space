@@ -32,4 +32,5 @@ export interface CreateSpacecraftRequest {
   type: string;
   batteryMax: number;
   fuelCapacity: number;
+  image?: string | null;
 }

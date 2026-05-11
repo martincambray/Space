@@ -37,6 +37,11 @@
     <button class="tool-btn tool-btn-large tool-btn-green"
             (click)="launch()">Lancer</button>
 
+    @if (hasMission()) {
+      <button class="tool-btn tool-btn-large tool-btn-purple"
+              (click)="cancel()">Quitter</button>
+    }
+
     <button class="tool-btn tool-btn-large tool-btn-blue"
             [disabled]="!hasMission()"
             (click)="actions()">Actions</button>

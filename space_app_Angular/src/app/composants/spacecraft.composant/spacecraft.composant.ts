@@ -21,9 +21,10 @@ export class SpacecraftComposant implements OnInit {
   protected me          = signal<{ role: string } | null>(null);
   protected isAdmin     = computed(() => this.me()?.role === 'ADMIN');
 
-  protected showModal   = signal(false);
-  protected editingId   = signal<number | null>(null);
-  protected modalError  = signal('');
+  protected showModal    = signal(false);
+  protected editingId    = signal<number | null>(null);
+  protected modalError   = signal('');
+  protected imagePreview = signal<string | null>(null);
 
   protected form!:        FormGroup;
   protected nameCtrl!:    FormControl;
@@ -60,6 +61,7 @@ export class SpacecraftComposant implements OnInit {
   protected openCreate(): void {
     this.editingId.set(null);
     this.form.reset();
+    this.imagePreview.set(null);
     this.modalError.set('');
     this.showModal.set(true);
   }
@@ -73,12 +75,26 @@ export class SpacecraftComposant implements OnInit {
       batteryMax:   sc.batteryMax,
       fuelCapacity: sc.fuelCapacity,
     });
+    this.imagePreview.set(sc.image ?? null);
     this.modalError.set('');
     this.showModal.set(true);
   }
 
   protected closeModal(): void {
     this.showModal.set(false);
+    this.imagePreview.set(null);
+  }
+
+  protected onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const reader = new FileReader();
+    reader.onload = () => this.imagePreview.set(reader.result as string);
+    reader.readAsDataURL(input.files[0]);
+  }
+
+  protected clearImage(): void {
+    this.imagePreview.set(null);
   }
 
   protected submitModal(): void {
@@ -91,6 +107,7 @@ export class SpacecraftComposant implements OnInit {
       type:         raw.type,
       batteryMax:   +raw.batteryMax,
       fuelCapacity: +raw.fuelCapacity,
+      image:        this.imagePreview(),
     };
     const id = this.editingId();
     const op = id
@@ -98,7 +115,7 @@ export class SpacecraftComposant implements OnInit {
       : this.spacecraftService.create(request);
 
     op.subscribe({
-      next: () => { this.load(); this.showModal.set(false); },
+      next: () => { this.load(); this.showModal.set(false); this.imagePreview.set(null); },
       error: () => this.modalError.set('Erreur lors de la sauvegarde.')
     });
   }

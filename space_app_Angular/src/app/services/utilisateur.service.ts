@@ -29,8 +29,12 @@ export class UtilisateurService {
     return this.http.put<void>(`/api/utilisateur/${id}`, request);
   }
 
-  public delete(id: number): Observable<void> {
-    return this.http.delete<void>(`/api/utilisateur/${id}`);
+  public suspend(id: number): Observable<void> {
+    return this.http.patch<void>(`/api/utilisateur/${id}/suspend`, {});
+  }
+
+  public reinstate(id: number): Observable<void> {
+    return this.http.patch<void>(`/api/utilisateur/${id}/reinstate`, {});
   }
 }
 
