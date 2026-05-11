@@ -36,6 +36,49 @@ export class CelestialBodyComposant implements OnInit {
   protected coordXCtrl!:    FormControl;
   protected coordYCtrl!:    FormControl;
 
+  private readonly DESCRIPTIONS: Record<string, { text: string; tags: string[] }> = {
+    'Soleil': {
+      text: 'Étoile de type G au cœur du Système solaire. Sa fusion nucléaire produit l\'énergie qui rend la vie possible sur Terre. Sa masse représente 99,86 % de la masse totale du Système solaire.',
+      tags: ['Étoile G', 'Fusion H→He', '~4,6 Ga', 'T≈5 778 K'],
+    },
+    'Mercure': {
+      text: 'Plus petite planète et la plus proche du Soleil. Dépourvue d\'atmosphère significative, elle connaît des écarts de température extrêmes entre le jour (+430 °C) et la nuit (-180 °C). Sa surface cratérisée rappelle la Lune.',
+      tags: ['Rocheuse', 'Sans atmosphère', 'Excentricité élevée'],
+    },
+    'Vénus': {
+      text: 'Planète la plus chaude du Système solaire malgré sa distance au Soleil, en raison d\'un effet de serre extrême (CO₂ à 96 %). Tourne dans le sens rétrograde, son jour est plus long que son année.',
+      tags: ['Rocheuse', 'Effet de serre', '+462 °C', 'Rétrograde'],
+    },
+    'Terre': {
+      text: 'Seule planète connue abritant la vie. Son atmosphère azote-oxygène, son eau liquide en surface et sa magnétosphère en font un cas unique. La tectonique des plaques recycle continuellement sa croûte.',
+      tags: ['Rocheuse', 'Vie', 'Eau liquide', 'Magnétosphère'],
+    },
+    'Lune': {
+      text: 'Unique satellite naturel de la Terre, formé il y a ~4,5 Ga lors d\'une collision géante. Son influence gravitationnelle stabilise l\'axe de rotation terrestre et génère les marées océaniques.',
+      tags: ['Satellite', 'Impact géant', 'Marées', 'Synchrone'],
+    },
+    'Mars': {
+      text: 'La planète rouge doit sa couleur à l\'oxyde de fer de son sol. Elle abrite Olympus Mons, le plus grand volcan du Système solaire (21 km), et une atmosphère ténue de CO₂. Cible prioritaire de l\'exploration humaine.',
+      tags: ['Rocheuse', 'CO₂', 'Olympus Mons', 'Exploration'],
+    },
+    'Jupiter': {
+      text: 'Plus grande planète du Système solaire — 1 300 Terres y tiendraient. Sa Grande Tache Rouge est un anticyclone actif depuis au moins 350 ans. Son champ magnétique, 14× celui de la Terre, piège des ceintures de radiation intenses.',
+      tags: ['Géante gazeuse', 'H/He', 'Grande Tache Rouge', '95 lunes'],
+    },
+    'Saturne': {
+      text: 'Célèbre pour ses anneaux spectaculaires composés de glace et de roche. La moins dense des planètes (elle flotterait sur l\'eau). Titan, sa plus grande lune, possède une atmosphère dense et des lacs d\'hydrocarbures.',
+      tags: ['Géante gazeuse', 'Anneaux', 'Titan', 'ρ < eau'],
+    },
+    'Uranus': {
+      text: 'Planète de glace avec un axe d\'inclinaison de 97,8° — elle orbite quasi couchée. Composée principalement d\'eau, d\'ammoniac et de méthane glacés. Première planète découverte au télescope (Herschel, 1781).',
+      tags: ['Géante de glace', 'CH₄', '97,8° inclinaison', '27 lunes'],
+    },
+    'Neptune': {
+      text: 'Planète la plus éloignée du Soleil, détectée par calcul avant d\'être observée. Vents les plus violents du Système solaire (2 100 km/h). Triton, sa grande lune, orbite en sens inverse — probablement capturée.',
+      tags: ['Géante de glace', '2 100 km/h', 'Triton rétrograde', '164 ans/orbite'],
+    },
+  };
+
   private readonly COLORS: Record<string, string> = {
     'Soleil':   '#ffd700',
     'Mercure':  '#a9a9a9',
@@ -175,5 +218,9 @@ export class CelestialBodyComposant implements OnInit {
     if (d == null || d === 0) return '—';
     if (d >= 1e6) return (d / 1e6).toFixed(2) + ' M km';
     return (d / 1000).toFixed(0) + ' k km';
+  }
+
+  protected planetDesc(name: string): { text: string; tags: string[] } {
+    return this.DESCRIPTIONS[name] ?? { text: 'Corps céleste du Système solaire.', tags: [] };
   }
 }

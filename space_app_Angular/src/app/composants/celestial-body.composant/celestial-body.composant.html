@@ -25,6 +25,17 @@
       @for (body of bodies(); track body.id) {
         <div class="card">
 
+          <!-- Overlay description au survol -->
+          <div class="card-desc">
+            <div class="card-desc-title">{{ body.name }}</div>
+            <p class="card-desc-text">{{ planetDesc(body.name).text }}</p>
+            <div class="card-desc-tags">
+              @for (tag of planetDesc(body.name).tags; track tag) {
+                <span class="card-desc-tag">{{ tag }}</span>
+              }
+            </div>
+          </div>
+
           <div class="card-visual">
             @if (body.image) {
               <img class="planet-img" [src]="body.image" [alt]="body.name" />

@@ -336,6 +336,8 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
   }
 
   // ─── Rendu d'un corps avec image + détourage ───────────────────────────────
+  // Fondu appliqué DANS le clip (noir → transparent du bord vers l'intérieur)
+  // → indépendant de la couleur du canvas, élimine tout artefact JPEG.
 
   private drawBodyWithImage(px: number, py: number, r: number, img: HTMLImageElement): void {
     this.ctx.save();
@@ -348,24 +350,22 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     // Image
     this.ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
 
+    // Fondu bord intérieur : masque noir aux ~15% du bord
+    const edge = this.ctx.createRadialGradient(px, py, r * 0.84, px, py, r);
+    edge.addColorStop(0, 'transparent');
+    edge.addColorStop(1, 'rgba(0,0,0,0.98)');
+    this.ctx.fillStyle = edge;
+    this.ctx.fillRect(px - r, py - r, r * 2, r * 2);
+
     // Ombre intérieure (côté nuit)
     const shadow = this.ctx.createRadialGradient(px - r * 0.3, py - r * 0.3, r * 0.1, px, py, r);
     shadow.addColorStop(0,   'transparent');
-    shadow.addColorStop(0.6, 'transparent');
-    shadow.addColorStop(1,   'rgba(0,0,0,0.55)');
+    shadow.addColorStop(0.55, 'transparent');
+    shadow.addColorStop(1,   'rgba(0,0,0,0.5)');
     this.ctx.fillStyle = shadow;
     this.ctx.fillRect(px - r, py - r, r * 2, r * 2);
 
     this.ctx.restore();
-
-    // Anneau de fondu sur le bord (élimine l'artefact JPEG) — HORS clip
-    const edge = this.ctx.createRadialGradient(px, py, r * 0.88, px, py, r + 1);
-    edge.addColorStop(0, 'transparent');
-    edge.addColorStop(1, this.BG_COLOR);
-    this.ctx.beginPath();
-    this.ctx.arc(px, py, r + 1, 0, Math.PI * 2);
-    this.ctx.fillStyle = edge;
-    this.ctx.fill();
   }
 
   // ─── Rendu gradient (fallback sans image) ─────────────────────────────────
