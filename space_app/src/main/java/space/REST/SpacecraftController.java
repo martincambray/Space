@@ -47,6 +47,7 @@ public class SpacecraftController {
         sc.setDescription(request.getDescription());
         sc.setBatteryMax(request.getBatteryMax());
         sc.setFuelCapacity(request.getFuelCapacity());
+        sc.setImage(request.getImage());
         return SpacecraftResponse.convert(this.daoSpacecraft.save(sc));
     }
 
@@ -59,6 +60,7 @@ public class SpacecraftController {
         sc.setDescription(request.getDescription());
         sc.setBatteryMax(request.getBatteryMax());
         sc.setFuelCapacity(request.getFuelCapacity());
+        sc.setImage(request.getImage());
         return SpacecraftResponse.convert(this.daoSpacecraft.save(sc));
     }
 

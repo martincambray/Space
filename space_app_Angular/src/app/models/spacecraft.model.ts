@@ -6,4 +6,5 @@ export interface SpacecraftModel {
   batteryMax: number;
   fuelCapacity: number;
   available: boolean;
+  image: string | null;
 }

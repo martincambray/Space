@@ -427,3 +427,68 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ── Spacecraft image in card ── */
+.spacecraft-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Image upload in modal ── */
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 80px;
+  border: 2px dashed rgba(0, 240, 255, 0.35);
+  border-radius: 8px;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.85rem;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.upload-zone:hover {
+  border-color: #00f0ff;
+  color: #00f0ff;
+}
+
+.upload-zone i {
+  font-size: 1.6rem;
+}
+
+.img-preview-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.img-preview {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 240, 255, 0.3);
+}
+
+.clear-img-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 60, 60, 0.1);
+  border: 1px solid rgba(255, 60, 60, 0.4);
+  color: #ff6b6b;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.clear-img-btn:hover {
+  background: rgba(255, 60, 60, 0.25);
+}

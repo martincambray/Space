@@ -2,6 +2,7 @@ import { Component, ElementRef, OnDestroy, AfterViewInit, ViewChild, inject } fr
 import { SpaceObject } from '../../models/space-object.model';
 import { CelestialBodyService } from '../../services/celestial-body.service';
 import { CelestialBodyModel } from '../../models/celestial-body.model';
+import { MissionModel } from '../../models/mission.model';
 
 @Component({
   selector: 'app-simulation',
@@ -32,6 +33,10 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
 
   private bodies: CelestialBodyModel[] = [];
   private planetImages = new Map<string, HTMLImageElement>();
+
+  // Mission sélectionnée par l'utilisateur depuis le menu
+  private displayedMission: MissionModel | null = null;
+  private spacecraftImg: HTMLImageElement | null = null;
 
   // Angle (radians) pour chaque corps, indexé par body.id
   private angles = new Map<number, number>();
@@ -111,6 +116,18 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
         this.planetImages.set(b.name, img);
       }
     });
+  }
+
+  /** Appelé par le MenuComposant quand l'utilisateur sélectionne ou désélectionne une mission. */
+  public displayMission(mission: MissionModel | null, spacecraftImageBase64: string | null): void {
+    this.displayedMission = mission;
+    if (mission && spacecraftImageBase64) {
+      const img = new Image();
+      img.src = spacecraftImageBase64;
+      this.spacecraftImg = img;
+    } else {
+      this.spacecraftImg = null;
+    }
   }
 
   // ─── Scale visuelle ────────────────────────────────────────────────────────
@@ -368,6 +385,9 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
       this.ctx.fill();
     });
 
+    // Missions EN_COURS — icône du spacecraft entre corps de départ et d'arrivée
+    this.drawActiveMissions();
+
     this.drawHoverTooltip();
   }
 
@@ -422,6 +442,80 @@ export class SimulationComponent implements AfterViewInit, OnDestroy {
     this.ctx.arc(px, py, r, 0, Math.PI * 2);
     this.ctx.fillStyle = g;
     this.ctx.fill();
+  }
+
+  // ─── Missions actives ──────────────────────────────────────────────────────
+
+  private drawActiveMissions(): void {
+    const mission = this.displayedMission;
+    if (!mission) return;
+
+    const dep = this.drawnBodies.find(b => b.name === mission.departureBodyName);
+    const arr = this.drawnBodies.find(b => b.name === mission.arrivalBodyName);
+    if (!dep || !arr) return;
+
+    // Position : milieu de la trajectoire
+    const mx = (dep.x + arr.x) / 2;
+    const my = (dep.y + arr.y) / 2;
+    const r  = 10;
+
+    // Ligne de trajectoire pointillée
+    this.ctx.save();
+    this.ctx.setLineDash([4, 6]);
+    this.ctx.strokeStyle = 'rgba(0,240,255,0.35)';
+    this.ctx.lineWidth = 1;
+    this.ctx.beginPath();
+    this.ctx.moveTo(dep.x, dep.y);
+    this.ctx.lineTo(arr.x, arr.y);
+    this.ctx.stroke();
+    this.ctx.restore();
+
+    // Icône spacecraft
+    const img = this.spacecraftImg;
+    if (img?.complete && img.naturalWidth > 0) {
+      this.drawSpacecraftIcon(mx, my, r, img);
+    } else {
+      this.drawRocketFallback(mx, my, r);
+    }
+
+    // Label
+    this.ctx.font = '500 11px Inter, sans-serif';
+    this.ctx.fillStyle = 'rgba(0,240,255,0.9)';
+    this.ctx.fillText(mission.spacecraftName, mx + r + 4, my + 4);
+  }
+
+  /** Dessine l'image du spacecraft clippée en cercle, sans ombre nuit (objet artificiel). */
+  private drawSpacecraftIcon(px: number, py: number, r: number, img: HTMLImageElement): void {
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(px, py, r, 0, Math.PI * 2);
+    this.ctx.clip();
+    this.ctx.drawImage(img, px - r, py - r, r * 2, r * 2);
+    // Bordure cyan
+    this.ctx.restore();
+    this.ctx.beginPath();
+    this.ctx.arc(px, py, r, 0, Math.PI * 2);
+    this.ctx.strokeStyle = 'rgba(0,240,255,0.8)';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.stroke();
+  }
+
+  /** Fallback : cercle cyan avec icône rocket (Unicode). */
+  private drawRocketFallback(px: number, py: number, r: number): void {
+    this.ctx.save();
+    this.ctx.beginPath();
+    this.ctx.arc(px, py, r, 0, Math.PI * 2);
+    this.ctx.fillStyle = 'rgba(0,30,60,0.9)';
+    this.ctx.fill();
+    this.ctx.strokeStyle = 'rgba(0,240,255,0.8)';
+    this.ctx.lineWidth = 1.5;
+    this.ctx.stroke();
+    this.ctx.font = `${r}px sans-serif`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+    this.ctx.fillStyle = '#00f0ff';
+    this.ctx.fillText('🚀', px, py);
+    this.ctx.restore();
   }
 
   // ─── Tooltip survol ────────────────────────────────────────────────────────

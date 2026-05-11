@@ -12,6 +12,7 @@ public class SpacecraftResponse
     private Double batteryMax;
     private Double fuelCapacity;
     private boolean available;
+    private String image;
 
     public static SpacecraftResponse convert(Spacecraft s) 
     {
@@ -23,6 +24,7 @@ public class SpacecraftResponse
         resp.setBatteryMax(s.getBatteryMax());
         resp.setFuelCapacity(s.getFuelCapacity());
         resp.setAvailable(s.isAvailable());
+        resp.setImage(s.getImage());
         return resp;
     }
 
@@ -53,4 +55,7 @@ public class SpacecraftResponse
 
     public boolean isAvailable() { return available; }
     public void setAvailable(boolean available) { this.available = available; }
+
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 }

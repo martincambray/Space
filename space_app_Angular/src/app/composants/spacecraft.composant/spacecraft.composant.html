@@ -26,9 +26,13 @@
         <div class="card" [class.unavailable]="!sc.available">
 
           <div class="card-visual">
-            <div class="spacecraft-icon">
-              <i class='bx bx-rocket'></i>
-            </div>
+            @if (sc.image) {
+              <img class="spacecraft-img" [src]="sc.image" [alt]="sc.name" />
+            } @else {
+              <div class="spacecraft-icon">
+                <i class='bx bx-rocket'></i>
+              </div>
+            }
             @if (!sc.available) {
               <span class="status-overlay">En mission</span>
             }
@@ -121,6 +125,24 @@
             <label>Carburant (kg) *</label>
             <input type="number" formControlName="fuelCapacity" placeholder="ex : 20000" min="1" />
           </div>
+        </div>
+
+        <div class="form-group">
+          <label>Image</label>
+          @if (imagePreview()) {
+            <div class="img-preview-wrap">
+              <img class="img-preview" [src]="imagePreview()!" alt="Aperçu" />
+              <button type="button" class="clear-img-btn" (click)="clearImage()">
+                <i class='bx bx-x'></i> Supprimer
+              </button>
+            </div>
+          } @else {
+            <label class="upload-zone" for="scImgInput">
+              <i class='bx bx-image-add'></i>
+              <span>Choisir une image</span>
+            </label>
+            <input id="scImgInput" type="file" accept="image/*" (change)="onImageSelected($event)" hidden />
+          }
         </div>
 
         @if (modalError()) {

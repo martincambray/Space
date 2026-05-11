@@ -21,6 +21,8 @@ public class CreateOrUpdateSpacecraftRequest
     @NotNull(message = "Le type de spacecraft est obligatoire")
     private SPACECRAFT_TYPE type;
 
+    private String image;
+
     public SPACECRAFT_TYPE getType() { return type; }
     public void setType(SPACECRAFT_TYPE type) { this.type = type; }
     public String getName() { return name; }
@@ -31,4 +33,6 @@ public class CreateOrUpdateSpacecraftRequest
     public void setBatteryMax(Double batteryMax) { this.batteryMax = batteryMax; }
     public Double getFuelCapacity() { return fuelCapacity; }
     public void setFuelCapacity(Double fuelCapacity) { this.fuelCapacity = fuelCapacity; }
+    public String getImage() { return image; }
+    public void setImage(String image) { this.image = image; }
 }

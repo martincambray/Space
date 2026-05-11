@@ -203,12 +203,15 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     this.scBatteryMax.set(sc?.batteryMax ?? 100);
     this.scFuelMax.set(sc?.fuelCapacity ?? 1000);
     this.updateGauges();
+    // Afficher le spacecraft dans la simulation
+    this.simulation.displayMission(m, sc?.image ?? null);
   }
 
   protected cancel(): void {
     this.activeMission.set(null);
     this.batteryPct.set(100);
     this.fuelPct.set(100);
+    this.simulation.displayMission(null, null);
   }
 
   protected missionStatusLabel(m: MissionModel): string {
