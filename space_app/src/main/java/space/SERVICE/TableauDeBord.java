@@ -189,7 +189,7 @@ public class TableauDeBord {
         } else {
             // Cache miss : calcul complet depuis les conditions initiales de la mission
             //TODO : DECOMMENTER MLA PARTIE D4EN DESSOUS
-            //double[] ic = mission.getInitialConditions();
+            /*double[] ic = mission.getInitialConditions();
             Orbit newOrbit = moteurPhysique.eulerOrbitInit(
                     ic[0],  // x0
                     ic[1],  // y0
@@ -197,7 +197,8 @@ public class TableauDeBord {
                     ic[3]   // vy0
             );
 
-            orbitCache.put(missionId, newOrbit);
+            orbitCache.put(missionId, newOrbit);*/
+            Orbit newOrbit = null;
             return newOrbit;
         }
     }
