@@ -4,6 +4,11 @@ import java.util.LinkedHashMap;
 
 public class Orbit {
 
+    // Pas de temps effectif utilisé lors de l'intégration (s).
+    // Peut différer du dt global (60 s) pour les missions à longue durée (Jupiter, Saturne…).
+    // Propagé jusqu'au frontend via TrajectoryPointsResponse pour que l'animation soit correcte.
+    private double dtEffective = 60.0;
+
     // step index → [x, y] en mètres
     private LinkedHashMap<Integer, double[]> trajectoire;
 
@@ -18,6 +23,9 @@ public class Orbit {
         this.vectorSpeed = new LinkedHashMap<>();
         this.vectorAccel = new LinkedHashMap<>();
     }
+
+    public double getDtEffective() { return dtEffective; }
+    public void setDtEffective(double dtEffective) { this.dtEffective = dtEffective; }
 
     public LinkedHashMap<Integer, double[]> getTrajectoire() { return trajectoire; }
     public void setTrajectoire(LinkedHashMap<Integer, double[]> trajectoire) { this.trajectoire = trajectoire; }

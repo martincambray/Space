@@ -124,13 +124,15 @@
 
       @for (m of pickableMissions(); track m.id) {
         <div class="mission-row" [class.row-active]="m.id === activeMission()?.id"
+             [class.row-missed]="isMissedWindow(m)"
              (click)="selectMission(m)">
           <div class="mission-row-main">
             <span class="mission-row-name">{{ m.name }}</span>
             <span class="mission-row-badge"
-                  [class.badge-planned]="m.status === 'PLANNED'"
+                  [class.badge-planned]="m.status === 'PLANNED' && !isMissedWindow(m)"
+                  [class.badge-missed]="isMissedWindow(m)"
                   [class.badge-progress]="m.status === 'IN_PROGRESS'">
-              {{ missionStatusLabel(m) }}
+              {{ isMissedWindow(m) ? 'Fenêtre dépassée' : missionStatusLabel(m) }}
             </span>
           </div>
           <div class="mission-row-meta">

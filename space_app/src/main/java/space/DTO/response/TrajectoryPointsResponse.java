@@ -55,8 +55,8 @@ public class TrajectoryPointsResponse {
         double stride = (double) all.size() / count;
 
         for (int i = 0; i < count; i++) {
-            int idx = (int) Math.round(i * stride);
-            if (idx >= all.size()) idx = all.size() - 1;
+            // Forcer le dernier point à être le dernier élément réel de l'orbite
+            int idx = (i == count - 1) ? all.size() - 1 : (int) Math.round(i * stride);
             sampled.add(all.get(idx));
         }
 

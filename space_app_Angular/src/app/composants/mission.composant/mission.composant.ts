@@ -1,4 +1,5 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MissionService, CreateMissionRequest } from '../../services/mission.service';
@@ -75,6 +76,33 @@ export class MissionComposant implements OnInit {
 
   protected isAdmin = computed(() => this.me()?.role === 'ADMIN');
 
+  /**
+   * Seuil en km en-dessous duquel un corps est considéré géocentrique (Lune…).
+   * La Lune : ~384 400 km. Mercure (plus proche planète) : ~57 900 000 km.
+   * On pose le seuil à 5 000 000 km — largement au-dessus de la Lune, loin sous Mercure.
+   */
+  private readonly GEOCENTRIC_THRESHOLD_KM = 5_000_000;
+  private readonly destroyRef = inject(DestroyRef);
+
+  /** Id du corps de départ sélectionné (signal mis à jour via valueChanges). */
+  private selectedDepartureId = signal<number>(0);
+
+  /** Corps disponibles en départ : exclut les corps géocentriques (Lune…). */
+  protected departureBodies = computed(() =>
+    this.bodies().filter(b =>
+      b.orbitalRadius != null && b.orbitalRadius >= this.GEOCENTRIC_THRESHOLD_KM
+    )
+  );
+
+  /** Corps disponibles en arrivée : exclut géocentriques + corps de départ sélectionné. */
+  protected arrivalBodies = computed(() => {
+    const depId = this.selectedDepartureId();
+    return this.bodies().filter(b =>
+      b.id !== depId &&
+      (b.orbitalRadius == null || b.orbitalRadius === 0 || b.orbitalRadius >= this.GEOCENTRIC_THRESHOLD_KM)
+    );
+  });
+
   protected form!: FormGroup;
   protected nameCtrl!:          FormControl;
   protected spacecraftIdCtrl!:  FormControl;
@@ -96,6 +124,18 @@ export class MissionComposant implements OnInit {
     this.departureCtrl     = this.formBuilder.control('', Validators.required);
     this.arrivalCtrl       = this.formBuilder.control('', Validators.required);
     this.departureDateCtrl = this.formBuilder.control('', Validators.required);
+
+    this.departureCtrl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(val => {
+        this.selectedDepartureId.set(+(val ?? 0));
+        // Réinitialise l'arrivée si elle n'est plus valide après changement de départ
+        const arrVal = +(this.arrivalCtrl.value ?? 0);
+        if (arrVal && arrVal === +(val ?? 0)) {
+          this.arrivalCtrl.reset('');
+        }
+      });
+
     this.form = this.formBuilder.group({
       name:            this.nameCtrl,
       spacecraftId:    this.spacecraftIdCtrl,
@@ -160,6 +200,17 @@ export class MissionComposant implements OnInit {
     if (this.form.invalid) return;
     this.formError.set('');
     const raw = this.form.getRawValue();
+
+    if (+raw.departureBodyId === +raw.arrivalBodyId) {
+      this.formError.set('Le corps de départ et d\'arrivée ne peuvent pas être identiques.');
+      return;
+    }
+    const arrBody = this.bodies().find(b => b.id === +raw.arrivalBodyId);
+    if (arrBody?.orbitalRadius != null && arrBody.orbitalRadius > 0 &&
+        arrBody.orbitalRadius < this.GEOCENTRIC_THRESHOLD_KM) {
+      this.formError.set('Ce corps de destination n\'est pas accessible (orbite géocentrique).');
+      return;
+    }
     const request: CreateMissionRequest = {
       name:            raw.name.trim(),
       spacecraftId:    +raw.spacecraftId,

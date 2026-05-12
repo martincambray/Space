@@ -171,7 +171,9 @@ public class Mission {
             }
         }
 
-        return new double[]{ x0, y0, 0.0, v0 };
+        // Direction tangentielle à partir de la position post-offset
+        double r_pos = Math.sqrt(x0 * x0 + y0 * y0);
+        return new double[]{ x0, y0, -(y0 / r_pos) * v0, (x0 / r_pos) * v0 };
     }
 
     // -------------------------------------------------------------------------

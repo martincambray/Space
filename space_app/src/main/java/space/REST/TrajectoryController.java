@@ -69,6 +69,6 @@ public class TrajectoryController {
     public TrajectoryPointsResponse getPoints(@PathVariable int missionId,
                                               @RequestParam(defaultValue = "500") int n) {
         Orbit orbit = tableauDeBord.getTrajectory(missionId);
-        return TrajectoryPointsResponse.sample(missionId, orbit, n, tableauDeBord.getDt());
+        return TrajectoryPointsResponse.sample(missionId, orbit, n, orbit.getDtEffective());
     }
 }
