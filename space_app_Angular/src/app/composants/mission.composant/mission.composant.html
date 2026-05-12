@@ -246,7 +246,7 @@
               <label>Corps de départ</label>
               <select formControlName="departureBodyId">
                 <option value="">-- choisir --</option>
-                @for (b of bodies(); track b.id) {
+                @for (b of departureBodies(); track b.id) {
                   <option [value]="b.id">{{ b.name }}</option>
                 }
               </select>
@@ -255,7 +255,7 @@
               <label>Corps d'arrivée</label>
               <select formControlName="arrivalBodyId">
                 <option value="">-- choisir --</option>
-                @for (b of bodies(); track b.id) {
+                @for (b of arrivalBodies(); track b.id) {
                   <option [value]="b.id">{{ b.name }}</option>
                 }
               </select>

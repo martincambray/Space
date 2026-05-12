@@ -246,6 +246,9 @@
 .mission-row-badge { font-size: 0.72rem; font-weight: 600; padding: 2px 10px; border-radius: 20px; }
 .badge-planned  { background: rgba(255,200,0,0.12); border: 1px solid rgba(255,200,0,0.5); color: #ffcc00; }
 .badge-progress { background: rgba(0,240,255,0.12); border: 1px solid rgba(0,240,255,0.5); color: #00f0ff; }
+.badge-missed   { background: rgba(255,100,0,0.12); border: 1px solid rgba(255,100,0,0.5); color: #ff7020; }
+.mission-row.row-missed { border-color: rgba(255,100,0,0.3); }
+.mission-row.row-missed:hover { border-color: rgba(255,100,0,0.6); background: rgba(255,100,0,0.06); }
 
 .mission-row-meta, .mission-row-sub {
   font-size: 0.8rem; color: rgba(255,255,255,0.5);

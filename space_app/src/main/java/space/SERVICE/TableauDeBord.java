@@ -13,8 +13,8 @@ import space.MODEL.*;
 
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Orchestrateur central de la simulation.
@@ -36,7 +36,7 @@ public class TableauDeBord {
     // Peuplé lazily au premier POST /api/action pour une mission donnée.
     // Invalidé quand la mission passe en COMPLETED ou CANCELLED.
     // -------------------------------------------------------------------------
-    private static final Map<Integer, Orbit> orbitCache = new LinkedHashMap<>();
+    private static final Map<Integer, Orbit> orbitCache = new ConcurrentHashMap<>();
 
     private final ActionRegistry     actionRegistry;
     private final MoteurPhysique     moteurPhysique;
@@ -228,15 +228,36 @@ public class TableauDeBord {
             // Cache miss : calcul complet depuis les conditions initiales de la mission
             double[] ic = mission.getInitialConditions();
 
-            // Mission vers le Soleil (orbitalRadius == 0) → transfert + circularisation
-            CelestialBody arrivalBody = mission.getArrivalBody();
+            CelestialBody arrivalBody   = mission.getArrivalBody();
+            CelestialBody departureBody = mission.getDepartureBody();
+
+            // Mission vers le Soleil (orbitalRadius == 0 ou null) → transfert + circularisation
             boolean isSolarMission = arrivalBody != null
                     && (arrivalBody.getOrbitalRadius() == null
                         || arrivalBody.getOrbitalRadius() == 0.0);
 
-            Orbit newOrbit = isSolarMission
-                    ? moteurPhysique.eulerOrbitInitWithCircularization(ic[0], ic[1], ic[2], ic[3])
-                    : moteurPhysique.eulerOrbitInit(ic[0], ic[1], ic[2], ic[3]);
+            // Mission interplanétaire : corps d'arrivée distinct du départ, orbite solaire significative
+            // (exclut Lune et corps géocentriques dont orbitalRadius < 5 % de r_départ)
+            Double rDep = (departureBody != null) ? departureBody.getOrbitalRadius() : null;
+            Double rArr = (arrivalBody   != null) ? arrivalBody.getOrbitalRadius()   : null;
+            boolean isInterplanetaryTransfer = !isSolarMission
+                    && arrivalBody   != null
+                    && departureBody != null
+                    && arrivalBody.getId() != departureBody.getId()
+                    && rArr != null && rArr > 0
+                    && rDep != null && rArr >= rDep * 0.05;
+
+            Orbit newOrbit;
+            if (isSolarMission) {
+                newOrbit = moteurPhysique.eulerOrbitInitWithCircularization(ic[0], ic[1], ic[2], ic[3]);
+            } else if (isInterplanetaryTransfer) {
+                // Demi-ellipse de Hohmann (π radians) du corps de départ au corps d'arrivée
+                double rArrival_m = (rArr != null) ? rArr * 1000.0 : 0.0;
+                newOrbit = moteurPhysique.eulerOrbitInitTransfer(ic[0], ic[1], ic[2], ic[3], rArrival_m);
+            } else {
+                // Orbite circulaire complète (2π) : même corps départ/arrivée ou orbite locale
+                newOrbit = moteurPhysique.eulerOrbitInit(ic[0], ic[1], ic[2], ic[3]);
+            }
 
             orbitCache.put(missionId, newOrbit);
             return newOrbit;

@@ -239,6 +239,13 @@ export class MenuComposant implements AfterViewInit, OnDestroy {
     return m.status === 'PLANNED' ? 'Planifiée' : 'En cours';
   }
 
+  /** True si la mission est planifiée mais la date de départ est passée. */
+  protected isMissedWindow(m: MissionModel): boolean {
+    if (m.status !== 'PLANNED') return false;
+    const dep = Date.parse(m.departureDate);
+    return !isNaN(dep) && dep < Date.now();
+  }
+
   // ── Panel Actions spacecraft ──────────────────────────────────────────────
   protected actions(): void { this.showActionsPanel.set(true); }
   protected closeActionsPanel(): void {

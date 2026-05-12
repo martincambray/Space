@@ -50,49 +50,78 @@ public class MoteurPhysique {
 
     /**
      * Initialise une nouvelle Orbit en intégrant une révolution complète (2π).
-     * @param x0   position initiale X (m)
-     * @param y0   position initiale Y (m)
-     * @param vx0  vitesse initiale X (m/s)
-     * @param vy0  vitesse initiale Y (m/s)
+     * Adaptive dt : cible ~10 000 pas pour toute durée de mission.
      */
     public Orbit eulerOrbitInit(double x0, double y0, double vx0, double vy0) {
+        double r0 = Math.sqrt(x0 * x0 + y0 * y0);
+        double T_orbit = 2 * Math.PI * Math.sqrt(r0 * r0 * r0 / (G * M_SUN));
+        double adaptiveDt = Math.max(dt, T_orbit / 10_000.0);
+        double tMax = T_orbit * 1.5;
+
         double[] initialState = new double[]{x0, y0, vx0, vy0};
-        List<double[]> steps = integrate(initialState, 0.0, 2 * Math.PI);
-        return unpackStepsIntoOrbit(steps, new Orbit(), 0);
+        List<double[]> steps = integrate(initialState, 0.0, 2 * Math.PI, adaptiveDt, tMax);
+        Orbit orbit = unpackStepsIntoOrbit(steps, new Orbit(), 0);
+        orbit.setDtEffective(adaptiveDt);
+        return orbit;
+    }
+
+    /**
+     * Trajectoire de transfert de Hohmann — ellipse complète (2π radians).
+     * rArrival_m : rayon orbital de la planète d'arrivée en mètres (pour calibrer le tMax).
+     */
+    public Orbit eulerOrbitInitTransfer(double x0, double y0, double vx0, double vy0, double rArrival_m) {
+        double r0 = Math.sqrt(x0 * x0 + y0 * y0);
+        double rMax = Math.max(r0, rArrival_m);
+        double rMin = Math.min(r0, rArrival_m > 0 ? rArrival_m : r0);
+        double a = (rMax + rMin) / 2.0;
+        double T_full = 2 * Math.PI * Math.sqrt(a * a * a / (G * M_SUN));
+        double adaptiveDt = Math.max(dt, T_full / 10_000.0);
+        double tMax = T_full * 1.5;
+
+        double[] initialState = new double[]{x0, y0, vx0, vy0};
+        List<double[]> steps = integrate(initialState, 0.0, 2 * Math.PI, adaptiveDt, tMax);
+        Orbit orbit = unpackStepsIntoOrbit(steps, new Orbit(), 0);
+        orbit.setDtEffective(adaptiveDt);
+        return orbit;
     }
 
     /**
      * Trajectoire en deux phases pour une mission vers le Soleil :
      *  1. Transfert de Hohmann inward jusqu'au périhélie (π radians angulaires)
      *  2. Circularisation : vitesse circulaire appliquée au périhélie → orbite stable
-     *
-     * Le vaisseau suit la courbe d'approche puis reste en orbite rapide proche du Soleil.
      */
     public Orbit eulerOrbitInitWithCircularization(double x0, double y0, double vx0, double vy0) {
+        double r0 = Math.sqrt(x0 * x0 + y0 * y0);
+        // Demi-grand axe ≈ r0/2 (transfert vers le Soleil, périhélie ≈ 0)
+        double a = r0 / 2.0;
+        double T_transfer = Math.PI * Math.sqrt(a * a * a / (G * M_SUN)); // demi-période
+        double adaptiveDt = Math.max(dt, T_transfer / 5_000.0);
+        double tMaxTransfer = T_transfer * 2.0;
+
         Orbit orbit = new Orbit();
 
-        // Phase 1 : transfert inward jusqu'au périhélie (demi-ellipse = π)
-        List<double[]> transferSteps = integrate(new double[]{x0, y0, vx0, vy0}, 0.0, Math.PI);
+        List<double[]> transferSteps = integrate(new double[]{x0, y0, vx0, vy0}, 0.0, Math.PI, adaptiveDt, tMaxTransfer);
         unpackStepsIntoOrbit(transferSteps, orbit, 0);
 
-        if (transferSteps.isEmpty()) return orbit;
+        if (transferSteps.isEmpty()) { orbit.setDtEffective(adaptiveDt); return orbit; }
 
-        // État au périhélie
         double[] last = transferSteps.get(transferSteps.size() - 1);
         double xp = last[0], yp = last[1];
         double rp = Math.sqrt(xp * xp + yp * yp);
-        if (rp < 1.0) return orbit;
+        if (rp < 1.0) { orbit.setDtEffective(adaptiveDt); return orbit; }
 
-        // Phase 2 : orbite circulaire au périhélie — vitesse tangentielle v = √(GM/r)
         double vCircP = Math.sqrt(G * M_SUN / rp);
         double tx = -yp / rp;
         double ty =  xp / rp;
-        double tPerihelion = transferSteps.size() * dt;
+        double tPerihelion = transferSteps.size() * adaptiveDt;
+        double T_circ = 2 * Math.PI * Math.sqrt(rp * rp * rp / (G * M_SUN));
+        double adaptiveDtCirc = Math.max(dt, T_circ / 5_000.0);
         List<double[]> circSteps = integrate(
                 new double[]{xp, yp, tx * vCircP, ty * vCircP},
-                tPerihelion, 2 * Math.PI);
+                tPerihelion, 2 * Math.PI, adaptiveDtCirc, tPerihelion + T_circ * 2.0);
         unpackStepsIntoOrbit(circSteps, orbit, transferSteps.size());
 
+        orbit.setDtEffective(adaptiveDt);
         return orbit;
     }
 
@@ -119,6 +148,11 @@ public class MoteurPhysique {
     // ── Privé : intégration ──────────────────────────────────────────────────
 
     private List<double[]> integrate(double[] y0, double t_start, double thetaWindow) {
+        return integrate(y0, t_start, thetaWindow, dt, t_start + 365.25 * 24 * 3600);
+    }
+
+    private List<double[]> integrate(double[] y0, double t_start, double thetaWindow,
+                                     double dtStep, double tMax) {
         FirstOrderIntegrator integrator = new DormandPrince853Integrator(MIN_STEP, MAX_STEP, SCAL_ABSOLUTE_TOLERANCE, SCAL_RELATIVE_TOLERANCE);
         List<double[]> steps = new ArrayList<>();
         if (thetaWindow <= 0.0) return steps;
@@ -126,7 +160,7 @@ public class MoteurPhysique {
         final double thetaStart = Math.atan2(y0[1], y0[0]);
 
         StepNormalizer normalizer = new StepNormalizer(
-            dt,
+            dtStep,
             new FixedStepHandler() {
                 @Override
                 public void init(double t0, double[] y0, double t) { }
@@ -176,11 +210,10 @@ public class MoteurPhysique {
         };
 
         integrator.addStepHandler(normalizer);
-        integrator.addEventHandler(thetaStop, dt, 1e-6, 100);
+        integrator.addEventHandler(thetaStop, dtStep, 1e-6, 100);
 
-        double t_max = t_start + 365.25 * 24 * 3600;
         double[] state = Arrays.copyOf(y0, y0.length);
-        integrator.integrate(buildODE(0.0), t_start, state, t_max, state);
+        integrator.integrate(buildODE(0.0), t_start, state, tMax, state);
 
         integrator.clearStepHandlers();
         integrator.clearEventHandlers();
